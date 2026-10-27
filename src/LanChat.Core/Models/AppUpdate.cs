@@ -7,7 +7,7 @@ public static class AppReleases
     public const string Repository = "coolqingcheng/feilv";
     public const string HomeUrl = "https://github.com/" + Repository;
     public static string Runtime => (OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsMacOS() ? "osx" : "linux")
-        + "-" + RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
+        + "-" + RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
     public static string AssetName(string version, string runtime) => $"feilv-v{version}-{runtime}" + (runtime.StartsWith("win-", StringComparison.Ordinal) ? ".zip" : ".tar.gz");
 }
 

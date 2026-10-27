@@ -15,7 +15,7 @@ public static class UpdateInstaller
         if (Path.GetFileNameWithoutExtension(target) is "dotnet" or "LanChat.IntegrationTests" || File.Exists(Path.Combine(Path.GetDirectoryName(target)!, "LanChat.Desktop.dll")))
             throw new IOException("开发环境不能替换程序，请使用正式发行版。");
         using var current = Process.GetCurrentProcess();
-        var plan = new UpdateInstallPlan(package, target, current.Id, current.StartTime.ToUniversalTime().Ticks, Environment.GetCommandLineArgs()[1..]);
+        var plan = new UpdateInstallPlan(package, target, current.Id, current.StartTime.ToUniversalTime().Ticks, RestartArguments(Environment.GetCommandLineArgs()[1..]));
         var planPath = Path.Combine(Path.GetDirectoryName(package.PayloadDirectory)!, "install.json");
         await using (var stream = new FileStream(planPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous))
             await JsonSerializer.SerializeAsync(stream, plan, UpdateJsonContext.Default.UpdateInstallPlan, ct).ConfigureAwait(false);
@@ -92,6 +92,17 @@ public static class UpdateInstaller
     }
 
     internal sealed record ReplacedFile(string Target, string? Backup);
+
+    internal static string[] RestartArguments(string[] arguments)
+    {
+        var result = new List<string>();
+        for (var i = 0; i < arguments.Length; i++)
+        {
+            if (arguments[i] == "--update-ready") { i++; continue; }
+            result.Add(arguments[i]);
+        }
+        return result.ToArray();
+    }
 
     internal static List<ReplacedFile> ApplyFiles(PreparedAppUpdate package, string targetExecutable, string backupDirectory, Action<string>? beforeReplace = null)
     {

@@ -24,6 +24,7 @@ internal static partial class Program
         Check(page.Contains("上传到电脑", StringComparison.Ordinal) && page.Contains("下载文件", StringComparison.Ordinal)
             && Directory.Exists(uploads) && Directory.Exists(downloads), "QR URL serves a self-contained upload/download page and creates separate roots");
         var script = page[(page.IndexOf("<script>", StringComparison.Ordinal) + 8)..page.IndexOf("</script>", StringComparison.Ordinal)];
+        Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), ".build"));
         await File.WriteAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(), ".build", "qr-upload.js"), script);
         Check((await client.GetAsync($"http://127.0.0.1:{server.Port}/")).StatusCode == HttpStatusCode.NotFound, "requests without the current sharing link cannot browse files");
         var payload = Encoding.UTF8.GetBytes("来自手机的文件\n异步传输");
