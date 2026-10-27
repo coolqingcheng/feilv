@@ -1,4 +1,5 @@
 using System.Net;
+using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Security.Cryptography;
@@ -17,6 +18,8 @@ internal static partial class Program
         var root = Path.Combine(TestRoot, "qr-http-tests");
         var uploads = Path.Combine(root, "uploads"); var downloads = Path.Combine(root, "downloads");
         await using var server = new QrHttpServer();
+        var receivedUploads = new ConcurrentQueue<QrUpload>();
+        server.UploadCompleted += upload => { receivedUploads.Enqueue(upload); return Task.CompletedTask; };
         Check(server.Port == 0, "QR HTTP server has no listener until explicitly started");
         await server.StartAsync(uploads, downloads);
         var address = $"http://127.0.0.1:{server.Port}{server.BasePath}";
@@ -50,6 +53,11 @@ internal static partial class Program
         using (var response = await client.PostAsync(address + "upload?name=" + Uri.EscapeDataString("手机 图片 &资料.txt"), new ByteArrayContent([42])))
             Check(response.StatusCode == HttpStatusCode.Created && File.Exists(Path.Combine(uploads, "手机 图片 &资料 (1).txt"))
                 && (await File.ReadAllBytesAsync(Path.Combine(uploads, "手机 图片 &资料.txt"))).SequenceEqual(payload), "duplicate upload names are renamed without overwriting the original file");
+        var receipt = receivedUploads.Single(x => x.FileName == "手机 图片 &资料 (1).txt");
+        using (var committed = new FileStream(receipt.FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            Check(committed.Length == receipt.Size && receipt.Size == 1 && receipt.SenderAddress == "127.0.0.1"
+                && receipt.BytesPerSecond > 0 && double.IsFinite(receipt.BytesPerSecond) && Guid.TryParseExact(receipt.Id, "N", out _),
+                "upload completion reports the final collision-safe filename, closed file, actual size, socket IP and measured speed");
         using (var request = new HttpRequestMessage(HttpMethod.Post, address + "upload?name=chunked.bin") { Content = new ByteArrayContent(payload) })
         {
             request.Headers.TransferEncodingChunked = true;
@@ -58,6 +66,14 @@ internal static partial class Program
         }
         using (var response = await client.PostAsync(address + "upload?name=empty.txt", new ByteArrayContent([])))
             Check(response.StatusCode == HttpStatusCode.Created && new FileInfo(Path.Combine(uploads, "empty.txt")).Length == 0, "HTTP upload supports empty files");
+        Check(receivedUploads.Single(x => x.FileName == "empty.txt").Size == 0
+            && receivedUploads.Single(x => x.FileName == "chunked.bin").Size == payload.Length, "empty and chunked uploads emit complete metadata exactly once");
+        Func<QrUpload, Task> brokenObserver = _ => Task.FromException(new IOException("test observer failure"));
+        server.UploadCompleted += brokenObserver;
+        using (var response = await client.PostAsync(address + "upload?name=observer.txt", new ByteArrayContent([1])))
+            Check(response.StatusCode == HttpStatusCode.Created && File.Exists(Path.Combine(uploads, "observer.txt")),
+                "a notification observer failure cannot report a durably saved upload as failed");
+        server.UploadCompleted -= brokenObserver;
         Check((await client.GetAsync(address + "download?path=empty.txt")).StatusCode == HttpStatusCode.NotFound, "upload-only files are not exposed through a separately configured download root");
         Directory.CreateDirectory(Path.Combine(downloads, "子目录"));
         var relative = Path.Combine("子目录", "共享 文档&.txt");
@@ -77,6 +93,7 @@ internal static partial class Program
             using var response = await client.SendAsync(request);
             Check(response.StatusCode == HttpStatusCode.PartialContent && (await response.Content.ReadAsByteArrayAsync()).SequenceEqual(payload[1..6]), "single HTTP byte ranges support resumed downloads");
         }
+        var completedBeforeInvalidRequests = receivedUploads.Count;
         foreach (var path in new[] { "../outside.txt", "C:/Windows/win.ini", "nested/../../outside.txt", "file:stream" })
         {
             using var response = await client.GetAsync(address + "download?path=" + Uri.EscapeDataString(path));
@@ -93,7 +110,9 @@ internal static partial class Program
             using var response = await client.SendAsync(request);
             Check(response.StatusCode == HttpStatusCode.Forbidden && !File.Exists(Path.Combine(uploads, "foreign.txt")), "HTTP upload rejects a different browser origin");
         }
+        Check(receivedUploads.Count == completedBeforeInvalidRequests, "invalid uploads and rejected browser origins never emit completion notifications");
         await RunHttpStreamingCheckAsync(server, client, uploads, downloads);
+        var completedBeforePartial = receivedUploads.Count;
         using (var partial = new TcpClient())
         {
             await partial.ConnectAsync("127.0.0.1", server.Port);
@@ -103,6 +122,7 @@ internal static partial class Program
             await server.StopAsync();
             Check(server.Port == 0 && !Directory.EnumerateFiles(uploads, ".feilu-upload-*").Any() && !File.Exists(Path.Combine(uploads, "incomplete.bin")),
                 "stopping HTTP sharing cancels active uploads, removes partial bodies and releases the listener");
+            Check(receivedUploads.Count == completedBeforePartial, "cancelled partial uploads never emit a successful completion");
         }
         await server.StartAsync(uploads, downloads);
         Check(!address.EndsWith(server.BasePath, StringComparison.Ordinal), "restarting HTTP sharing creates a fresh QR link");

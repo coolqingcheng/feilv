@@ -1631,6 +1631,30 @@
     "上传分块结尾无效。",
     "Invalid upload chunk ending."
   ],
+  "QRUpload": [
+    "二维码上传",
+    "QR upload"
+  ],
+  "FromQRUpload": [
+    "来自二维码上传",
+    "From QR upload"
+  ],
+  "MoreReceivedFilesToView": [
+    "还有 {count} 个已接收文件等待查看",
+    "{count} more received files to view"
+  ],
+  "MoreItemsPending": [
+    "还有 {count} 项待处理",
+    "{count} more items pending"
+  ],
+  "QRFileSavedButHistoryFailed": [
+    "二维码文件已保存，但记录写入失败：{error}",
+    "QR file saved, but history could not be written: {error}"
+  ],
+  "CouldNotOpenDownloads": [
+    "打开接收目录失败：{error}",
+    "Could not open downloads folder: {error}"
+  ],
   "ToggleLightDarkTheme": [
     "切换亮暗主题",
     "Toggle light/dark theme"

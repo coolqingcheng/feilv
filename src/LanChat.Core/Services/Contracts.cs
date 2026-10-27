@@ -4,6 +4,7 @@ namespace LanChat.Core.Services;
 
 public interface IQrHttpServer : IDisposable, IAsyncDisposable
 {
+    event Func<QrUpload, Task>? UploadCompleted;
     int Port { get; }
     string BasePath { get; }
     Task StartAsync(string uploadDirectory, string downloadDirectory, CancellationToken cancellationToken = default);

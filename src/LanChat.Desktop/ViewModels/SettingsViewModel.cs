@@ -117,7 +117,12 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         }
     }
 
-    [RelayCommand] private void OpenDownloads() { Directory.CreateDirectory(DownloadDirectory); _ui.OpenFile(DownloadDirectory); }
+    [RelayCommand]
+    private void OpenDownloads()
+    {
+        try { Directory.CreateDirectory(DownloadDirectory); _ui.OpenFile(DownloadDirectory); }
+        catch (Exception ex) { _status("打开接收目录失败：" + ex.Message); }
+    }
 
     [RelayCommand]
     private async Task SetLanguageAsync(string language)

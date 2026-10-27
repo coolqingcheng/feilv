@@ -19,11 +19,12 @@
             <TextBlock x:Name="PageHeading" Grid.Column="2" Text="{Binding PageTitle, Converter={StaticResource Translate}}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding PageTitle, Converter={StaticResource Translate}}" />
           </Grid>
           <StackPanel Grid.Column="1" Orientation="Horizontal">
-            <Button x:Name="QrShareButton" Classes="window" Width="34" Height="44" Command="{Binding OpenQrShareCommand}" IsEnabled="{Binding !Inbox.IsPickerOpen}" ToolTip.Tip="{DynamicResource Loc.QRSharing}" AutomationProperties.Name="{DynamicResource Loc.QRSharing}"><icons:SvgIcon Kind="qr-code" Width="15" Height="15" /></Button>
-            <Button x:Name="ThemeToggleButton" Classes="window" Width="34" Height="44" Command="{Binding Settings.SetThemeCommand}" CommandParameter="{DynamicResource ThemeToggleTarget}" ToolTip.Tip="{DynamicResource Loc.ToggleLightDarkTheme}" AutomationProperties.Name="{DynamicResource Loc.ToggleLightDarkTheme}">
+            <Button x:Name="OpenDownloadsButton" Classes="window" Width="30" Height="44" Command="{Binding Settings.OpenDownloadsCommand}" ToolTip.Tip="{DynamicResource Loc.OpenDownloadsFolder}" AutomationProperties.Name="{DynamicResource Loc.OpenDownloadsFolder}"><icons:SvgIcon Kind="folder" Width="15" Height="15" /></Button>
+            <Button x:Name="QrShareButton" Classes="window" Width="30" Height="44" Command="{Binding OpenQrShareCommand}" IsEnabled="{Binding !Inbox.IsPickerOpen}" ToolTip.Tip="{DynamicResource Loc.QRSharing}" AutomationProperties.Name="{DynamicResource Loc.QRSharing}"><icons:SvgIcon Kind="qr-code" Width="15" Height="15" /></Button>
+            <Button x:Name="ThemeToggleButton" Classes="window" Width="30" Height="44" Command="{Binding Settings.SetThemeCommand}" CommandParameter="{DynamicResource ThemeToggleTarget}" ToolTip.Tip="{DynamicResource Loc.ToggleLightDarkTheme}" AutomationProperties.Name="{DynamicResource Loc.ToggleLightDarkTheme}">
               <icons:SvgIcon x:Name="ThemeToggleIcon" Kind="{DynamicResource ThemeToggleIcon}" Width="15" Height="15" />
             </Button>
-            <Button x:Name="MainMenuButton" Classes="window" Width="34" Height="44" IsEnabled="{Binding !Inbox.IsPickerOpen}" ToolTip.Tip="{DynamicResource Loc.TransfersSharingAndSettings}" AutomationProperties.Name="{DynamicResource Loc.MoreOptions}">
+            <Button x:Name="MainMenuButton" Classes="window" Width="30" Height="44" IsEnabled="{Binding !Inbox.IsPickerOpen}" ToolTip.Tip="{DynamicResource Loc.TransfersSharingAndSettings}" AutomationProperties.Name="{DynamicResource Loc.MoreOptions}">
               <icons:SvgIcon Kind="settings" Width="15" Height="15" />
               <Button.Flyout><MenuFlyout>
                 <MenuItem Header="{DynamicResource Loc.Transfers}" Command="{Binding NavigateCommand}" CommandParameter="Files" />
@@ -31,8 +32,8 @@
                 <MenuItem Header="{DynamicResource Loc.Settings}" Command="{Binding NavigateCommand}" CommandParameter="Settings" />
               </MenuFlyout></Button.Flyout>
             </Button>
-            <Button Classes="window" Height="44" Click="MinimizeClicked" ToolTip.Tip="{DynamicResource Loc.MinimizeToTray}"><icons:SvgIcon Kind="minus" Width="14" Height="14" /></Button>
-            <Button Classes="window" Height="44" Click="CloseClicked" ToolTip.Tip="{DynamicResource Loc.HideToTray}"><icons:SvgIcon Kind="x" Width="15" Height="15" /></Button>
+            <Button Classes="window" Width="38" Height="44" Click="MinimizeClicked" ToolTip.Tip="{DynamicResource Loc.MinimizeToTray}"><icons:SvgIcon Kind="minus" Width="14" Height="14" /></Button>
+            <Button Classes="window" Width="38" Height="44" Click="CloseClicked" ToolTip.Tip="{DynamicResource Loc.HideToTray}"><icons:SvgIcon Kind="x" Width="15" Height="15" /></Button>
           </StackPanel>
         </Grid>
         <Grid Grid.Row="1" IsVisible="{Binding IsFiles}"><views:FileInboxView DataContext="{Binding Inbox}" /></Grid>

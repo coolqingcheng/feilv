@@ -14,7 +14,8 @@ public partial class FileHistoryItemViewModel : ViewModelBase
     public string Key => Model.PeerId + ":" + Model.Id;
     public string FileName => Model.FileName ?? Localizer.Text("附件");
     public string Size => ImageLoader.FileSize(Model.FileSize);
-    public string Source => (IsMine ? "发给 " : "来自 ") + (string.IsNullOrEmpty(Model.PeerNickname) ? Localizer.Text("未知设备") : Model.PeerNickname);
+    public string Source => Model.PeerId == QrUpload.SourceId ? Localizer.Text("来自二维码上传")
+        : (IsMine ? "发给 " : "来自 ") + (string.IsNullOrEmpty(Model.PeerNickname) ? Localizer.Text("未知设备") : Model.PeerNickname);
     public string Address => string.IsNullOrEmpty(Model.PeerAddress) ? "IP 未记录" : "IP " + Model.PeerAddress;
     public string Time => (Model.ReceivedAt ?? Model.Timestamp).ToLocalTime().ToString("yyyy-MM-dd HH:mm");
     public string TimeDescription => (IsMine ? "发送时间：" : "接收时间：") + Time;

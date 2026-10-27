@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
@@ -28,6 +29,7 @@ public sealed class QrHttpServer : IQrHttpServer
     private bool _disposed;
     public int Port { get; private set; }
     public string BasePath { get; private set; } = "";
+    public event Func<QrUpload, Task>? UploadCompleted;
 
     public async Task StartAsync(string uploadDirectory, string downloadDirectory, CancellationToken cancellationToken = default)
     {
@@ -145,7 +147,8 @@ public sealed class QrHttpServer : IQrHttpServer
                     var name = Query(request.Target, "name");
                     ValidateFileName(name);
                     var root = SharedFileAccess.Resolve(new SharedFolder("qr", "", _uploadRoot), "");
-                    var temporary = Path.Combine(root, ".feilu-upload-" + Guid.NewGuid().ToString("N") + ".partial");
+                    var id = Guid.NewGuid().ToString("N");
+                    var temporary = Path.Combine(root, ".feilu-upload-" + id + ".partial");
                     try
                     {
                         if (request.Headers.TryGetValue("Expect", out var expect))
@@ -153,9 +156,19 @@ public sealed class QrHttpServer : IQrHttpServer
                             if (!string.Equals(expect, "100-continue", StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("不支持的上传请求。");
                             await stream.WriteAsync("HTTP/1.1 100 Continue\r\n\r\n"u8.ToArray(), deadline.Token).ConfigureAwait(false);
                         }
+                        var started = Stopwatch.GetTimestamp();
+                        long size;
                         await using (var file = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous))
+                        {
                             await request.CopyBodyAsync(file, deadline).ConfigureAwait(false);
+                            size = file.Length;
+                        }
                         var saved = CommitUpload(temporary, root, name);
+                        var elapsed = Stopwatch.GetElapsedTime(started).TotalSeconds;
+                        var upload = new QrUpload(id, Path.Combine(root, saved), saved, size,
+                            (client.Client.RemoteEndPoint as IPEndPoint)?.Address.ToString() ?? "", DateTimeOffset.UtcNow,
+                            elapsed > 0 ? size / elapsed : 0);
+                        await NotifyUploadAsync(upload).ConfigureAwait(false);
                         await TextAsync(201, "已上传：" + saved);
                     }
                     finally { if (File.Exists(temporary)) File.Delete(temporary); }
@@ -185,6 +198,17 @@ public sealed class QrHttpServer : IQrHttpServer
                 if (!head) await stream.WriteAsync(bytes, deadline.Token).ConfigureAwait(false);
             }
             Task TextAsync(int code, string text) => BytesAsync(code, "text/plain; charset=utf-8", Encoding.UTF8.GetBytes(Localizer.Translate(text, webLanguage)));
+        }
+    }
+
+    private async Task NotifyUploadAsync(QrUpload upload)
+    {
+        if (UploadCompleted is not { } completed) return;
+        // Await observers within the existing eight connection slots instead of creating unbounded background tasks.
+        foreach (Func<QrUpload, Task> observer in completed.GetInvocationList())
+        {
+            try { await observer(upload).ConfigureAwait(false); }
+            catch (Exception ex) { Trace.TraceError("QR upload completion notification failed: {0}", ex); }
         }
     }
 

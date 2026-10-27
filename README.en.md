@@ -29,7 +29,7 @@ Feilv is a LAN file transfer app built with **C# / Avalonia UI**. It discovers d
 | :---: | :---: |
 | <img src="docs/images/en/devices-dark.png" width="340" alt="Online devices showing names, IP addresses, versions, transfer progress and speed" /> | <img src="docs/images/en/history-light.png" width="340" alt="Transfer history showing filenames, sizes, source computers, IP addresses, timestamps and receive actions" /> |
 
-<p align="center"><sub>Actual v1.4.9 interface, populated with demo devices, files and transfers.</sub></p>
+<p align="center"><sub>Actual v1.4.10 interface, populated with demo devices, files and transfers.</sub></p>
 
 <details>
 <summary><strong>More: QR sharing, languages, themes, sending and receiving</strong></summary>
@@ -43,6 +43,8 @@ Feilv is a LAN file transfer app built with **C# / Avalonia UI**. It discovers d
 | <img src="docs/images/en/send-files-dark.png" width="340" alt="Choose multiple computers and send to them one at a time" /> | <img src="docs/images/en/auto-receive-dark.png" width="340" alt="Background reception with file size, sender, IP address, progress and speed" /> |
 
 <p align="center"><img src="docs/images/en/receive-file-dark.png" width="340" alt="Completed reception with a full progress bar, Show in folder and Close buttons" /></p>
+
+<p align="center"><img src="docs/images/en/qr-upload-completed-dark.png" width="340" alt="QR upload completion with the source IP and an action to locate the saved file" /></p>
 
 </details>
 
@@ -87,6 +89,10 @@ On macOS / Linux, extract the **entire** archive and run `./feilv`. macOS builds
 **Shared folders:** Open **Shared folders** from the title-bar menu. Add a local directory, or choose an online computer to browse its shares.
 
 **Phone transfers:** Click the QR button in the title bar to start sharing. Connect your phone to the same LAN and scan the code to upload and download. Configure upload and download directories separately, or leave them blank to use `qr-http` alongside the executable. **Stop sharing** invalidates the link.
+
+Completed uploads show a corner notification with **Show in folder** and **Close**. They also appear in searchable transfer history with folder actions and record deletion; deleting a record keeps its file. Multiple completion notices are queued. Turning off background notifications still saves uploads and history.
+
+**Downloads shortcut:** The folder icon beside QR sharing opens the ordinary `Files` reception directory. QR uploads continue to use `qr-http` or the configured upload directory; their completion notifications locate the actual saved file.
 
 **Background operation:** Minimizing or closing the main window hides it in the system tray. Incoming transfers display a separate progress and result popup. Choose **Quit** in the tray menu to exit fully. Launch at startup is enabled on first use and can be disabled in Settings.
 

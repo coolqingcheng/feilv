@@ -10,6 +10,8 @@ namespace LanChat.Desktop.ViewModels;
 public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiServices ui, Func<bool>? autoReceive = null) : ViewModelBase, IDisposable
 {
     private readonly List<ChatMessage> _pending = [];
+    private readonly Dictionary<string, double> _completedSpeeds = [];
+    public const int MaxCompletedPrompts = 64;
     private bool _disposed;
     private bool _rejectionFailed;
     private bool AutomaticEnabled => !_disposed && autoReceive?.Invoke() == true;
@@ -36,10 +38,14 @@ public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiService
     public bool HasError => Error.Length > 0;
     public string FileName => Current?.FileName ?? Localizer.Text("附件");
     public string Size => (Current?.IsFolder == true ? "文件夹 · " : "") + ImageLoader.FileSize(Current?.FileSize ?? 0);
-    public string Source => "来自 " + (string.IsNullOrEmpty(Current?.PeerNickname) ? Localizer.Text("未知电脑") : Current.PeerNickname);
+    public string Source => Current?.PeerId == QrUpload.SourceId ? Localizer.Text("来自二维码上传")
+        : "来自 " + (string.IsNullOrEmpty(Current?.PeerNickname) ? Localizer.Text("未知电脑") : Current.PeerNickname);
     public string Address => "IP " + Current?.PeerAddress;
-    public string QueueHint => IsRejecting ? "正在通知发送方…" : _pending.Count > 0 ? $"还有 {_pending.Count} 个文件等待" + (AutomaticEnabled ? "接收" : "确认")
+    public string QueueHint => IsRejecting ? "正在通知发送方…" : _pending.Count > 0 ? PendingHint
         : IsCompleted ? "文件已保存，可打开所在文件夹查看。" : IsBusy || IsAutomatic ? "正在接收，文件按日期保存" : "确认后开始接收，文件按日期保存";
+    private string PendingHint => _pending.All(x => x.LocalPath is not null) ? $"还有 {_pending.Count} 个已接收文件等待查看"
+        : _pending.Any(x => x.LocalPath is not null) ? $"还有 {_pending.Count} 项待处理"
+        : $"还有 {_pending.Count} 个文件等待" + (AutomaticEnabled ? "接收" : "确认");
     public string AcceptLabel => IsBusy ? "正在接收…" : HasError && !_rejectionFailed ? "重试接收" : "接收";
 
     public void Enqueue(ChatMessage message)
@@ -50,6 +56,22 @@ public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiService
         else _pending.Add(message);
         OnPropertyChanged(nameof(QueueHint));
         ApplyReceivePreference();
+    }
+
+    public void EnqueueCompleted(ChatMessage message, double bytesPerSecond)
+    {
+        if (_disposed || message.PeerId != QrUpload.SourceId || message.LocalPath is null
+            || Same(Current, message) || _pending.Any(x => Same(x, message))) return;
+        // Only completion notices are bounded; every committed file remains in persistent history.
+        // Never evict a LAN confirmation or interrupt an active transfer.
+        if (_completedSpeeds.Count >= MaxCompletedPrompts && _pending.FirstOrDefault(x => x.PeerId == QrUpload.SourceId) is { } oldest)
+        {
+            _pending.Remove(oldest); _completedSpeeds.Remove(oldest.Id);
+        }
+        _completedSpeeds[message.Id] = bytesPerSecond;
+        if (Current is null) Current = message;
+        else _pending.Add(message);
+        OnPropertyChanged(nameof(QueueHint));
     }
 
     public void ApplyReceivePreference()
@@ -84,21 +106,31 @@ public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiService
     public void Remove(ChatMessage message)
     {
         _pending.RemoveAll(x => Same(x, message));
+        if (message.PeerId == QrUpload.SourceId) _completedSpeeds.Remove(message.Id);
         if (Same(Current, message) && !IsBusy) MoveNext();
         OnPropertyChanged(nameof(QueueHint));
     }
 
     private static bool Same(ChatMessage? left, ChatMessage right) => left?.Id == right.Id && left.PeerId == right.PeerId;
-    partial void OnCurrentChanged(ChatMessage? value)
+    partial void OnCurrentChanged(ChatMessage? oldValue, ChatMessage? newValue)
     {
+        if (oldValue?.PeerId == QrUpload.SourceId) _completedSpeeds.Remove(oldValue.Id);
         IsAutomatic = AutomaticEnabled;
         _rejectionFailed = false;
         CompletedPath = null; Error = ""; Progress = 0; SpeedText = "正在连接…";
+        if (newValue?.PeerId == QrUpload.SourceId && newValue.LocalPath is not null) Complete(newValue);
         foreach (var name in new[] { nameof(IsOpen), nameof(CanRespond), nameof(Header), nameof(FileName), nameof(Size), nameof(Source), nameof(Address), nameof(QueueHint) }) OnPropertyChanged(name);
     }
 
     private void Complete(ChatMessage message)
     {
+        if (message.PeerId == QrUpload.SourceId && message.LocalPath is not null)
+        {
+            CompletedPath = message.LocalPath; Progress = 100;
+            SpeedText = ImageLoader.TransferSpeed(_completedSpeeds.GetValueOrDefault(message.Id));
+            Error = File.Exists(message.LocalPath) ? "" : "接收的文件或文件夹已被移动或删除。";
+            return;
+        }
         if (message.LocalPath is null || !(message.IsFolder ? Directory.Exists(message.LocalPath) : File.Exists(message.LocalPath))) { Error = "接收的文件或文件夹已被移动或删除，请重新接收。"; return; }
         CompletedPath = message.LocalPath; Progress = 100; Error = "";
     }
@@ -169,5 +201,5 @@ public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiService
         }
     }
 
-    public void Dispose() { _disposed = true; _pending.Clear(); }
+    public void Dispose() { _disposed = true; _pending.Clear(); _completedSpeeds.Clear(); }
 }

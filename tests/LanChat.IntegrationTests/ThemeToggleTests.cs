@@ -22,7 +22,7 @@ internal static partial class Program
         var icon = window.FindControl<SvgIcon>("ThemeToggleIcon")!;
         var settings = window.FindControl<Button>("MainMenuButton")!;
         var heading = window.FindControl<TextBlock>("PageHeading")!;
-        var qr = window.FindControl<Button>("QrShareButton")!;
+        var downloads = window.FindControl<Button>("OpenDownloadsButton")!;
         var originalPage = model.Page;
         Pump(model.Settings.SetThemeCommand.ExecuteAsync("System")); Layout();
         var target = window.ActualThemeVariant == ThemeVariant.Dark ? "Light" : "Dark";
@@ -56,7 +56,7 @@ internal static partial class Program
             {
                 window.Width = width; model.Page = page; Layout();
                 var headingEnd = heading.TranslatePoint(new Point(heading.Bounds.Width, 0), window)!.Value.X;
-                var toolbarStart = qr.TranslatePoint(default, window)!.Value.X;
+                var toolbarStart = downloads.TranslatePoint(default, window)!.Value.X;
                 var buttonEnd = button.TranslatePoint(new Point(button.Bounds.Width, 0), window)!.Value.X;
                 var settingsStart = settings.TranslatePoint(default, window)!.Value.X;
                 Check(heading.Bounds.Width > 0 && headingEnd <= toolbarStart && Math.Abs(buttonEnd - settingsStart) < 1,

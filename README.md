@@ -30,7 +30,7 @@
 | :---: | :---: |
 | <img src="docs/images/devices-dark.png" width="340" alt="在线设备列表：显示名称、IP、版本号及文件发送进度和速度" /> | <img src="docs/images/history-light.png" width="340" alt="收发记录：显示文件名、大小、来源电脑、IP、时间和接收操作" /> |
 
-<p align="center"><sub>v1.4.9 真实界面，使用演示设备、文件和传输数据。</sub></p>
+<p align="center"><sub>v1.4.10 真实界面，使用演示设备、文件和传输数据。</sub></p>
 
 <details>
 <summary><strong>查看更多：二维码分享、主题设置、发送与接收</strong></summary>
@@ -44,6 +44,8 @@
 | <img src="docs/images/send-files-dark.png" width="340" alt="发送文件时可以勾选多台电脑，按顺序发送" /> | <img src="docs/images/auto-receive-dark.png" width="340" alt="后台自动接收：显示文件大小、来源、IP、进度条和实时速度" /> |
 
 <p align="center"><img src="docs/images/receive-file-dark.png" width="340" alt="接收完成：进度条保持 100%，可打开所在文件夹或关闭提示" /></p>
+
+<p align="center"><img src="docs/images/qr-upload-completed-dark.png" width="340" alt="二维码上传完成：显示来源 IP，可打开所在文件夹定位实际上传文件" /></p>
 
 </details>
 
@@ -88,6 +90,10 @@ macOS / Linux 完整解压后运行 `./feilv`。macOS 当前尚未进行 Apple �
 **共享目录**：从标题栏菜单进入“共享文件夹”，添加本地目录，或选择在线电脑浏览对方共享。
 
 **手机传文件**：点击标题栏二维码按钮启动分享，手机连接同一局域网后扫码，即可上传、下载。上传与下载目录可以分别设置，留空时使用程序目录下的 `qr-http`；点击“停止分享”后链接失效。
+
+手机上传完成后，右下角显示接收完成提示，可“打开所在文件夹”定位到实际保存的文件，也可关闭提示。上传文件同步加入收发记录，支持搜索、文件夹定位和删除记录；删除记录保留文件。多文件完成提示排队显示，关闭后台提示仍保留文件和记录。
+
+**接收目录快捷入口**：二维码按钮旁的文件夹图标可一键打开普通接收目录 `Files`。二维码上传文件仍按分享设置保存到 `qr-http` 或自定义目录，上传完成提示会定位到该文件的实际位置。
 
 **后台运行**：最小化或关闭主窗口会隐藏到托盘，来文件时显示独立接收进度和结果。从右下角托盘菜单选择“退出”可完全关闭。开机启动首次默认开启，可在设置中关闭。
 

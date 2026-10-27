@@ -35,6 +35,12 @@ internal static partial class Program
         try
         {
             Directory.CreateDirectory(TestRoot);
+            if (args.Contains("--qr-upload-ui"))
+            {
+                AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
+                RunQrUploadNotificationTests();
+                Console.WriteLine($"PASS: {_checks} checks"); return 0;
+            }
             SingleInstanceTests.RunAsync(TestRoot, Check).GetAwaiter().GetResult();
             RunFileHistoryStorageTestsAsync().GetAwaiter().GetResult();
             RunStartupConfigurationTests();
@@ -244,6 +250,7 @@ internal static partial class Program
         RunAutomaticReceiveTests();
         RunLocalizationUiTests();
         RunThemeToggleTests(window, model, store);
+        RunQrUploadNotificationTests();
         model.Dispose();
         window.AllowClose = true; window.Close();
         Pump(node.DisposeAsync().AsTask()); Pump(remote.DisposeAsync().AsTask());

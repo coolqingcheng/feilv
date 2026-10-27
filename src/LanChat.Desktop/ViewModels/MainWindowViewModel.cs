@@ -13,6 +13,8 @@ namespace LanChat.Desktop.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase, IDisposable
 {
     private readonly ILanService _lan;
+    private readonly ILocalStore _store;
+    private readonly IQrHttpServer _qrServer;
     private readonly IUiServices _ui;
     private readonly Dictionary<string, PeerViewModel> _peers = [];
     private readonly HashSet<(string PeerId, string Id)> _notifiedOffers = [];
@@ -37,6 +39,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     public MainWindowViewModel(ILanService lan, ILocalStore store, IUiServices ui)
     {
         _lan = lan;
+        _store = store;
         _ui = ui;
         Inbox = new FileInboxViewModel(lan, store, ui, SetStatus);
         Incoming = new ReceiveOffersViewModel(Inbox, ui, () => lan.Profile.AutoReceive);
@@ -46,12 +49,33 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             () => Inbox.HasActiveTransfers || _peers.Values.Any(x => x.IsTransferring));
         Settings = new SettingsViewModel(lan, store, ui, SetStatus, Updates);
         Settings.ReceivePreferencesSaved += Incoming.ApplyReceivePreference;
-        QrShare = new QrShareViewModel(new QrHttpServer(), lan.Profile, store, ui);
+        _qrServer = new QrHttpServer();
+        _qrServer.UploadCompleted += OnQrUploadCompletedAsync;
+        QrShare = new QrShareViewModel(_qrServer, lan.Profile, store, ui);
         lan.PeerChanged += OnPeerChanged;
         lan.MessageReceived += OnMessageReceived;
         lan.TransferChanged += OnTransferChanged;
         lan.Error += OnError;
         Localizer.Changed += OnLanguageChanged;
+    }
+
+    private Task OnQrUploadCompletedAsync(QrUpload upload) => Dispatcher.UIThread.InvokeAsync(() => RecordQrUploadAsync(upload));
+
+    private async Task RecordQrUploadAsync(QrUpload upload)
+    {
+        if (_disposed) return;
+        var message = new ChatMessage
+        {
+            Id = upload.Id, PeerId = QrUpload.SourceId, SenderId = QrUpload.SourceId,
+            Kind = Path.GetExtension(upload.FileName).ToLowerInvariant() is ".png" or ".jpg" or ".jpeg" or ".webp" or ".bmp" or ".gif" ? MessageKind.Image : MessageKind.File,
+            FileName = upload.FileName, FileSize = upload.Size, LocalPath = upload.FilePath, Delivery = DeliveryState.Received,
+            PeerNickname = "二维码上传", PeerAddress = upload.SenderAddress, Timestamp = upload.ReceivedAt, ReceivedAt = upload.ReceivedAt
+        };
+        try { if (!await _store.TrySaveReceivedMessageAsync(message)) return; }
+        catch (Exception ex) { if (!_disposed) { Status = "二维码文件已保存，但记录写入失败：" + ex.Message; Inbox.Feedback = Status; } }
+        if (_disposed) return;
+        Inbox.Ingest(message);
+        Incoming.EnqueueCompleted(message, upload.BytesPerSecond);
     }
 
     private void OnLanguageChanged()
@@ -146,6 +170,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         if (_disposed) return;
         _disposed = true;
         Localizer.Changed -= OnLanguageChanged;
+        _qrServer.UploadCompleted -= OnQrUploadCompletedAsync;
         _lan.PeerChanged -= OnPeerChanged; _lan.MessageReceived -= OnMessageReceived;
         _lan.TransferChanged -= OnTransferChanged; _lan.Error -= OnError;
         Inbox.HistoryDeleted -= Incoming.Remove;
