@@ -41,6 +41,7 @@ internal static partial class Program
             RunUpdateHelperTestsAsync().GetAwaiter().GetResult();
             PresenceTests.RunAsync(TestRoot, Check).GetAwaiter().GetResult();
             RunNetworkTestsAsync().GetAwaiter().GetResult();
+            RunRejectionTestsAsync().GetAwaiter().GetResult();
             if (!args.Contains("--no-ui")) RunUiTests();
             Console.WriteLine($"PASS: {_checks} checks");
             return 0;
@@ -172,7 +173,7 @@ internal static partial class Program
     {
         AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
         var store = new IndexedFileStore(Path.Combine(TestRoot, "ui"));
-        var profile = new UserProfile { Nickname = "林间" };
+        var profile = new UserProfile { Nickname = "林间", AutoReceive = false };
         var node = new LanService(store, profile, new NodeOptions { EnableDiscovery = false });
         var remoteStore = new IndexedFileStore(Path.Combine(TestRoot, "ui-remote"));
         var remote = new LanService(remoteStore, new UserProfile { Nickname = "小宇" }, new NodeOptions { EnableDiscovery = false });
@@ -237,6 +238,7 @@ internal static partial class Program
         RunHistoryDeletionTests(window, model, node, store, remote);
         RunQrShareUiTests(window, model, store, ui);
         RunGitHubUpdateUiTests(window, node, store, ui);
+        RunAutomaticReceiveTests();
         model.Dispose();
         window.AllowClose = true; window.Close();
         Pump(node.DisposeAsync().AsTask()); Pump(remote.DisposeAsync().AsTask());

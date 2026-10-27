@@ -9,6 +9,7 @@
         </Grid>
         <StackPanel Spacing="8"><TextBlock Text="设备名称" Classes="section" /><TextBox Text="{Binding Nickname}" MaxLength="40" Watermark="发送文件时显示给对方" /></StackPanel>
         <CheckBox IsChecked="{Binding ShowNotifications}"><TextBlock Text="后台收到文件时显示接收提示" TextWrapping="Wrap" /></CheckBox>
+        <CheckBox x:Name="AutoReceiveOption" IsChecked="{Binding AutoReceive}"><TextBlock Text="自动接收文件和文件夹" TextWrapping="Wrap" /></CheckBox>
         <CheckBox x:Name="StartWithWindowsOption" IsChecked="{Binding StartWithWindows}" IsVisible="{Binding SupportsWindowsStartup}"><TextBlock Text="开机启动飞驴" TextWrapping="Wrap" /></CheckBox>
         <CheckBox IsChecked="{Binding AutoDownloadUpdates}"><TextBlock Text="自动检查并下载更新，校验后提示" TextWrapping="Wrap" /></CheckBox>
         <Button Classes="primary" Content="保存设置" Command="{Binding SaveCommand}" HorizontalAlignment="Stretch" />

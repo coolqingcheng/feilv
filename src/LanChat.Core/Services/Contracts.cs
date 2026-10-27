@@ -18,6 +18,7 @@ public interface ILocalStore
     Task<List<Peer>> LoadPeersAsync(CancellationToken cancellationToken = default);
     Task SavePeersAsync(IReadOnlyList<Peer> peers, CancellationToken cancellationToken = default);
     Task<List<ChatMessage>> LoadMessagesAsync(CancellationToken cancellationToken = default);
+    Task<ChatMessage?> FindMessageAsync(string peerId, string id, CancellationToken cancellationToken = default);
     Task<FileHistoryPage> LoadFileHistoryAsync(string search = "", FileHistoryCursor? before = null, int pageSize = 50, CancellationToken cancellationToken = default);
     Task SaveMessageAsync(ChatMessage message, CancellationToken cancellationToken = default);
     Task DeleteMessageAsync(string peerId, string id, CancellationToken cancellationToken = default);
@@ -50,6 +51,7 @@ public interface ILanService : IAsyncDisposable
     Task<ChatMessage> SendFolderAsync(Peer peer, string path, CancellationToken cancellationToken = default);
     Task RetryMessageAsync(Peer peer, ChatMessage message, CancellationToken cancellationToken = default);
     Task<string> DownloadAttachmentAsync(Peer peer, ChatMessage message, CancellationToken cancellationToken = default);
+    Task RejectAttachmentAsync(Peer peer, ChatMessage message, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SharedEntry>> BrowseAsync(Peer peer, string? rootId = null, string relativePath = "", CancellationToken cancellationToken = default);
     Task<string> DownloadSharedFileAsync(Peer peer, SharedEntry entry, CancellationToken cancellationToken = default);
     Task AddSharedFolderAsync(string path, CancellationToken cancellationToken = default);

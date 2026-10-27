@@ -22,6 +22,7 @@ internal sealed record WirePacket
     public Announcement? Sender { get; init; }
     public ChatMessage? Message { get; init; }
     public string? AttachmentId { get; init; }
+    public string? MessageId { get; init; }
     public string? RootId { get; init; }
     public string RelativePath { get; init; } = "";
     public List<SharedEntry>? Entries { get; init; }

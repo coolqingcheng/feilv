@@ -14,6 +14,12 @@ HTTP 服务仅在点击按钮后启动，最小化和切换页面仍继续运行
 
 网页资源全部内置，无 CDN 依赖，跟随手机的深浅色主题。浏览器使用文件正文流上传，服务端支持固定长度及 chunked 请求；上传和下载使用 64 KiB 缓冲，最多处理 8 个连接，支持单区间下载和 HEAD。请求头限制为 16 KiB，拒绝目录越界、目录链接、不安全文件名及不同来源的浏览器上传；下载使用附件响应。二维码由 QRCoder 生成并以矢量绘制，MIT 许可证嵌入 Assets/QRCoder-LICENSE.txt；测试用 ZXing 独立解码真实截图。
 
+## 接收与拒绝
+
+设置中的“自动接收文件和文件夹”默认开启，保存在 `Data/config.xml` 的 `AutoReceive` 节点；旧配置缺少该节点时也默认开启。文件到达后按顺序接收，右下角显示进度和速度，完成后进度条保留 100%，可定位文件或关闭提示。关闭接收通知仍会自动接收，只隐藏后台提示。关闭自动接收后显示“接收 / 拒绝”；按 Escape 或关闭提示只暂存到历史，不发送拒绝回执。
+
+明确拒绝时，通过认证的 TLS 连接发送包含消息 ID 和附件 ID 的拒绝回执，发送方确认后更新双方记录与发送端设备行。拒绝状态持久化到文件索引，发送方停止提供该附件下载；重复回执不会重复更新，已删除的历史不会恢复。回执失败时保留请求以便重试。重新发送会创建独立的新请求。
+
 ## 网络与资源
 
 通过 UDP 45831 的 IPv4 组播和广播发现设备，上线时其他客户端立即单播应答；应答限流且不会再次触发应答。每秒心跳，后台每 500 毫秒检查状态，超过 3 秒未活动时进行 750 毫秒 TLS 探测；正常退出主动广播离线，异常退出通常约 3–5 秒标记离线。探测不请求头像，并限制并发数量。网络不支持广播或组播时，可在设置里使用 IP 和 TCP 45832 手动连接。
@@ -92,7 +98,7 @@ git diff
 
 ```powershell
 .\scripts\publish.ps1 -Runtime win-x64
-# artifacts/feilv-v1.4.5-win-x64-setup.exe
+# artifacts/feilv-v1.4.6-win-x64-setup.exe
 ```
 
 版本号由 Directory.Build.props 统一维护，设置页、发行包和程序版本一致。Native AOT 依赖目标系统的原生链接器：Windows 为 MSVC C++ 与 Windows SDK，macOS 为 Xcode 命令行工具，Linux 为 clang、zlib 开发包。Windows 安装包使用 Inno Setup 6.7.1 或更新版本，其 BrowseForFolder 脚本接口通过 IFileDialog 打开现代系统目录选择器；GitHub Windows 构建机已包含编译器。本地已有原生发行目录时，也可用 scripts/build-installer.ps1 -SourceDirectory 目录直接封装。发布必须在目标系统和架构的机器上执行，不会回退到托管发布。

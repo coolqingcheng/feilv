@@ -128,6 +128,7 @@
                       </WrapPanel>
                       <TextBlock Text="{Binding Address}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
                       <TextBlock Text="{Binding Time}" Classes="muted" FontSize="11" ToolTip.Tip="{Binding TimeDescription}" />
+                      <TextBlock Text="{Binding RejectionLabel}" IsVisible="{Binding IsRejected}" Classes="muted" FontSize="11" />
                       <TextBlock Text="{Binding TransferText}" IsVisible="{Binding IsBusy}" Foreground="{DynamicResource AccentBrush}" FontSize="11" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="2" Grid.Row="1" VerticalAlignment="Center" Spacing="5" MinWidth="58">

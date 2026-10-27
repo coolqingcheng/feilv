@@ -112,7 +112,7 @@ internal static partial class Program
         {
             Pump(model.Settings.SetThemeCommand.ExecuteAsync(theme)); Layout(prompt); Render(prompt, "receive-confirm-" + theme.ToLowerInvariant() + ".png");
         }
-        Click(prompt, prompt.FindControl<Button>("DeferReceiveButton")!); Layout(prompt);
+        model.Incoming.Defer(); Layout(prompt);
         Check(model.Incoming.Current?.Id == offerB.Result.Id && model.Inbox.Files.Single(x => x.Model.Id == offerA.Result.Id).Model.LocalPath is null,
             "deferring leaves the first file undownloaded and advances to the next queued offer");
         var downloading = model.Incoming.Current!;

@@ -12,14 +12,19 @@ internal static partial class Program
         var directory = Path.Combine(TestRoot, "startup-config");
         var config = XmlConfiguration.Load(directory);
         Check(config.Profile.StartWithWindows && config.Profile.Theme == "System", "new configuration defaults to Windows startup and the system theme");
+        Check(config.Profile.AutoReceive, "new configuration enables automatic file and folder reception by default");
         config.Save(directory);
         config.Profile.StartWithWindows = false;
+        config.Profile.AutoReceive = false;
         config.Save(directory);
         Check(!XmlConfiguration.Load(directory).Profile.StartWithWindows, "explicit startup opt-out survives XML roundtrip");
+        Check(!XmlConfiguration.Load(directory).Profile.AutoReceive, "automatic reception can be disabled and persists in XML");
         var legacy = XDocument.Load(AppPaths.Configuration(directory));
         legacy.Root!.Element("Profile")!.Element("StartWithWindows")!.Remove();
+        legacy.Root!.Element("Profile")!.Element("AutoReceive")!.Remove();
         legacy.Save(AppPaths.Configuration(directory));
         Check(XmlConfiguration.Load(directory).Profile.StartWithWindows, "older XML without the startup option uses the enabled default");
+        Check(XmlConfiguration.Load(directory).Profile.AutoReceive, "older configurations without an automatic receive option use the enabled default");
         var executable = Path.Combine(directory, "有空格的目录", "飞驴-v1.1.0.exe");
         Check(WindowsStartupService.BuildCommand(executable, directory) == $"\"{executable}\"",
             "startup quotes the actual versioned executable path including spaces and Unicode");

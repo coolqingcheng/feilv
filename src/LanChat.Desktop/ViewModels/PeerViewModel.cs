@@ -60,7 +60,7 @@ public partial class PeerViewModel : ViewModelBase, IDisposable
     {
         if (_completedAttachmentId == message.AttachmentId || (IsTransferring && !IsPreparingTransfer)) return;
         TransferName = message.FileName ?? "文件";
-        TransferStatus = message.Delivery switch { DeliveryState.Sent => "等待对方接收", DeliveryState.Failed => "发送失败", _ => "发送接收请求…" };
+        TransferStatus = message.Delivery switch { DeliveryState.Sent => "等待对方接收", DeliveryState.Failed => "发送失败", DeliveryState.Rejected => "对方已拒绝", _ => "发送接收请求…" };
         TransferSpeed = ""; IsTransferring = false; IsPreparingTransfer = false; TransferProgress = 0;
     }
 
@@ -71,7 +71,7 @@ public partial class PeerViewModel : ViewModelBase, IDisposable
         TransferProgress = update.TotalBytes == 0 ? 0 : Math.Clamp(update.CompletedBytes * 100.0 / update.TotalBytes, 0, 100);
         IsPreparingTransfer = update.Status is "准备文件夹" or "准备发送" or "连接中";
         IsTransferring = IsPreparingTransfer || update.Status is "发送中" or "下载中";
-        TransferSpeed = IsPreparingTransfer || update.Status == "排队等待" ? "" : ImageLoader.TransferSpeed(update.BytesPerSecond);
+        TransferSpeed = IsPreparingTransfer || update.Status is "排队等待" or "对方已拒绝" ? "" : ImageLoader.TransferSpeed(update.BytesPerSecond);
         if (update.Status == "已完成") _completedAttachmentId = update.AttachmentId;
     }
 

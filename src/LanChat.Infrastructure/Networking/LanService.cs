@@ -22,6 +22,7 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
     private readonly SemaphoreSlim _peerPersistGate = new(1, 1);
     private readonly SemaphoreSlim _connectionSlots = new(16, 16);
     private readonly SemaphoreSlim _outgoingTransferGate = new(1, 1);
+    private readonly SemaphoreSlim _messageStateGate = new(1, 1);
     private readonly List<SharedFolder> _shares = [];
     private readonly ConcurrentDictionary<string, DateTimeOffset> _profileRefresh = new();
     private readonly ConcurrentDictionary<string, DateTimeOffset> _offlineProbes = new();
@@ -311,7 +312,6 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
 
     private async Task<ChatMessage> OfferAttachmentAsync(Peer peer, Attachment attachment, MessageKind kind, CancellationToken cancellationToken)
     {
-        await store.SaveAttachmentAsync(attachment, cancellationToken);
         var message = new ChatMessage
         {
             PeerId = peer.Id,
@@ -324,6 +324,7 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
             IsFolder = attachment.IsFolder,
             LocalPath = attachment.Path
         };
+        await store.SaveAttachmentAsync(attachment with { MessageId = message.Id }, cancellationToken);
         await RetryMessageAsync(peer, message, cancellationToken);
         return message;
     }
@@ -355,25 +356,81 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
 
     public async Task RetryMessageAsync(Peer peer, ChatMessage message, CancellationToken cancellationToken = default)
     {
+        if (message.Delivery == DeliveryState.Rejected) throw new InvalidOperationException("这个请求已被拒绝，请重新发送文件。");
         if (string.IsNullOrEmpty(message.PeerNickname)) message.PeerNickname = peer.Nickname;
         if (string.IsNullOrEmpty(message.PeerAddress)) message.PeerAddress = peer.Address;
-        message.Delivery = DeliveryState.Sending;
-        await store.SaveMessageAsync(message, cancellationToken);
-        MessageReceived?.Invoke(message);
+        await _messageStateGate.WaitAsync(cancellationToken);
+        try
+        {
+            if ((await store.FindMessageAsync(peer.Id, message.Id, cancellationToken))?.Delivery == DeliveryState.Rejected)
+                throw new InvalidOperationException("这个请求已被拒绝，请重新发送文件。");
+            message.Delivery = DeliveryState.Sending;
+            await store.SaveMessageAsync(message, cancellationToken);
+            MessageReceived?.Invoke(message);
+        }
+        finally { _messageStateGate.Release(); }
         try
         {
             await RequestAsync(peer, new WirePacket { Type = "message", Message = message with { LocalPath = null } }, cancellationToken);
-            message.Delivery = DeliveryState.Sent;
         }
         catch
         {
-            message.Delivery = DeliveryState.Failed;
-            await store.SaveMessageAsync(message, CancellationToken.None);
-            MessageReceived?.Invoke(message);
+            await _messageStateGate.WaitAsync(CancellationToken.None);
+            try
+            {
+                message.Delivery = (await store.FindMessageAsync(peer.Id, message.Id))?.Delivery == DeliveryState.Rejected ? DeliveryState.Rejected : DeliveryState.Failed;
+                await store.SaveMessageAsync(message, CancellationToken.None);
+                MessageReceived?.Invoke(message);
+            }
+            finally { _messageStateGate.Release(); }
             throw;
         }
-        await store.SaveMessageAsync(message, cancellationToken);
+        await _messageStateGate.WaitAsync(cancellationToken);
+        try
+        {
+            var stored = await store.FindMessageAsync(peer.Id, message.Id, cancellationToken);
+            message.Delivery = stored?.Delivery == DeliveryState.Rejected ? DeliveryState.Rejected : DeliveryState.Sent;
+            await store.SaveMessageAsync(message, cancellationToken);
+            MessageReceived?.Invoke(message);
+        }
+        finally { _messageStateGate.Release(); }
+    }
+
+    public async Task RejectAttachmentAsync(Peer peer, ChatMessage message, CancellationToken cancellationToken = default)
+    {
+        if (message.SenderId != peer.Id || message.PeerId != peer.Id || message.Kind == MessageKind.Text || message.AttachmentId is null || message.LocalPath is not null)
+            throw new InvalidOperationException("这条记录不能拒绝。");
+        var response = await RequestAsync(peer, new WirePacket { Type = "reject-file", MessageId = message.Id, AttachmentId = message.AttachmentId }, cancellationToken);
+        if (response.Type != "ok") throw new InvalidDataException("对方未确认拒绝通知。");
+        message.Delivery = DeliveryState.Rejected;
+        await store.SaveMessageAsync(message, CancellationToken.None);
         MessageReceived?.Invoke(message);
+    }
+
+    private async Task ReceiveRejectionAsync(Peer peer, WirePacket packet, CancellationToken ct)
+    {
+        if (!Guid.TryParseExact(packet.MessageId, "N", out _) || !Guid.TryParseExact(packet.AttachmentId, "N", out _))
+            throw new InvalidDataException("拒绝通知无效。");
+        await _messageStateGate.WaitAsync(ct);
+        try
+        {
+            var attachment = await store.FindAttachmentAsync(packet.AttachmentId!, ct);
+            if (attachment is null || attachment.PeerId != peer.Id) throw new UnauthorizedAccessException("附件不属于此设备。");
+            var message = await store.FindMessageAsync(peer.Id, packet.MessageId!, ct);
+            if ((message is not null && (message.SenderId != Profile.Id || message.AttachmentId != attachment.Id))
+                || (message is null && attachment.MessageId != packet.MessageId)) throw new InvalidDataException("拒绝通知与发送记录不匹配。");
+            var changed = !attachment.IsRejected || message is not null && message.Delivery != DeliveryState.Rejected;
+            if (!attachment.IsRejected) await store.SaveAttachmentAsync(attachment with { IsRejected = true }, ct);
+            if (message is not null && message.Delivery != DeliveryState.Rejected)
+            {
+                message.Delivery = DeliveryState.Rejected;
+                await store.SaveMessageAsync(message, ct);
+                MessageReceived?.Invoke(message);
+            }
+            if (changed) TransferChanged?.Invoke(new TransferUpdate(packet.MessageId!, attachment.FileName, 0, attachment.Size, "对方已拒绝")
+                { IsUpload = true, AttachmentId = attachment.Id, PeerId = peer.Id });
+        }
+        finally { _messageStateGate.Release(); }
     }
 
     private async Task AcceptLoopAsync(CancellationToken ct)
@@ -437,6 +494,10 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
                         await ReceiveMessageAsync(peer, packet, timeout.Token);
                         await PacketIO.WriteAsync(stream, new WirePacket { Type = "ok" }, timeout.Token);
                         break;
+                    case "reject-file":
+                        await ReceiveRejectionAsync(peer, packet, timeout.Token);
+                        await PacketIO.WriteAsync(stream, new WirePacket { Type = "ok" }, timeout.Token);
+                        break;
                     case "browse":
                         List<SharedEntry> entries = packet.RootId is null
                             ? SharedFolders.Select(x => new SharedEntry(x.Id, "", x.Name, true, 0)).ToList()
@@ -445,7 +506,7 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
                         break;
                     case "attachment":
                         var attachment = await store.FindAttachmentAsync(packet.AttachmentId ?? "", timeout.Token);
-                        if (attachment is null || attachment.PeerId != peer.Id)
+                        if (attachment is null || attachment.PeerId != peer.Id || attachment.IsRejected)
                             throw new UnauthorizedAccessException("附件不存在或不属于此会话。");
                         timeout.CancelAfter(TimeSpan.FromMinutes(30));
                         await SendAttachmentStreamAsync(stream, attachment, timeout.Token, peer);
@@ -547,6 +608,7 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
 
     public async Task<string> DownloadAttachmentAsync(Peer peer, ChatMessage message, CancellationToken cancellationToken = default)
     {
+        if (message.Delivery == DeliveryState.Rejected) throw new InvalidOperationException("这个文件已拒绝接收，请让对方重新发送。");
         var path = await DownloadAsync(peer, new WirePacket { Type = "attachment", AttachmentId = message.AttachmentId },
             message.Id, message.FileName ?? "file", message.Sha256, message.FileSize, message.Kind == MessageKind.Image, cancellationToken, message.IsFolder);
         message.LocalPath = path;

@@ -85,6 +85,12 @@ public sealed class IndexedFileStore : ILocalStore
     };
     private ChatMessage LoadMessage(ChatMessage message) => message with { LocalPath = LoadPath(message.LocalPath) };
 
+    public Task<ChatMessage?> FindMessageAsync(string peerId, string id, CancellationToken cancellationToken = default) => RunAsync(async files =>
+    {
+        var record = await files.GetAsync(StoredKind.Message, MessageKey(peerId, id)).ConfigureAwait(false);
+        return record is { IsDeleted: false, Message: { } message } ? LoadMessage(message) : null;
+    }, cancellationToken);
+
     public Task SaveMessageAsync(ChatMessage message, CancellationToken cancellationToken = default) => RunAsync(async files =>
     {
         var key = MessageKey(message);

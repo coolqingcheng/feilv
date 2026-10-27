@@ -38,12 +38,13 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         _lan = lan;
         _ui = ui;
         Inbox = new FileInboxViewModel(lan, store, ui, SetStatus);
-        Incoming = new ReceiveOffersViewModel(Inbox, ui);
+        Incoming = new ReceiveOffersViewModel(Inbox, ui, () => lan.Profile.AutoReceive);
         Inbox.HistoryDeleted += Incoming.Remove;
         Shares = new SharesViewModel(lan, ui, SetStatus);
         Updates = new AppUpdatesViewModel(new GitHubUpdateService(store.DataDirectory), lan.Profile,
             () => Inbox.HasActiveTransfers || _peers.Values.Any(x => x.IsTransferring));
         Settings = new SettingsViewModel(lan, store, ui, SetStatus, Updates);
+        Settings.ReceivePreferencesSaved += Incoming.ApplyReceivePreference;
         QrShare = new QrShareViewModel(new QrHttpServer(), lan.Profile, store, ui);
         lan.PeerChanged += OnPeerChanged;
         lan.MessageReceived += OnMessageReceived;
@@ -97,6 +98,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             if (_peers.TryGetValue(message.PeerId, out var recipient)) recipient.OfferChanged(message);
             return;
         }
+        if (message.Delivery == DeliveryState.Rejected) { Incoming.Remove(message); return; }
         if (message.LocalPath is not null) { Incoming.MarkReceived(message); return; }
         if (_peers.TryGetValue(message.PeerId, out var peer) && _notifiedOffers.Add((message.PeerId, message.Id)))
         {
@@ -134,7 +136,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         _lan.PeerChanged -= OnPeerChanged; _lan.MessageReceived -= OnMessageReceived;
         _lan.TransferChanged -= OnTransferChanged; _lan.Error -= OnError;
         Inbox.HistoryDeleted -= Incoming.Remove;
-        Inbox.Dispose(); Settings.Dispose(); QrShare.Dispose(); Updates.Dispose();
+        Settings.ReceivePreferencesSaved -= Incoming.ApplyReceivePreference;
+        Incoming.Dispose(); Inbox.Dispose(); Settings.Dispose(); QrShare.Dispose(); Updates.Dispose();
         foreach (var peer in _peers.Values) peer.Dispose();
         _peers.Clear(); _notifiedOffers.Clear(); _recentOffers.Clear();
     }

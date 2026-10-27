@@ -19,9 +19,11 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private Bitmap? _avatar;
     [ObservableProperty] private string _theme;
     [ObservableProperty] private bool _showNotifications;
+    [ObservableProperty] private bool _autoReceive;
     [ObservableProperty] private bool _startWithWindows;
     [ObservableProperty] private bool _autoDownloadUpdates;
     public AppUpdatesViewModel? Updates { get; }
+    public event Action? ReceivePreferencesSaved;
     [ObservableProperty] private string _downloadDirectory;
     [ObservableProperty] private string _manualAddress = "";
     [ObservableProperty] private string _manualPort = "45832";
@@ -44,6 +46,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         _lan = lan; _store = store; _ui = ui; _status = status;
         _nickname = lan.Profile.Nickname; _theme = lan.Profile.Theme;
         _downloadDirectory = Path.Combine(store.DataDirectory, "Files"); _showNotifications = lan.Profile.ShowNotifications;
+        _autoReceive = lan.Profile.AutoReceive;
         _startWithWindows = lan.Profile.StartWithWindows;
         _autoDownloadUpdates = lan.Profile.AutoDownloadUpdates;
         Updates = updates;
@@ -62,9 +65,11 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
             _ui.SetStartWithWindows(StartWithWindows);
             _lan.Profile.Nickname = Nickname.Trim();
             _lan.Profile.ShowNotifications = ShowNotifications;
+            _lan.Profile.AutoReceive = AutoReceive;
             _lan.Profile.StartWithWindows = StartWithWindows;
             _lan.Profile.AutoDownloadUpdates = AutoDownloadUpdates;
             await _lan.UpdateProfileAsync();
+            ReceivePreferencesSaved?.Invoke();
             _status("设置已保存");
         }
         catch (Exception ex) { _status("保存失败：" + ex.Message); }

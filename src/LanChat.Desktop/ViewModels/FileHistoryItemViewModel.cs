@@ -20,10 +20,12 @@ public partial class FileHistoryItemViewModel : ViewModelBase
     public string Icon => Model.IsFolder ? "folder" : Model.Kind == MessageKind.Image ? "image" : "file";
     public bool IsMine => Model.SenderId == _localId;
     public bool HasLocalFile { get; private set; }
-    public bool IsReceiveAction => !IsMine && !HasLocalFile && Model.AttachmentId is not null;
-    public bool CanAct => !IsDeleting && !IsBusy && Model.Delivery != DeliveryState.Sending && (HasLocalFile || (IsMine ? Model.Delivery == DeliveryState.Failed : Model.AttachmentId is not null));
+    public bool IsReceiveAction => !IsMine && !HasLocalFile && Model.AttachmentId is not null && !IsRejected;
+    public bool IsRejected => Model.Delivery == DeliveryState.Rejected;
+    public string RejectionLabel => IsMine ? "对方已拒绝" : "已拒绝";
+    public bool CanAct => !IsDeleting && !IsBusy && Model.Delivery != DeliveryState.Sending && (HasLocalFile || (!IsRejected && (IsMine ? Model.Delivery == DeliveryState.Failed : Model.AttachmentId is not null)));
     public bool CanDelete => !IsDeleting && !IsBusy && Model.Delivery != DeliveryState.Sending && !_owner.IsDownloading(Key);
-    public string ActionLabel => IsBusy ? IsMine ? "发送中" : "接收中" : Model.Delivery == DeliveryState.Sending ? "发送中" : IsMine && Model.Delivery == DeliveryState.Failed ? "重试" : HasLocalFile ? "打开文件夹" : IsMine || Model.AttachmentId is null ? "不可用" : "接收";
+    public string ActionLabel => IsBusy ? IsMine ? "发送中" : "接收中" : Model.Delivery == DeliveryState.Sending ? "发送中" : IsMine && Model.Delivery == DeliveryState.Failed ? "重试" : HasLocalFile ? "打开文件夹" : IsRejected ? "已拒绝" : IsMine || Model.AttachmentId is null ? "不可用" : "接收";
     [ObservableProperty, NotifyPropertyChangedFor(nameof(CanAct)), NotifyPropertyChangedFor(nameof(ActionLabel)), NotifyPropertyChangedFor(nameof(CanDelete)), NotifyCanExecuteChangedFor(nameof(DeleteCommand))] private bool _isBusy;
     [ObservableProperty, NotifyPropertyChangedFor(nameof(CanAct)), NotifyPropertyChangedFor(nameof(CanDelete)), NotifyCanExecuteChangedFor(nameof(DeleteCommand))] private bool _isDeleting;
     [ObservableProperty] private double _progress;
@@ -40,6 +42,8 @@ public partial class FileHistoryItemViewModel : ViewModelBase
         HasLocalFile = message.IsFolder ? Directory.Exists(message.LocalPath) : File.Exists(message.LocalPath);
         OnPropertyChanged(nameof(HasLocalFile));
         OnPropertyChanged(nameof(IsReceiveAction));
+        OnPropertyChanged(nameof(IsRejected));
+        OnPropertyChanged(nameof(RejectionLabel));
         OnPropertyChanged(nameof(CanAct));
         OnPropertyChanged(nameof(ActionLabel));
         OnPropertyChanged(nameof(CanDelete));

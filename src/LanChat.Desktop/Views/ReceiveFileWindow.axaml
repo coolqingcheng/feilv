@@ -10,11 +10,11 @@
         <StackPanel Spacing="6"><TextBlock Text="{Binding FileName}" TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding FileName}" FontWeight="SemiBold" /><TextBlock Text="{Binding Size}" Classes="muted" FontSize="12" /><TextBlock Text="{Binding Source}" TextWrapping="Wrap" Classes="muted" FontSize="12" /><TextBlock Text="{Binding Address}" Classes="muted" FontSize="12" /></StackPanel>
       </Border>
       <TextBlock Text="{Binding QueueHint}" Classes="muted" FontSize="11" TextWrapping="Wrap" />
-      <ProgressBar IsVisible="{Binding IsBusy}" Value="{Binding Progress}" Minimum="0" Maximum="100" Height="4" Foreground="{DynamicResource AccentBrush}" />
-      <TextBlock IsVisible="{Binding IsBusy}" Text="{Binding SpeedText}" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+      <ProgressBar x:Name="ReceiveProgressBar" IsVisible="{Binding ShowTransferProgress}" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" Minimum="0" Maximum="100" Height="4" Foreground="{DynamicResource AccentBrush}" />
+      <TextBlock IsVisible="{Binding ShowTransferProgress}" Text="{Binding SpeedText}" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
       <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error}" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" FontSize="12" MaxHeight="60" />
-      <Grid ColumnDefinitions="*,*" IsVisible="{Binding !IsCompleted}">
-        <Button x:Name="DeferReceiveButton" Content="暂不接收" Command="{Binding DeferCommand}" IsEnabled="{Binding CanRespond}" HorizontalAlignment="Stretch" Margin="0,0,6,0" Padding="12,10" />
+      <Grid ColumnDefinitions="*,*" IsVisible="{Binding ShowDecisionActions}">
+        <Button x:Name="RejectReceiveButton" Content="拒绝" Command="{Binding RejectCommand}" IsEnabled="{Binding CanRespond}" HorizontalAlignment="Stretch" Margin="0,0,6,0" Padding="12,10" />
         <Button x:Name="AcceptReceiveButton" Grid.Column="1" Content="{Binding AcceptLabel}" Command="{Binding AcceptCommand}" IsEnabled="{Binding CanRespond}" Classes="primary" HorizontalAlignment="Stretch" Margin="6,0,0,0" Padding="12,10" IsDefault="True" />
       </Grid>
       <Grid ColumnDefinitions="*,*" IsVisible="{Binding IsCompleted}">

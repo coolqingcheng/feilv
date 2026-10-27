@@ -314,7 +314,7 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
 
     public Task ReceiveOfferedFileAsync(ChatMessage message)
     {
-        if (message.Kind == MessageKind.Text || message.SenderId == lan.Profile.Id || message.AttachmentId is null)
+        if (message.Kind == MessageKind.Text || message.SenderId == lan.Profile.Id || message.AttachmentId is null || message.Delivery == DeliveryState.Rejected)
             return Task.FromException(new InvalidOperationException("这条记录不是可接收的文件。"));
         if (message.IsFolder ? Directory.Exists(message.LocalPath) : File.Exists(message.LocalPath)) return Task.CompletedTask;
         var key = message.PeerId + ":" + message.Id;
@@ -328,6 +328,16 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
             if (_loaded.TryGetValue(key, out var item)) item.Update(item.Model);
         }), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         return task;
+    }
+
+    public async Task RejectOfferedFileAsync(ChatMessage message)
+    {
+        var key = message.PeerId + ":" + message.Id;
+        if (_downloads.ContainsKey(key)) throw new InvalidOperationException("文件正在接收，无法拒绝。");
+        var peer = lan.Peers.FirstOrDefault(x => x.Id == message.PeerId) ?? throw new IOException("未找到来源电脑，请等待对方上线。");
+        await lan.RejectAttachmentAsync(peer, message, _transfers.Token);
+        if (_loaded.TryGetValue(key, out var row)) row.Update(message);
+        Report("已拒绝接收，已通知发送方。");
     }
 
     private async Task DownloadOfferedFileAsync(ChatMessage message, string key)

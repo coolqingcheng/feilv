@@ -1,7 +1,7 @@
 namespace LanChat.Core.Models;
 
 public enum MessageKind { Text, Image, File }
-public enum DeliveryState { Sending, Sent, Failed, Received }
+public enum DeliveryState { Sending, Sent, Failed, Received, Rejected }
 
 public sealed record UserProfile
 {
@@ -10,6 +10,7 @@ public sealed record UserProfile
     public string? AvatarPath { get; set; }
     public string Theme { get; set; } = "System";
     public bool ShowNotifications { get; set; } = true;
+    public bool AutoReceive { get; set; } = true;
     public bool StartWithWindows { get; set; } = true;
     public bool AutoDownloadUpdates { get; set; } = true;
     public string QrUploadDirectory { get; set; } = "";
@@ -56,7 +57,11 @@ public sealed record FileHistoryPage(IReadOnlyList<ChatMessage> Messages, FileHi
 public sealed record SharedFolder(string Id, string Name, string LocalPath);
 public sealed record SharedEntry(string RootId, string RelativePath, string Name, bool IsDirectory, long Size);
 public sealed record EmojiItem(string Id, string Path, string Name);
-public sealed record Attachment(string Id, string PeerId, string Path, string FileName, long Size, string Sha256, bool IsFolder = false);
+public sealed record Attachment(string Id, string PeerId, string Path, string FileName, long Size, string Sha256, bool IsFolder = false)
+{
+    public string MessageId { get; init; } = "";
+    public bool IsRejected { get; init; }
+}
 public sealed record TransferUpdate(string Id, string Name, long CompletedBytes, long TotalBytes, string Status)
 {
     public double BytesPerSecond { get; init; }
