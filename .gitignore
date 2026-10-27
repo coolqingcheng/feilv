@@ -1,0 +1,26 @@
+# Build and IDE output
+bin/
+obj/
+.avalonia-build-tasks/
+/artifacts/
+/.build/
+.vs/
+.idea/
+*.user
+*.suo
+*.nupkg
+*.snupkg
+
+# Application runtime data (root only; source folders such as Infrastructure/Files are tracked)
+/config.xml
+/Data/
+/Files/
+/Images/
+/qr-http/
+records.dat
+records.idx
+
+# Private certificates and keys
+*.pfx
+*.p12
+*.key

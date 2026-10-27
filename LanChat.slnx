@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LanChat.Core/LanChat.Core.csproj" />
+    <Project Path="src/LanChat.Desktop/LanChat.Desktop.csproj" />
+    <Project Path="src/LanChat.Infrastructure/LanChat.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LanChat.IntegrationTests/LanChat.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

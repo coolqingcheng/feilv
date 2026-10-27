@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsAotCompatible>true</IsAotCompatible></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../LanChat.Core/LanChat.Core.csproj" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="LanChat.IntegrationTests" /></ItemGroup>
+</Project>
