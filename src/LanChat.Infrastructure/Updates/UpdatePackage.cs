@@ -47,7 +47,7 @@ public static class UpdatePackage
             || Path.IsPathRooted(relative) || relative.Split('/').Any(x => x is "" or "." or "..")
             || relative.Split('/')[0].ToLowerInvariant() is "data" or "files" or "images" or "qr-http" or ".git")
             throw new InvalidDataException("更新包包含不安全路径。");
-        var prefix = Path.GetFullPath(root) + Path.DirectorySeparatorChar;
+        var prefix = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root)) + Path.DirectorySeparatorChar;
         var path = Path.GetFullPath(Path.Combine(root, relative));
         if (!path.StartsWith(prefix, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)) throw new InvalidDataException("更新路径超出目录。");
         return path;
@@ -55,12 +55,13 @@ public static class UpdatePackage
 
     internal static void EnsureNoLinks(string root, string path)
     {
+        root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root));
         var current = path;
         while (current is not null)
         {
             if ((File.Exists(current) || Directory.Exists(current)) && (File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
                 throw new InvalidDataException("更新目录不能包含链接。");
-            if (Path.GetFullPath(current) == Path.GetFullPath(root)) return;
+            if (Path.TrimEndingDirectorySeparator(Path.GetFullPath(current)) == root) return;
             current = Path.GetDirectoryName(current);
         }
         throw new InvalidDataException("更新目录无效。");

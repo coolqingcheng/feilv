@@ -46,7 +46,11 @@ $manifest = @{ version = $version; runtime = $Runtime; executable = $executable;
 
 # Execute the actual native binary: validates manifest, hashes and source-generated JSON without a .NET runtime.
 $verify = Start-Process -FilePath (Join-Path $stage $executable) -ArgumentList '--verify-package' -WorkingDirectory $stage -PassThru -Wait
-if ($verify.ExitCode -ne 0) { throw "Native package verification failed: $($verify.ExitCode)" }
+if ($verify.ExitCode -ne 0) {
+    $diagnostic = Join-Path $stage 'verify-error.txt'
+    if (Test-Path -LiteralPath $diagnostic) { Get-Content -LiteralPath $diagnostic | Write-Host }
+    throw "Native package verification failed: $($verify.ExitCode)"
+}
 $smokeDirectory = Join-Path $repoRoot ('.build/smoke/' + $Runtime + '/' + [Guid]::NewGuid().ToString('N'))
 $smokeArguments = @('--smoke-test', '--no-discovery', '--port', '0', '--data-dir', ('"' + $smokeDirectory + '"'))
 if ($Runtime.StartsWith('linux-') -and !$env:DISPLAY) {

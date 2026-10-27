@@ -19,7 +19,12 @@ internal static class Program
         if (args is ["--verify-package"])
         {
             try { UpdatePackage.VerifyDistributionAsync(AppContext.BaseDirectory).GetAwaiter().GetResult(); }
-            catch { Environment.ExitCode = 1; }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex);
+                File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "verify-error.txt"), ex.ToString());
+                Environment.ExitCode = 1;
+            }
             return;
         }
         if (args is ["--apply-update", var plan]) { Environment.ExitCode = UpdateInstaller.RunHelperAsync(plan).GetAwaiter().GetResult(); return; }

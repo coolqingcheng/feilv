@@ -44,6 +44,7 @@ internal static partial class Program
         handler.MissingDigest = false;
         var before = GC.GetTotalAllocatedBytes(true);
         var prepared = await service.DownloadAsync(release);
+        await UpdatePackage.ValidateAsync(prepared with { PayloadDirectory = prepared.PayloadDirectory + Path.DirectorySeparatorChar });
         var allocated = GC.GetTotalAllocatedBytes(true) - before;
         Check(allocated < 4 * 1024 * 1024 && File.Exists(Path.Combine(prepared.PayloadDirectory, "飞驴.exe")), "8 MiB update downloads, extraction and hashing use bounded buffers rather than loading the archive into memory");
         Check(handler.Downloads == 1 && !Directory.EnumerateFiles(Path.GetDirectoryName(prepared.PayloadDirectory)!, "*.download").Any(), "only a fully checked payload is cached and its downloaded archive is removed");
