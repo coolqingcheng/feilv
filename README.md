@@ -4,7 +4,7 @@ C# / .NET 10 / Avalonia 11 的局域网文件传输工具，无账号和中心�
 
 [下载正式版](https://github.com/coolqingcheng/feilv/releases/latest) · [构建状态](https://github.com/coolqingcheng/feilv/actions)
 
-Windows 下载单个 `feilv-v1.4.1-win-x64-setup.exe`，双击后按中文安装向导选择目录、快捷方式并完成安装。默认安装到当前用户的 `%LOCALAPPDATA%\Programs\Feilv`，无需管理员权限；主程序与原生依赖由安装程序自动放置，不需要手动解压。请先从系统托盘退出旧版。
+Windows 下载单个 `feilv-v1.4.2-win-x64-setup.exe`，双击后按中文安装向导选择目录、快捷方式并完成安装。“选择目录”打开 Windows 现代文件夹选择器，支持地址栏、搜索和新建文件夹；也可直接在安装页输入尚未存在的完整路径，由安装程序创建。所选目录就是最终安装目录，不再额外追加 Feilv 子目录。默认安装到当前用户的 `%LOCALAPPDATA%\Programs\Feilv`，无需管理员权限；主程序与原生依赖由安装程序自动放置，不需要手动解压。请先从系统托盘退出旧版。
 
 ## 使用
 
@@ -106,10 +106,10 @@ git diff
 
 ```powershell
 .\scripts\publish.ps1 -Runtime win-x64
-# artifacts/feilv-v1.4.1-win-x64-setup.exe
+# artifacts/feilv-v1.4.2-win-x64-setup.exe
 ```
 
-版本号由 Directory.Build.props 统一维护，设置页、发行包和程序版本一致。Native AOT 依赖目标系统的原生链接器：Windows 为 MSVC C++ 与 Windows SDK，macOS 为 Xcode 命令行工具，Linux 为 clang、zlib 开发包。Windows 安装包使用 Inno Setup 编译器，GitHub Windows 构建机已包含编译器；本地已有原生发行目录时，也可用 scripts/build-installer.ps1 -SourceDirectory 目录直接封装。发布必须在目标系统和架构的机器上执行，不会回退到托管发布。
+版本号由 Directory.Build.props 统一维护，设置页、发行包和程序版本一致。Native AOT 依赖目标系统的原生链接器：Windows 为 MSVC C++ 与 Windows SDK，macOS 为 Xcode 命令行工具，Linux 为 clang、zlib 开发包。Windows 安装包使用 Inno Setup 6.7.1 或更新版本，其 BrowseForFolder 脚本接口通过 IFileDialog 打开现代系统目录选择器；GitHub Windows 构建机已包含编译器。本地已有原生发行目录时，也可用 scripts/build-installer.ps1 -SourceDirectory 目录直接封装。发布必须在目标系统和架构的机器上执行，不会回退到托管发布。
 
 GitHub Actions 在 Windows x64、macOS Intel/Apple Silicon、Linux x64/ARM64 五种原生运行器上构建。每个平台/架构只有一份带版本号的包：Windows 为单个带中文向导的 EXE 安装包，macOS/Linux 为 tar.gz。均包含原生主程序、Avalonia 的必要原生库、许可证及 app-manifest.json，不包含托管主 DLL，目标电脑无需安装 .NET。macOS/Linux 完整解压后运行 `./feilv`；Linux 桌面需要 X11、fontconfig、OpenGL 等系统库。macOS 当前使用临时签名，没有 Apple 开发者公证，首次打开可能需要在系统安全设置中允许。
 

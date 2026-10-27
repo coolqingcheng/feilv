@@ -7,6 +7,9 @@
 #ifndef OutputDirectory
   #error OutputDirectory must be supplied
 #endif
+#if Ver < EncodeVer(6, 7, 1)
+  #error Inno Setup 6.7.1 or newer is required for the modern Windows folder picker
+#endif
 
 [Setup]
 AppId={{AFBE1865-4656-49BA-9B10-BCFD5767B137}
@@ -22,6 +25,7 @@ DisableProgramGroupPage=yes
 DisableWelcomePage=no
 DisableDirPage=no
 UsePreviousAppDir=yes
+AppendDefaultDirName=no
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -47,6 +51,7 @@ Name: "chinesesimplified"; MessagesFile: "Languages\ChineseSimplified.isl"
 WelcomeLabel2=这将在您的电脑上安装飞驴 {#AppVersion}。%n%n飞驴用于局域网文件传输、文件夹共享和二维码分享。%n%n继续前，请先从系统托盘退出正在运行的旧版飞驴。
 SelectDirDesc=选择飞驴的安装位置。
 SelectDirLabel3=程序和本地数据保存在此目录。配置、历史记录及收发文件在升级和卸载时均保留。
+SelectDirBrowseLabel=可直接输入完整路径，或点击“选择目录”浏览、新建文件夹。
 FinishedLabelNoIcons=飞驴已经安装完成。点击“完成”退出安装向导。
 
 [Tasks]
@@ -63,6 +68,32 @@ Name: "{autodesktop}\飞驴"; Filename: "{app}\飞驴.exe"; WorkingDir: "{app}";
 Filename: "{app}\飞驴.exe"; Description: "启动飞驴"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent
 
 [Code]
+procedure SelectInstallDirectory(Sender: TObject);
+var
+  Directory, ParentDirectory: String;
+begin
+  Directory := Trim(WizardForm.DirEdit.Text);
+  while not DirExists(Directory) do
+  begin
+    ParentDirectory := ExtractFileDir(RemoveBackslashUnlessRoot(Directory));
+    if (ParentDirectory = '') or (CompareText(ParentDirectory, Directory) = 0) then
+    begin
+      Directory := ExpandConstant('{localappdata}');
+      Break;
+    end;
+    Directory := ParentDirectory;
+  end;
+  { The script BrowseForFolder uses IFileDialog; True enables New Folder. }
+  if BrowseForFolder('选择飞驴安装目录', Directory, True) then
+    WizardForm.DirEdit.Text := Directory;
+end;
+
+procedure InitializeWizard();
+begin
+  WizardForm.DirBrowseButton.Caption := '选择目录…';
+  WizardForm.DirBrowseButton.OnClick := @SelectInstallDirectory;
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   Command: String;
