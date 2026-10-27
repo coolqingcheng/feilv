@@ -30,9 +30,9 @@ Invoke-Checked $executable @('--verify-package')
 Write-Host 'PASS: silent first install, native GUI launch and in-place reinstall preserve configuration and received files.'
 
 # Run the real update helper from a stopped old application, then launch the installed Native AOT GUI.
-dotnet build (Join-Path $repoRoot 'tests/LanChat.UpdateFixture/LanChat.UpdateFixture.csproj') -c Release
+$fixtureRoot = Join-Path $testRoot 'fixture'
+dotnet build (Join-Path $repoRoot 'tests/LanChat.UpdateFixture/LanChat.UpdateFixture.csproj') -c Release -p:Platform=AnyCPU -o $fixtureRoot
 if ($LASTEXITCODE -ne 0) { throw 'Cannot build installer transaction fixture.' }
-$fixtureRoot = Join-Path $repoRoot 'tests/LanChat.UpdateFixture/bin/Release/net10.0'
 $fixtureFiles = @(Get-ChildItem -LiteralPath $fixtureRoot -File)
 foreach ($file in $fixtureFiles) {
     $name = if ($file.Name -eq 'LanChat.UpdateFixture.exe') { '飞驴.exe' } else { $file.Name }
