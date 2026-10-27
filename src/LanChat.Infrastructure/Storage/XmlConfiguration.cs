@@ -36,6 +36,7 @@ public sealed class XmlConfiguration
                 Theme = Value(profile, "Theme", "System"),
                 ShowNotifications = Value(profile, "ShowNotifications", "true") != "false",
                 StartWithWindows = Value(profile, "StartWithWindows", "true") != "false",
+                AutoDownloadUpdates = Value(profile, "AutoDownloadUpdates", "true") != "false",
                 QrUploadDirectory = ResolveOptionalPath(baseDirectory, Value(qr, "UploadDirectory", "")),
                 QrDownloadDirectory = ResolveOptionalPath(baseDirectory, Value(qr, "DownloadDirectory", ""))
             },
@@ -80,7 +81,7 @@ public sealed class XmlConfiguration
                 new XElement("Profile", new XElement("Id", Profile.Id), new XElement("Nickname", Profile.Nickname),
                     new XElement("AvatarPath", Profile.AvatarPath is { } avatar ? Path.GetRelativePath(baseDirectory, avatar) : ""),
                     new XElement("Theme", Profile.Theme), new XElement("ShowNotifications", Profile.ShowNotifications),
-                    new XElement("StartWithWindows", Profile.StartWithWindows)),
+                    new XElement("StartWithWindows", Profile.StartWithWindows), new XElement("AutoDownloadUpdates", Profile.AutoDownloadUpdates)),
                 new XElement("Network", new XElement("ListenPort", ListenPort), new XElement("DiscoveryPort", DiscoveryPort), new XElement("EnableDiscovery", EnableDiscovery)),
                 new XElement("QrHttp", new XElement("UploadDirectory", StoreOptionalPath(baseDirectory, Profile.QrUploadDirectory)), new XElement("DownloadDirectory", StoreOptionalPath(baseDirectory, Profile.QrDownloadDirectory))),
                 new XElement("SharedFolders", Shares.Select(x => new XElement("Folder", new XAttribute("id", x.Id), new XElement("Name", x.Name), new XElement("Path", x.LocalPath))))));

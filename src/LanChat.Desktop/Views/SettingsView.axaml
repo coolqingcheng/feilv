@@ -9,7 +9,8 @@
         </Grid>
         <StackPanel Spacing="8"><TextBlock Text="设备名称" Classes="section" /><TextBox Text="{Binding Nickname}" MaxLength="40" Watermark="发送文件时显示给对方" /></StackPanel>
         <CheckBox IsChecked="{Binding ShowNotifications}"><TextBlock Text="后台收到文件时显示接收提示" TextWrapping="Wrap" /></CheckBox>
-        <CheckBox x:Name="StartWithWindowsOption" IsChecked="{Binding StartWithWindows}"><TextBlock Text="开机启动飞驴" TextWrapping="Wrap" /></CheckBox>
+        <CheckBox x:Name="StartWithWindowsOption" IsChecked="{Binding StartWithWindows}" IsVisible="{Binding SupportsWindowsStartup}"><TextBlock Text="开机启动飞驴" TextWrapping="Wrap" /></CheckBox>
+        <CheckBox IsChecked="{Binding AutoDownloadUpdates}"><TextBlock Text="自动检查并下载更新，校验后提示" TextWrapping="Wrap" /></CheckBox>
         <Button Classes="primary" Content="保存设置" Command="{Binding SaveCommand}" HorizontalAlignment="Stretch" />
       </StackPanel></Border>
       <Border Classes="card" Padding="16"><StackPanel Spacing="12">
@@ -29,6 +30,14 @@
         <TextBlock Text="{Binding DownloadDirectory}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
         <Button Content="打开接收目录" Command="{Binding OpenDownloadsCommand}" HorizontalAlignment="Stretch" />
         <TextBlock Text="设备标识" Classes="section" /><TextBlock Text="{Binding DeviceId}" FontSize="12" Classes="muted" />
+      </StackPanel></Border>
+      <Border Classes="card" Padding="16" DataContext="{Binding Updates}" x:DataType="vm:AppUpdatesViewModel"><StackPanel Spacing="12">
+        <TextBlock Text="软件更新" FontSize="15" FontWeight="SemiBold" />
+        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
+        <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress}" IsVisible="{Binding IsBusy}" Height="4" />
+        <Button Content="检查并下载更新" Command="{Binding CheckCommand}" HorizontalAlignment="Stretch" />
+        <Button Content="立即更新并重启" Command="{Binding InstallCommand}" IsVisible="{Binding IsReady}" Classes="primary" HorizontalAlignment="Stretch" />
+        <Button Content="查看 GitHub 发行版" Command="{Binding OpenReleasesCommand}" HorizontalAlignment="Stretch" />
       </StackPanel></Border>
       <StackPanel Margin="0,0,0,10" Spacing="6"><TextBlock Text="{Binding VersionLabel}" Classes="muted" TextAlignment="Center" FontSize="11" /><TextBlock Text="局域网内，轻松传文件。" Classes="muted" TextAlignment="Center" FontSize="11" /></StackPanel>
     </StackPanel>

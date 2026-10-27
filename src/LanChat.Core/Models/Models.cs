@@ -11,6 +11,7 @@ public sealed record UserProfile
     public string Theme { get; set; } = "System";
     public bool ShowNotifications { get; set; } = true;
     public bool StartWithWindows { get; set; } = true;
+    public bool AutoDownloadUpdates { get; set; } = true;
     public string QrUploadDirectory { get; set; } = "";
     public string QrDownloadDirectory { get; set; } = "";
 }

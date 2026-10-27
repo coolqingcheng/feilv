@@ -37,6 +37,8 @@ internal static partial class Program
             RunFileHistoryStorageTestsAsync().GetAwaiter().GetResult();
             RunStartupConfigurationTests();
             RunQrHttpTestsAsync().GetAwaiter().GetResult();
+            RunGitHubUpdateTestsAsync().GetAwaiter().GetResult();
+            RunUpdateHelperTestsAsync().GetAwaiter().GetResult();
             PresenceTests.RunAsync(TestRoot, Check).GetAwaiter().GetResult();
             RunNetworkTestsAsync().GetAwaiter().GetResult();
             if (!args.Contains("--no-ui")) RunUiTests();
@@ -232,6 +234,7 @@ internal static partial class Program
         RunBackgroundReceivePromptTests(window, model, node, remote, ui);
         RunHistoryDeletionTests(window, model, node, store, remote);
         RunQrShareUiTests(window, model, store, ui);
+        RunGitHubUpdateUiTests(window, ui);
         model.Dispose();
         window.AllowClose = true; window.Close();
         Pump(node.DisposeAsync().AsTask()); Pump(remote.DisposeAsync().AsTask());

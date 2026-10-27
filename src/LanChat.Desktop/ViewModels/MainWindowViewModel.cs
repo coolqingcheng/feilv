@@ -5,6 +5,7 @@ using LanChat.Core.Models;
 using LanChat.Core.Services;
 using LanChat.Desktop.Services;
 using LanChat.Infrastructure.QrSharing;
+using LanChat.Infrastructure.Updates;
 
 namespace LanChat.Desktop.ViewModels;
 
@@ -23,6 +24,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     public SharesViewModel Shares { get; }
     public SettingsViewModel Settings { get; }
     public QrShareViewModel QrShare { get; }
+    public AppUpdatesViewModel Updates { get; }
     public bool IsFiles => Page == "Files";
     public bool IsShares => Page == "Shares";
     public bool IsSettings => Page == "Settings";
@@ -39,7 +41,9 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         Incoming = new ReceiveOffersViewModel(Inbox, ui);
         Inbox.HistoryDeleted += Incoming.Remove;
         Shares = new SharesViewModel(lan, ui, SetStatus);
-        Settings = new SettingsViewModel(lan, store, ui, SetStatus);
+        Updates = new AppUpdatesViewModel(new GitHubUpdateService(store.DataDirectory), lan.Profile, ui,
+            () => Inbox.HasActiveTransfers || _peers.Values.Any(x => x.IsTransferring));
+        Settings = new SettingsViewModel(lan, store, ui, SetStatus, Updates);
         QrShare = new QrShareViewModel(new QrHttpServer(), lan.Profile, store, ui);
         lan.PeerChanged += OnPeerChanged;
         lan.MessageReceived += OnMessageReceived;
@@ -130,7 +134,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         _lan.PeerChanged -= OnPeerChanged; _lan.MessageReceived -= OnMessageReceived;
         _lan.TransferChanged -= OnTransferChanged; _lan.Error -= OnError;
         Inbox.HistoryDeleted -= Incoming.Remove;
-        Inbox.Dispose(); Settings.Dispose(); QrShare.Dispose();
+        Inbox.Dispose(); Settings.Dispose(); QrShare.Dispose(); Updates.Dispose();
         foreach (var peer in _peers.Values) peer.Dispose();
         _peers.Clear(); _notifiedOffers.Clear(); _recentOffers.Clear();
     }

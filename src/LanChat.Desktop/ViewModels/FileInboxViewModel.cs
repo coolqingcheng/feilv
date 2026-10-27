@@ -34,6 +34,7 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
     [ObservableProperty, NotifyPropertyChangedFor(nameof(HasFeedback))] private string _feedback = "";
     [ObservableProperty, NotifyPropertyChangedFor(nameof(HasTransferSummary)), NotifyPropertyChangedFor(nameof(ShowTransferSummary))] private string _transferSummary = "";
     public bool HasTransferSummary => TransferSummary.Length > 0;
+    public bool HasActiveTransfers => IsSending || _downloads.Count != 0 || Files.Any(x => x.IsBusy);
     public bool ShowTransferSummary => HasTransferSummary && IsHistory;
     public bool HasFeedback => Feedback.Length > 0;
     public bool IsDevices => SelectedTab == 0;

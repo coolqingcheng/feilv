@@ -1,6 +1,8 @@
 # 飞驴
 
-C# / .NET 10 / Avalonia 11 的局域网文件传输工具，无账号和中心服务器。界面采用中性灰与绿色强调色，支持跟随系统、Dark、Light 三种主题，首次运行默认跟随系统。
+C# / .NET 10 / Avalonia 11 的局域网文件传输工具，无账号和中心服务器。Windows、macOS 和 Linux 发行包使用 Native AOT；界面采用中性灰与绿色强调色，支持跟随系统、Dark、Light 三种主题，首次运行默认跟随系统。
+
+[下载正式版](https://github.com/coolqingcheng/feilv/releases/latest) · [构建状态](https://github.com/coolqingcheng/feilv/actions)
 
 ## 使用
 
@@ -37,12 +39,14 @@ TCP 使用双向 TLS，设备身份采用首次信任证书指纹，之后拒绝
 所有数据默认放在 EXE 同级目录，新版直接使用新格式，不导入 SQLite 或根目录旧配置，也不删除旧文件。
 
 ```text
-飞驴-v1.3.0.exe
+飞驴.exe                         Windows 主程序；macOS/Linux 为 feilv
+app-manifest.json                发行包文件及 SHA-256 清单
 Data/
   config.xml                    唯一配置：身份、昵称、头像、主题、通知、启动项、端口、共享
   records.dat                   追加写入的记录元数据，含校验和
   records.idx                   固定长度索引，可从 records.dat 重建
   identity.pfx                  TLS 私钥与证书
+  Updates/                      更新下载、校验后的程序和上次更新备份
 qr-http/                        二维码分享默认上传和下载目录
 Files/yyyy-MM-dd/
   Sent/<附件ID>/<文件或目录名>    发送快照
@@ -76,7 +80,7 @@ dotnet run --project tests/LanChat.IntegrationTests
 
 ## 本地版本管理
 
-项目使用本地 Git 仓库管理，主分支为 `main`，稳定基线为 `v1.3.0`。当前不包含客户端互相更新、程序替换或更新助手功能。源码、测试、SVG 和许可证纳入版本管理；构建输出、发布包、截图、配置、历史记录、收发文件、二维码共享目录及私钥证书均被忽略。
+项目主分支为 `main`，最初的本地基线为 `v1.3.0`。GitHub 仓库为 [coolqingcheng/feilv](https://github.com/coolqingcheng/feilv)。源码、测试、SVG 和许可证纳入版本管理；构建输出、发布包、截图、配置、历史记录、收发文件、二维码共享目录及私钥证书均被忽略。
 
 ```powershell
 git status --short
@@ -84,17 +88,27 @@ git log --oneline --decorate -5
 git diff
 ```
 
-完成修改并验证后，使用 `git add` 和 `git commit` 保存一个本地版本。仓库不配置远程地址，不会自动上传代码。
+完成修改并验证后，使用 `git add` 和 `git commit` 保存版本，`git push origin main` 同步到 GitHub。运行配置、私钥和接收的文件不会上传。
+
+## 软件更新
+
+只从代码中固定的 `coolqingcheng/feilv` 仓库读取 GitHub 最新正式版，不接受局域网设备提供的版本或程序。启动 10 秒后异步检查，之后每 6 小时检查一次；设置中可关闭自动检查下载，也可手动“检查并下载更新”。未联网或 GitHub 受限不影响局域网传输。
+
+发现适合当前系统和 CPU 架构的新版后，先在后台流式下载到 `Data/Updates`，使用 GitHub API 返回的 SHA-256 和大小校验压缩包，再校验清单中每个文件。缺少校验信息、包损坏、路径越界、链接或平台不匹配均拒绝。64 KiB 池化缓冲下载、解压和哈希，已校验的缓存再次使用前重新校验。
+
+全部完成后才显示右下角“立即更新 / 稍后”，不会唤起主窗口。选择“稍后”后仍可从设置更新；选择立即更新时若有文件传输则等待用户稍后重试。更新助手等待原进程正常退出，保留原 EXE 路径及启动参数，替换主程序与原生库并重启。替换失败会还原已修改的文件；新版启动后退出且未确认就绪时恢复原版。新版仍运行但未及时确认就绪时保留备份，避免终止正在运行的客户端。本地 Data、Files、Images、qr-http 不参与替换。
+
+旧 v1.3.0 没有 GitHub 更新入口，需要手动下载并解压一次新版；将原 Data、Files、Images、qr-http 放到新版主程序同级目录即可继续使用。
 
 ## 发布
 
 ```powershell
-.\scripts\publish.ps1
-# 唯一成品：artifacts/飞驴-v1.3.0.exe
+.\scripts\publish.ps1 -Runtime win-x64
+# artifacts/feilv-v1.4.0-win-x64.zip
 ```
 
-版本号由 Directory.Build.props 统一维护，设置页、包名和 EXE 版本一致。发布脚本仅交付一个带版本号的 EXE，旧包归档到内部 .build 目录；正在运行时保留候选文件，退出托盘后可完成替换，不改动数据。
+版本号由 Directory.Build.props 统一维护，设置页、发行包和程序版本一致。Native AOT 依赖目标系统的原生链接器：Windows 为 MSVC C++ 与 Windows SDK，macOS 为 Xcode 命令行工具，Linux 为 clang、zlib 开发包。发布必须在目标系统和架构的机器上执行，不会回退到托管发布。
 
-当前发布为完整裁剪、压缩、自带 .NET 运行时的 Windows x64 单文件 EXE，目标电脑无需安装 .NET。启动时原生依赖由运行时解包至缓存。
+GitHub Actions 在 Windows x64、macOS Intel/Apple Silicon、Linux x64/ARM64 五种原生运行器上构建。每个平台/架构只有一份带版本号的包：Windows 为 ZIP，macOS/Linux 为 tar.gz。每包包含原生主程序、Avalonia 的必要原生库、许可证及 app-manifest.json；不包含托管主 DLL，目标电脑无需安装 .NET。请完整解压后启动，不要只取出主程序。macOS/Linux 启动命令为 `./feilv`；Linux 桌面需要 X11、fontconfig、OpenGL 等系统库。macOS 当前使用临时签名，没有 Apple 开发者公证，首次打开可能需要在系统安全设置中允许。
 
-Native AOT 配置和分析保留，但本机缺少 MSVC C++ 链接器和 Windows SDK 工具链，当前成品属于经过裁剪的托管单文件，不是 Native AOT。安装 Visual Studio / Build Tools 的“使用 C++ 的桌面开发”后，才能继续原生发布与运行验证。
+推送 main 时执行完整集成与 UI 检查。发布新版本时修改版本号，推送后在 Actions 手动运行工作流并勾选 publish；所有检查和五个平台构建、真实原生程序清单验证全部成功后，统一创建版本标签与 Release，再公开完整资产。也支持推送与版本号一致的 `v*` 标签触发发布。构建中途不会公开不完整版本。

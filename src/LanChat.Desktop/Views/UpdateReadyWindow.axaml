@@ -1,0 +1,17 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:LanChat.Desktop.ViewModels" x:Class="LanChat.Desktop.Views.UpdateReadyWindow" x:DataType="vm:AppUpdatesViewModel"
+        Width="388" Height="220" CanResize="False" SystemDecorations="None" Background="Transparent"
+        TransparencyLevelHint="Transparent" ShowInTaskbar="False" ShowActivated="False" Topmost="True" Title="飞驴 · 更新已就绪">
+  <Border Margin="16" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource WindowBorderBrush}"
+          BorderThickness="1" CornerRadius="14" BoxShadow="{DynamicResource WindowShadow}" Padding="18">
+    <StackPanel Spacing="12">
+      <TextBlock Text="新版已准备好" FontSize="15" FontWeight="SemiBold" />
+      <TextBlock Text="{Binding ReadyMessage}" TextWrapping="Wrap" FontSize="12" />
+      <TextBlock Text="更新会退出并重新启动飞驴，本地数据保留。" Classes="muted" TextWrapping="Wrap" FontSize="11" />
+      <Grid ColumnDefinitions="*,*">
+        <Button Content="稍后" Click="LaterClicked" HorizontalAlignment="Stretch" Margin="0,0,5,0" />
+        <Button Grid.Column="1" Content="立即更新" Command="{Binding InstallCommand}" Classes="primary" HorizontalAlignment="Stretch" Margin="5,0,0,0" />
+      </Grid>
+    </StackPanel>
+  </Border>
+</Window>

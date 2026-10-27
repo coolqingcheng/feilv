@@ -20,6 +20,8 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private string _theme;
     [ObservableProperty] private bool _showNotifications;
     [ObservableProperty] private bool _startWithWindows;
+    [ObservableProperty] private bool _autoDownloadUpdates;
+    public AppUpdatesViewModel? Updates { get; }
     [ObservableProperty] private string _downloadDirectory;
     [ObservableProperty] private string _manualAddress = "";
     [ObservableProperty] private string _manualPort = "45832";
@@ -28,6 +30,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     public string DeviceId => _lan.Profile.Id[..12];
     public string VersionLabel => $"飞驴  /  {typeof(SettingsViewModel).Assembly.GetName().Version?.ToString(3)}";
     public string DataDirectory => _store.DataDirectory;
+    public bool SupportsWindowsStartup => OperatingSystem.IsWindows();
     public string ThemeDescription => Theme switch { "Dark" => "当前主题：Dark", "Light" => "当前主题：Light", _ => "当前主题：跟随系统" };
     public string LocalEndpoint => $"{LocalAddress}:{_lan.Port}";
     private static string LocalAddress => NetworkInterface.GetAllNetworkInterfaces()
@@ -36,12 +39,14 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         .FirstOrDefault(x => x.Address.AddressFamily == AddressFamily.InterNetwork)?.Address.ToString() ?? "127.0.0.1";
     public void RefreshEndpoint() => OnPropertyChanged(nameof(LocalEndpoint));
 
-    public SettingsViewModel(ILanService lan, ILocalStore store, IUiServices ui, Action<string> status)
+    public SettingsViewModel(ILanService lan, ILocalStore store, IUiServices ui, Action<string> status, AppUpdatesViewModel? updates = null)
     {
         _lan = lan; _store = store; _ui = ui; _status = status;
         _nickname = lan.Profile.Nickname; _theme = lan.Profile.Theme;
         _downloadDirectory = Path.Combine(store.DataDirectory, "Files"); _showNotifications = lan.Profile.ShowNotifications;
         _startWithWindows = lan.Profile.StartWithWindows;
+        _autoDownloadUpdates = lan.Profile.AutoDownloadUpdates;
+        Updates = updates;
         _avatar = ImageLoader.Load(lan.Profile.AvatarPath, 192);
     }
 
@@ -58,6 +63,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
             _lan.Profile.Nickname = Nickname.Trim();
             _lan.Profile.ShowNotifications = ShowNotifications;
             _lan.Profile.StartWithWindows = StartWithWindows;
+            _lan.Profile.AutoDownloadUpdates = AutoDownloadUpdates;
             await _lan.UpdateProfileAsync();
             _status("设置已保存");
         }

@@ -2,7 +2,12 @@
   <PropertyGroup><OutputType>Exe</OutputType><JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/LanChat.Desktop/LanChat.Desktop.csproj" />
+    <ProjectReference Include="../LanChat.UpdateFixture/LanChat.UpdateFixture.csproj" ReferenceOutputAssembly="false" />
     <PackageReference Include="Avalonia.Headless" Version="11.3.22" />
     <PackageReference Include="ZXing.Net" Version="0.16.11" />
   </ItemGroup>
+  <Target Name="CopyUpdateFixture" AfterTargets="Build">
+    <ItemGroup><UpdateFixtureFiles Include="../LanChat.UpdateFixture/bin/$(Configuration)/$(TargetFramework)/*" /></ItemGroup>
+    <Copy SourceFiles="@(UpdateFixtureFiles)" DestinationFolder="$(OutDir)UpdateFixture" />
+  </Target>
 </Project>

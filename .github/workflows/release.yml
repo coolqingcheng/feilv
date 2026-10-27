@@ -1,0 +1,93 @@
+name: Native AOT builds and releases
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish a release after every platform succeeds
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Integration and UI checks
+        run: dotnet run --project tests/LanChat.IntegrationTests -c Release
+
+  build:
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025
+            rid: win-x64
+          - os: macos-15-intel
+            rid: osx-x64
+          - os: macos-15
+            rid: osx-arm64
+          - os: ubuntu-24.04
+            rid: linux-x64
+          - os: ubuntu-24.04-arm
+            rid: linux-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+      - name: Linux native dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev libx11-dev libice-dev libsm-dev libfontconfig1 libgl1 libicu-dev
+      - name: Publish genuine Native AOT package
+        shell: pwsh
+        run: ./scripts/publish-release.ps1 -Runtime '${{ matrix.rid }}'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: feilv-${{ matrix.rid }}
+          path: |
+            artifacts/feilv-*.zip
+            artifacts/feilv-*.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.publish)
+    needs: [test, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: feilv-*
+          path: packages
+          merge-multiple: true
+      - name: Publish all platforms together
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          RELEASE_TAG="v$(python3 -c "import xml.etree.ElementTree as E; print(E.parse('Directory.Build.props').find('.//Version').text)")"
+          gh release create "$RELEASE_TAG" packages/* --target "$RELEASE_COMMIT" --title "飞驴 $RELEASE_TAG" --generate-notes --draft
+          gh release edit "$RELEASE_TAG" --draft=false --latest
