@@ -37,7 +37,7 @@ public sealed class GitHubUpdateService : IAppUpdateService
         request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
         using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token).ConfigureAwait(false);
         if (response.StatusCode == HttpStatusCode.NotFound) return null;
-        if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.TooManyRequests) throw new IOException("GitHub 请求暂时受限，请稍后重试。");
+        if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.TooManyRequests) throw new IOException("更新服务暂时受限，请稍后重试。");
         response.EnsureSuccessStatusCode();
         await using var content = await response.Content.ReadAsStreamAsync(deadline.Token).ConfigureAwait(false);
         using var json = new MemoryStream();
@@ -57,7 +57,7 @@ public sealed class GitHubUpdateService : IAppUpdateService
             if (asset.GetProperty("name").GetString() != assetName) continue;
             var digest = asset.TryGetProperty("digest", out var value) ? value.GetString() : null;
             if (digest is null || !digest.StartsWith("sha256:", StringComparison.Ordinal) || !IsSha256(digest[7..]))
-                throw new InvalidDataException("发行包缺少 GitHub SHA-256 校验信息，已停止更新。");
+                throw new InvalidDataException("更新包缺少校验信息，已停止更新。");
             var size = asset.GetProperty("size").GetInt64();
             if (size <= 0 || size > MaximumArchiveSize) throw new InvalidDataException("发行包大小无效。");
             return new AppRelease(version.ToString(3), _runtime, assetName, digest[7..].ToLowerInvariant(), size);
@@ -160,7 +160,7 @@ public sealed class GitHubUpdateService : IAppUpdateService
         for (var i = 0; i < 6; i++)
         {
             if (uri.Scheme != "https" || uri.UserInfo.Length != 0 || !(uri.Host is "github.com" or "release-assets.githubusercontent.com" or "objects.githubusercontent.com" or "github-releases.githubusercontent.com"))
-                throw new InvalidDataException("更新下载被重定向到非 GitHub 地址。");
+                throw new InvalidDataException("更新下载地址未通过验证。");
             using var request = new HttpRequestMessage(HttpMethod.Get, uri);
             request.Headers.UserAgent.ParseAdd("Feilu-Updater");
             var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);

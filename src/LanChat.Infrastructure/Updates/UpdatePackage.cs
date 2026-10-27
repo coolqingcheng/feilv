@@ -24,7 +24,7 @@ public static class UpdatePackage
         if (AppReleases.IsInstaller(package.Release) && (manifest.Files.Count != 1 || manifest.Executable != package.Release.AssetName
             || manifest.Files[0].Path != package.Release.AssetName || manifest.Files[0].Size != package.Release.Size
             || !manifest.Files[0].Sha256.Equals(package.Release.Sha256, StringComparison.OrdinalIgnoreCase)))
-            throw new InvalidDataException("安装程序的校验信息与 GitHub 发行信息不一致。");
+            throw new InvalidDataException("安装程序的校验信息与发行信息不一致。");
         var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var file in manifest.Files)
         {

@@ -13,7 +13,7 @@ public partial class AppUpdatesViewModel(IAppUpdateService service, UserProfile 
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CheckCommand)), NotifyCanExecuteChangedFor(nameof(InstallCommand))] private bool _isBusy;
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(InstallCommand))] private bool _isReady;
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(InstallCommand)), NotifyCanExecuteChangedFor(nameof(CheckCommand))] private bool _isInstalling;
-    [ObservableProperty] private string _status = "从 GitHub Releases 获取正式版，校验后再提示更新。";
+    [ObservableProperty] private string _status = "检查新版本，下载并校验后提示更新。";
     [ObservableProperty] private string _readyVersion = "";
     [ObservableProperty] private double _progress;
     public string ReadyMessage => $"飞驴 {ReadyVersion} 已下载并通过校验";
@@ -43,7 +43,7 @@ public partial class AppUpdatesViewModel(IAppUpdateService service, UserProfile 
         IsBusy = true; Progress = 0;
         try
         {
-            Status = "正在检查 GitHub 正式版…";
+            Status = "正在检查更新…";
             var release = await service.CheckAsync(typeof(AppUpdatesViewModel).Assembly.GetName().Version!, _stop.Token);
             if (release is null) { Status = "当前已是最新正式版。"; return; }
             if (_prepared?.Release == release) { Status = ReadyMessage; return; }
