@@ -1,116 +1,132 @@
-# 飞驴
+<p align="center">
+  <img src="src/LanChat.Desktop/Assets/Brand/donkey.svg" width="80" height="80" alt="飞驴驴头标志" />
+</p>
 
-C# / .NET 10 / Avalonia 11 的局域网文件传输工具，无账号和中心服务器。Windows、macOS 和 Linux 发行包使用 Native AOT；界面采用中性灰与绿色强调色，支持跟随系统、Dark、Light 三种主题，首次运行默认跟随系统。
+<h1 align="center">飞驴</h1>
 
-[下载正式版](https://github.com/coolqingcheng/feilv/releases/latest) · [构建状态](https://github.com/coolqingcheng/feilv/actions)
+<p align="center"><strong>局域网里，拖一下就传。</strong></p>
+<p align="center">电脑互传文件 · 共享本地文件夹 · 手机扫码上传下载</p>
 
-Windows 下载单个 `feilv-v1.4.5-win-x64-setup.exe`，双击后按中文安装向导选择目录、快捷方式并完成安装。“选择目录”打开 Windows 现代文件夹选择器，支持地址栏、搜索和新建文件夹；也可直接在安装页输入尚未存在的完整路径，由安装程序创建。所选目录就是最终安装目录，不再额外追加 Feilv 子目录。默认安装到当前用户的 `%LOCALAPPDATA%\Programs\Feilv`，无需管理员权限；主程序与原生依赖由安装程序自动放置，不需要手动解压。请先从系统托盘退出旧版。
+<p align="center">
+  <a href="https://github.com/coolqingcheng/feilv/releases/latest"><img src="https://img.shields.io/github/v/release/coolqingcheng/feilv?color=008f5a&amp;label=Release" alt="最新正式版" /></a>
+  <a href="https://github.com/coolqingcheng/feilv/actions/workflows/release.yml"><img src="https://github.com/coolqingcheng/feilv/actions/workflows/release.yml/badge.svg?branch=main" alt="构建状态" /></a>
+  <img src="https://img.shields.io/badge/.NET_10-Native_AOT-512bd4" alt=".NET 10 Native AOT" />
+</p>
 
-## 使用
+<p align="center">
+  <a href="https://github.com/coolqingcheng/feilv/releases/latest"><strong>下载飞驴</strong></a> ·
+  <a href="#界面预览">界面预览</a> ·
+  <a href="#快速上手">快速上手</a> ·
+  <a href="docs/technical-guide.md">技术文档</a>
+</p>
 
-- 首页分为在线设备和收发记录两个 Tab。设备显示头像、名称、IP、客户端版本号，旧客户端未上报时显示“版本未知”；有行间分隔，仅鼠标悬停高亮。拖文件或文件夹到设备行即可发送；行内“发送”菜单也可以选择文件或文件夹。
-- 底部“发送文件”先勾选接收电脑，支持多选电脑、多选文件或文件夹。逐台发送接收请求；实际文件正文统一排队，任何时刻只向一个接收端传输。
-- 文件夹保留目录结构，递归逐项传输，不打包 ZIP，支持空文件和空目录。发送时建立快照，原文件之后修改不会影响已发送的内容；目录链接不作为普通目录递归跟随。
-- 发送进度和实时速度显示在对应设备行。收发记录显示文件名、大小、电脑名称、IP、时间，最新记录在最下方；虚拟滚动配合每页 50 条的游标分页，向上加载更早记录，文件名搜索覆盖全部历史。已有本地文件的记录显示“打开文件夹”，在资源管理器中定位并选中对应文件或目录；发送、接收和共享下载记录使用相同操作。每条记录右上角的小叉可直接删除历史记录，保留本地文件；传输过程中暂时禁用删除，删除待接收记录也会移除对应提示。
-- 接收方确认后才下载。后台来文件只弹右下角确认，不唤起、移动或切换主窗口；完成后提供“打开所在文件夹”和“关闭”，资源管理器会定位到具体文件或目录。多个接收请求排队显示，暂不接收后仍可从记录中接收。
-- 菜单中的共享文件夹可以添加本地目录，也可以选择在线设备浏览并下载对方共享的文件。共享仅提供浏览和下载。
-- 设置独立展示设备头像、名称、接收提示、开机启动、主题、手动连接和存储目录。开机启动首次默认启用，通过当前用户的 Windows Run 项实现，无需管理员权限；开发和测试进程不会注册启动项。
-- 最小化和关闭按钮隐藏到透明驴头托盘；从托盘菜单退出。同一登录会话只能运行一个桌面客户端，重复启动唤起已有窗口。
-- 图标采用 Lucide SVG 与原创驴头 SVG，没有字体图标。
+飞驴是一款使用 **C# / Avalonia UI** 开发的局域网文件传输工具。连接同一局域网后自动发现设备，无需注册账号，也无需搭建中心服务器。Windows、macOS 和 Linux 均提供 **Native AOT** 发行包，目标电脑无需安装 .NET。
 
-## 二维码分享
+## 界面预览
 
-标题栏设置图标旁的二维码按钮会启动独立的局域网 HTTP 服务，显示访问二维码和完整地址。手机与电脑在同一局域网时，扫码即可在浏览器多选文件上传、浏览共享目录及子目录、下载文件；无需安装客户端。多网卡电脑可选择二维码使用的本机 IP，也可复制地址或直接在浏览器打开。
+| 在线设备 · Dark | 收发记录 · Light |
+| :---: | :---: |
+| <img src="docs/images/devices-dark.png" width="340" alt="在线设备列表：显示名称、IP、版本号及文件发送进度和速度" /> | <img src="docs/images/history-light.png" width="340" alt="收发记录：显示文件名、大小、来源电脑、IP、时间和接收操作" /> |
 
-分享页分别设置“上传到电脑的目录”和“手机可下载的目录”，留空时都使用 EXE 根目录下的 `qr-http`。点击“保存并应用目录”保存到 `Data/config.xml`；运行中应用目录会重启服务、生成新链接。上传不覆盖同名文件，会添加编号；未完成上传使用临时文件，失败或停止后清理。不同上传/下载目录之间互不自动暴露文件。
+<p align="center"><sub>v1.4.5 真实界面，使用演示设备、文件和传输数据。</sub></p>
 
-HTTP 服务仅在点击按钮后启动，最小化和切换页面仍继续运行；“停止分享”或退出客户端会关闭连接和监听。每次重新启动使用随机访问路径，旧二维码失效。HTTP 监听使用自动分配的空闲 TCP 端口，不注册 HTTP.sys URL，也不要求管理员权限；Windows 防火墙需允许程序的专用网络访问。仅适用于可信局域网，HTTP 内容未加密，访问链接持有者可上传并下载配置目录中的文件。
+<details>
+<summary><strong>查看更多：二维码分享、主题设置、发送与接收</strong></summary>
 
-网页资源全部内置，无 CDN 依赖，跟随手机的深浅色主题。浏览器使用文件正文流上传，服务端支持固定长度及 chunked 请求；上传和下载使用 64 KiB 缓冲，最多处理 8 个连接，支持单区间下载和 HEAD。请求头限制为 16 KiB，拒绝目录越界、目录链接、不安全文件名及不同来源的浏览器上传；下载使用附件响应。二维码由 QRCoder 生成并以矢量绘制，MIT 许可证嵌入 Assets/QRCoder-LICENSE.txt；测试用 ZXing 独立解码真实截图。
+| 手机扫码传文件 · Dark | 跟随系统 / Dark / Light |
+| :---: | :---: |
+| <img src="docs/images/qr-sharing-dark.png" width="340" alt="二维码分享：手机扫码后通过浏览器上传和下载文件" /> | <img src="docs/images/settings-light.png" width="340" alt="设置：修改设备名称、头像、通知、开机启动和外观主题" /> |
 
-## 网络与资源
+| 多选接收设备 | 后台接收确认 |
+| :---: | :---: |
+| <img src="docs/images/send-files-dark.png" width="340" alt="发送文件时可以勾选多台电脑，按顺序发送" /> | <img src="docs/images/receive-file-dark.png" width="340" alt="后台来文件时弹出独立接收提示，显示文件大小、来源和IP" /> |
 
-通过 UDP 45831 的 IPv4 组播和广播发现设备，上线时其他客户端立即单播应答；应答限流且不会再次触发应答。每秒心跳，后台每 500 毫秒检查状态，超过 3 秒未活动时进行 750 毫秒 TLS 探测；正常退出主动广播离线，异常退出通常约 3–5 秒标记离线。探测不请求头像，并限制并发数量。网络不支持广播或组播时，可在设置里使用 IP 和 TCP 45832 手动连接。
+</details>
 
-文件正文按 64 KiB 异步读写，使用固定缓冲区，不把整个文件读入内存；目录惰性枚举，不建立完整文件树。接收每个文件校验 SHA-256；进度最多约每秒更新 4 次，完成时保留平均速度。实际发送以信号量串行调度。退出时取消异步任务，关闭连接，解除事件订阅，释放图片资源。
+## 能做什么
 
-TCP 使用双向 TLS，设备身份采用首次信任证书指纹，之后拒绝同一设备 ID 换指纹；适用于可信局域网。文件共享拒绝路径越界和目录链接。当前没有断点续传。单个协议包上限 512 KiB，头像上限 128 KiB；常见图片不超过 20 MiB 时按图片分类保存，更大图片作为普通文件。
+| 功能 | 使用体验 |
+| --- | --- |
+| 自动发现设备 | 显示设备名称、头像、IP 和版本号，实时更新上下线状态。 |
+| 拖拽传输 | 文件、文件夹直接拖到设备行；也可多选文件和接收电脑，逐台发送。 |
+| 保留文件夹结构 | 递归传输文件与子目录，支持空目录，无需打包 ZIP。 |
+| 查看进度 | 对应设备行显示进度和实时速度；文件使用流式传输。 |
+| 查找收发记录 | 显示文件名、大小、来源、IP 和时间，支持分页滚动、文件名搜索和删除记录。 |
+| 轻量接收提示 | 后台来文件只在右下角询问是否接收；完成后可在文件夹中定位文件。 |
+| 共享文件夹 | 其他客户端可浏览和下载指定目录中的文件。 |
+| 二维码分享 | 手机扫码后用浏览器上传、下载，无需安装客户端；上传与下载目录可分开设置。 |
+| 个性化与托盘 | 跟随系统、Dark、Light 三种主题，支持昵称、头像、开机启动和单实例运行。 |
+| 应用内更新 | 后台下载并校验，展示更新内容，确认后安装并重启，保留本地数据。 |
 
-## 本地文件
+## 下载与安装
 
-所有数据默认放在 EXE 同级目录，新版直接使用新格式，不导入 SQLite 或根目录旧配置，也不删除旧文件。
+前往 **[最新正式版](https://github.com/coolqingcheng/feilv/releases/latest)**，按系统和处理器选择一个包：
+
+| 系统 | 处理器 | 选择的发行包 |
+| --- | --- | --- |
+| Windows | x64 | `win-x64-setup.exe`：单个中文向导安装包 |
+| macOS | Apple Silicon | `osx-arm64.tar.gz` |
+| macOS | Intel | `osx-x64.tar.gz` |
+| Linux | x64 | `linux-x64.tar.gz` |
+| Linux | ARM64 | `linux-arm64.tar.gz` |
+
+文件名均以 `feilv-v版本号-` 开头。Windows 双击安装包，按向导选择目录即可，默认安装到当前用户目录，无需管理员权限；目录选择器支持搜索、地址栏和新建文件夹。
+
+macOS / Linux 完整解压后运行 `./feilv`。macOS 当前尚未进行 Apple 公证，首次打开可能需要在系统安全设置中允许；Linux 需要 X11、fontconfig、OpenGL 等桌面系统库，详见[技术文档](docs/technical-guide.md#发布)。
+
+## 快速上手
+
+1. **连接同一局域网**：在两台电脑上启动飞驴，Windows 防火墙提示时允许专用网络访问；在线设备会自动出现。找不到对方时，可在设置中通过 IP 手动连接。
+2. **选择接收方并发送**：把文件或文件夹拖到对方设备行，或点击该行的“发送”。底部“发送文件”可勾选多台电脑，依次发送。
+3. **确认接收**：对方点击“确定接收”后开始下载。完成后点击“打开文件夹”定位文件；暂不接收的文件也可在收发记录中处理。
+
+**共享目录**：从标题栏菜单进入“共享文件夹”，添加本地目录，或选择在线电脑浏览对方共享。
+
+**手机传文件**：点击标题栏二维码按钮启动分享，手机连接同一局域网后扫码，即可上传、下载。上传与下载目录可以分别设置，留空时使用程序目录下的 `qr-http`；点击“停止分享”后链接失效。
+
+**后台运行**：最小化或关闭主窗口会隐藏到托盘，来文件时显示独立接收提示。从右下角托盘菜单选择“退出”可完全关闭。开机启动首次默认开启，可在设置中关闭。
+
+## 数据与更新
+
+配置、收发记录和文件保存在程序同级目录，文件与图片按天归档：
 
 ```text
-飞驴.exe                         Windows 主程序；macOS/Linux 为 feilv
-app-manifest.json                发行包文件及 SHA-256 清单
-Data/
-  config.xml                    唯一配置：身份、昵称、头像、主题、通知、启动项、端口、共享
-  records.dat                   追加写入的记录元数据，含校验和
-  records.idx                   固定长度索引，可从 records.dat 重建
-  identity.pfx                  TLS 私钥与证书
-  Updates/                      更新下载、校验后的程序和上次更新备份
-qr-http/                        二维码分享默认上传和下载目录
-Files/yyyy-MM-dd/
-  Sent/<附件ID>/<文件或目录名>    发送快照
-  Received/<下载ID>/<文件或目录名>
-Images/yyyy-MM-dd/
-  Sent/<附件ID>/<图片名>
-  Received/<下载ID>/<图片名>
-  Avatars/
+飞驴.exe / feilv
+├─ Data/
+│  ├─ config.xml          配置文件
+│  ├─ records.dat         收发记录与设备元数据
+│  ├─ records.idx         记录索引
+│  ├─ identity.pfx        设备证书与私钥
+│  └─ Updates/            更新缓存、备份与耗时日志
+├─ Files/yyyy-MM-dd/      按天保存的文件与文件夹
+├─ Images/yyyy-MM-dd/     按天保存的图片
+└─ qr-http/              二维码分享默认目录
 ```
 
-存储文件只保存历史、设备和附件元数据，文件正文单独按天保存。索引以池化的 32 KiB 块扫描，历史查询只保留一页和一条预读，不将整个索引或历史常驻内存；文件名过滤先筛索引，再精确匹配。索引丢失、校验错误或未完成的写入会触发重建；最后一条写入不完整时保留此前完整记录，正文损坏则报告错误。路径按相对目录存储，接收使用独立目录防止重名覆盖。
+设置中可以手动检查更新，也可以开启自动检查下载。更新包通过 SHA-256 和大小校验后才提示安装，由用户确认后执行；**更新与卸载均保留本地数据，删除历史记录也会保留对应文件**。备份或迁移时，请一起保存 `Data`、`Files`、`Images` 和需要的 `qr-http` 内容。
 
-不使用 SQLite、ORM 或 SQL 本地库。存储日志追加写入，历史和发送快照长期使用会占用磁盘，目前没有自动清理或压缩；请保留完整 Data 目录和需要的媒体文件。日期按本机时间生成，不随跨日移动历史文件。
+适合可信的办公室、家庭等局域网。客户端之间通过双向 TLS 传输；二维码分享使用 HTTP，持有链接的人可访问配置的目录。当前不支持断点续传，记录和文件也不会自动清理。更多说明见[网络与资源](docs/technical-guide.md#网络与资源)、[本地文件](docs/technical-guide.md#本地文件)和[软件更新](docs/technical-guide.md#软件更新)。
 
-## 开发与验证
+## 开发
 
-安装 .NET 10 SDK：
+安装 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)，在仓库根目录执行：
 
 ```powershell
 dotnet build LanChat.slnx
 dotnet run --project src/LanChat.Desktop
 dotnet run --project tests/LanChat.IntegrationTests
-# 仅网络和存储验证：追加 -- --no-ui
 ```
 
-分层为 Core（模型与服务契约）、Infrastructure（网络、协议、文件存储与共享访问）、Desktop（强类型 XAML、MVVM 模块和桌面服务）。依赖方向为 Desktop → Core + Infrastructure，Infrastructure → Core。使用 CommunityToolkit.Mvvm 源生成属性和命令，JSON 使用源生成上下文，配置使用 XML 节点读写。
+代码按 **Core / Infrastructure / Desktop** 三层组织：Core 定义模型与服务契约，Infrastructure 实现网络、文件存储和更新，Desktop 使用强类型 XAML 与 MVVM 组织界面。依赖方向为 Desktop → Core + Infrastructure，Infrastructure → Core。
 
-集成检查覆盖真实 UDP 与 TLS 通信、上下线竞争、身份校验、文件及目录传输、串行发送、存储校验与重建、分页搜索、单实例和后台接收。64 MiB 传输检查托管分配量和两端速度；重复启停检查句柄与内存增长。Headless UI 验证多选接收人、目录拖拽、设备行状态、两套配色、系统主题和虚拟列表，截图在 artifacts/screenshots。二维码分享验证包含独立 HTTP 上传/下载目录、重名、空文件、chunked 上传、范围下载、路径限制、中断清理、64 MiB 流式收发，以及从 Dark/Light 和 360/420 像素窗口截图独立解码当前访问地址。自动化检查不能代替多台物理设备的验收。
+| 技术 | 用途 |
+| --- | --- |
+| .NET 10 / Native AOT | 原生发布，使用异步 API 与有界缓冲区 |
+| Avalonia 11 / CommunityToolkit.Mvvm | 跨平台界面、MVVM 属性与命令源生成 |
+| UDP / TCP + TLS | 局域网自动发现、身份校验与文件传输 |
+| 文件索引 / XML | 本地记录与配置，不依赖数据库 |
+| QRCoder / Lucide SVG | 二维码与矢量图标 |
 
-命令行支持 --data-dir、--port、--discovery-port 和 --no-discovery，参数优先于 Data/config.xml。请在可写目录运行，Windows 防火墙提示时允许专用网络。
+构建、验证、资源管理、安装器与发布流程见[技术与维护指南](docs/technical-guide.md)。GitHub Actions 为五个平台构建 AOT 包，通过检查后统一发布；Windows 使用 Inno Setup 制作单个 EXE 安装包。
 
-## 本地版本管理
-
-项目主分支为 `main`，最初的本地基线为 `v1.3.0`。GitHub 仓库为 [coolqingcheng/feilv](https://github.com/coolqingcheng/feilv)。源码、测试、SVG 和许可证纳入版本管理；构建输出、发布包、截图、配置、历史记录、收发文件、二维码共享目录及私钥证书均被忽略。
-
-```powershell
-git status --short
-git log --oneline --decorate -5
-git diff
-```
-
-完成修改并验证后，使用 `git add` 和 `git commit` 保存版本，`git push origin main` 同步到 GitHub。运行配置、私钥和接收的文件不会上传。
-
-## 软件更新
-
-只从代码中固定的 `coolqingcheng/feilv` 仓库读取 GitHub 最新正式版，不接受局域网设备提供的版本或程序。启动 10 秒后异步检查，之后每 6 小时检查一次；设置中可关闭自动检查下载，也可手动“检查更新”。客户端界面使用普通更新文案。未联网或 GitHub 受限不影响局域网传输。
-
-发现适合当前系统和 CPU 架构的新版后，先在后台流式下载到 `Data/Updates`，使用 GitHub API 返回的 SHA-256 和大小校验。Windows 优先获取唯一的 setup.exe 安装包，此时只下载和校验，不运行安装程序；其他平台解压并校验清单中的每个文件，也兼容早期 Windows ZIP 更新。缺少校验信息、包损坏、路径越界、链接或平台不匹配均拒绝。64 KiB 池化缓冲下载、解压和哈希，已校验的缓存再次使用前重新校验。
-
-发现新版本后，设置页显示版本对应的更新内容；全部完成后才显示右下角“立即更新 / 稍后”，提示中也显示更新内容，长说明可以滚动查看，不会唤起主窗口。选择“稍后”后仍可从设置更新；选择立即更新时若有文件传输则等待用户稍后重试。Windows 确认后才复制当前程序与依赖作为独立更新助手，等待原进程正常退出，再静默调用已校验的安装包升级到原目录，并按原启动参数重启；其他平台继续使用文件替换。替换失败会还原已备份的文件；新版启动后退出且未确认就绪时恢复原版。新版仍运行但未及时确认就绪时保留备份，避免终止正在运行的客户端。本地 Data、Files、Images、qr-http 不参与替换。新版作为更新端时，独立的更新进度提示会持续显示准备、安装和重启状态；安装器按 SHA-256 跳过相同文件，每个文件独立压缩，减少未变化依赖的解压与写入。Data/Updates/对应更新目录中的 prepare-timing.log 和 update-timing.log 记录确认、准备、退出、安装器启动/退出和新版就绪的分段耗时。
-
-旧 v1.3.0 没有 GitHub 更新入口，v1.4.0 仅支持 ZIP 更新；这两版第一次请手动运行新版安装包。可将安装目录选为原目录，或安装完成后将原 Data、Files、Images、qr-http 放到新版主程序同级目录继续使用。配置仍为同级 Data/config.xml；更新和卸载均保留配置、历史、证书及收发文件。卸载只移除程序、原生依赖、快捷方式和指向该安装目录的开机启动项。
-
-## 发布
-
-```powershell
-.\scripts\publish.ps1 -Runtime win-x64
-# artifacts/feilv-v1.4.5-win-x64-setup.exe
-```
-
-版本号由 Directory.Build.props 统一维护，设置页、发行包和程序版本一致。Native AOT 依赖目标系统的原生链接器：Windows 为 MSVC C++ 与 Windows SDK，macOS 为 Xcode 命令行工具，Linux 为 clang、zlib 开发包。Windows 安装包使用 Inno Setup 6.7.1 或更新版本，其 BrowseForFolder 脚本接口通过 IFileDialog 打开现代系统目录选择器；GitHub Windows 构建机已包含编译器。本地已有原生发行目录时，也可用 scripts/build-installer.ps1 -SourceDirectory 目录直接封装。发布必须在目标系统和架构的机器上执行，不会回退到托管发布。
-
-GitHub Actions 在 Windows x64、macOS Intel/Apple Silicon、Linux x64/ARM64 五种原生运行器上构建。每个平台/架构只有一份带版本号的包：Windows 为单个带中文向导的 EXE 安装包，macOS/Linux 为 tar.gz。均包含原生主程序、Avalonia 的必要原生库、许可证及 app-manifest.json，不包含托管主 DLL，目标电脑无需安装 .NET。macOS/Linux 完整解压后运行 `./feilv`；Linux 桌面需要 X11、fontconfig、OpenGL 等系统库。macOS 当前使用临时签名，没有 Apple 开发者公证，首次打开可能需要在系统安全设置中允许。
-
-推送 main 时执行完整集成与 UI 检查。发布新版本时修改版本号，推送后在 Actions 手动运行工作流并勾选 publish；所有检查和五个平台构建、真实原生程序清单验证全部成功后，统一创建版本标签与 Release，再公开完整资产。Windows 还会验证首次安装、覆盖安装、真实更新助手调用安装包并重启 AOT 程序、卸载后保留数据。也支持推送与版本号一致的 `v*` 标签触发发布。构建中途不会公开不完整版本。
+遇到问题或有建议，欢迎[提交 Issue](https://github.com/coolqingcheng/feilv/issues)。
