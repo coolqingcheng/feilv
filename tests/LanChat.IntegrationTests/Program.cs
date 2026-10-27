@@ -27,6 +27,8 @@ internal static partial class Program
     [STAThread]
     public static int Main(string[] args)
     {
+        System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("zh-CN");
+        System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.CurrentUICulture;
         if (args is ["--instance-probe", ..]) return SingleInstanceTests.RunProbe(args);
         if (args is ["--presence-probe", ..]) return PresenceTests.RunProbeAsync(args).GetAwaiter().GetResult();
         if (args is ["--qr-http-preview", ..]) return RunQrHttpPreviewAsync(args).GetAwaiter().GetResult();
@@ -36,6 +38,7 @@ internal static partial class Program
             SingleInstanceTests.RunAsync(TestRoot, Check).GetAwaiter().GetResult();
             RunFileHistoryStorageTestsAsync().GetAwaiter().GetResult();
             RunStartupConfigurationTests();
+            RunLocalizationTests();
             RunQrHttpTestsAsync().GetAwaiter().GetResult();
             RunGitHubUpdateTestsAsync().GetAwaiter().GetResult();
             RunUpdateHelperTestsAsync().GetAwaiter().GetResult();
@@ -239,6 +242,7 @@ internal static partial class Program
         RunQrShareUiTests(window, model, store, ui);
         RunGitHubUpdateUiTests(window, node, store, ui);
         RunAutomaticReceiveTests();
+        RunLocalizationUiTests();
         model.Dispose();
         window.AllowClose = true; window.Close();
         Pump(node.DisposeAsync().AsTask()); Pump(remote.DisposeAsync().AsTask());

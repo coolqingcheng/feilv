@@ -104,7 +104,7 @@ public partial class FileInboxView : UserControl
         var target = ready ? FindDeviceRow(args) : null;
         if (_dropTarget != target) { _dropTarget?.Classes.Remove("drop-target"); _dropTarget = target; _dropTarget?.Classes.Add("drop-target"); }
         DropOverlay.IsVisible = ready && target is null;
-        FileDropHint.Text = target?.DataContext is PeerViewModel peer ? "松开发送给 " + peer.Nickname : "拖文件到在线设备即可直接发送";
+        if (_model is not null) _model.DropTargetName = (target?.DataContext as PeerViewModel)?.Nickname ?? "";
         args.Handled = true;
     }
 
@@ -114,7 +114,7 @@ public partial class FileInboxView : UserControl
     private void ClearDropTarget()
     {
         _dropTarget?.Classes.Remove("drop-target"); _dropTarget = null; DropOverlay.IsVisible = false;
-        FileDropHint.Text = "拖文件到在线设备即可直接发送";
+        if (_model is not null) _model.DropTargetName = "";
     }
 
     private async void FilesDropped(object? sender, DragEventArgs args)

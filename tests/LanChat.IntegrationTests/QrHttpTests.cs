@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using LanChat.Core.Models;
+using LanChat.Core.Localization;
 using LanChat.Infrastructure.QrSharing;
 using LanChat.Infrastructure.Storage;
 
@@ -23,9 +24,25 @@ internal static partial class Program
         var page = await client.GetStringAsync(address);
         Check(page.Contains("上传到电脑", StringComparison.Ordinal) && page.Contains("下载文件", StringComparison.Ordinal)
             && Directory.Exists(uploads) && Directory.Exists(downloads), "QR URL serves a self-contained upload/download page and creates separate roots");
+        var englishPage = await client.GetStringAsync(address + "?lang=en-US");
+        Check(englishPage.Contains("<html lang=\"en-US\">", StringComparison.Ordinal)
+            && englishPage.Contains("Upload to computer", StringComparison.Ordinal) && englishPage.Contains("Download files", StringComparison.Ordinal)
+            && englishPage.Contains("?lang=zh-CN", StringComparison.Ordinal), "QR page supports an independent English view and a Chinese language switch");
+        using (var browserRequest = new HttpRequestMessage(HttpMethod.Get, address))
+        {
+            browserRequest.Headers.AcceptLanguage.ParseAdd("en-US,en;q=0.9");
+            using var response = await client.SendAsync(browserRequest);
+            Check((await response.Content.ReadAsStringAsync()).Contains("<html lang=\"en-US\">", StringComparison.Ordinal)
+                && Localizer.Language == "zh-CN", "browser language does not change the desktop or other HTTP clients");
+        }
+        using (var response = await client.PostAsync(address + "upload?lang=en-US&name=" + Uri.EscapeDataString("设置 {file}.txt"), new ByteArrayContent([42])))
+            Check(response.StatusCode == HttpStatusCode.Created && await response.Content.ReadAsStringAsync() == "Uploaded: 设置 {file}.txt",
+                "English upload receipts preserve the exact Unicode filename and template-like content");
         var script = page[(page.IndexOf("<script>", StringComparison.Ordinal) + 8)..page.IndexOf("</script>", StringComparison.Ordinal)];
         Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), ".build"));
         await File.WriteAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(), ".build", "qr-upload.js"), script);
+        await File.WriteAllTextAsync(Path.Combine(Directory.GetCurrentDirectory(), ".build", "qr-upload-en.js"),
+            englishPage[(englishPage.IndexOf("<script>", StringComparison.Ordinal) + 8)..englishPage.IndexOf("</script>", StringComparison.Ordinal)]);
         Check((await client.GetAsync($"http://127.0.0.1:{server.Port}/")).StatusCode == HttpStatusCode.NotFound, "requests without the current sharing link cannot browse files");
         var payload = Encoding.UTF8.GetBytes("来自手机的文件\n异步传输");
         using (var response = await client.PostAsync(address + "upload?name=" + Uri.EscapeDataString("手机 图片 &资料.txt"), new ByteArrayContent(payload)))

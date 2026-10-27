@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Xml;
 using System.Xml.Linq;
 using LanChat.Core.Models;
+using LanChat.Core.Localization;
 
 namespace LanChat.Infrastructure.Storage;
 
@@ -34,6 +35,7 @@ public sealed class XmlConfiguration
                 Nickname = Value(profile, "Nickname", Environment.UserName),
                 AvatarPath = profile?.Element("AvatarPath")?.Value is { Length: > 0 } avatar ? Path.GetFullPath(Path.Combine(baseDirectory, avatar)) : null,
                 Theme = Value(profile, "Theme", "System"),
+                Language = Localizer.Normalize(Value(profile, "Language", "System")),
                 ShowNotifications = Value(profile, "ShowNotifications", "true") != "false",
                 AutoReceive = Value(profile, "AutoReceive", "true") != "false",
                 StartWithWindows = Value(profile, "StartWithWindows", "true") != "false",
@@ -81,7 +83,7 @@ public sealed class XmlConfiguration
             new XElement("LanChat", new XAttribute("version", "1"),
                 new XElement("Profile", new XElement("Id", Profile.Id), new XElement("Nickname", Profile.Nickname),
                     new XElement("AvatarPath", Profile.AvatarPath is { } avatar ? Path.GetRelativePath(baseDirectory, avatar) : ""),
-                    new XElement("Theme", Profile.Theme), new XElement("ShowNotifications", Profile.ShowNotifications),
+                    new XElement("Theme", Profile.Theme), new XElement("Language", Localizer.Normalize(Profile.Language)), new XElement("ShowNotifications", Profile.ShowNotifications),
                     new XElement("AutoReceive", Profile.AutoReceive),
                     new XElement("StartWithWindows", Profile.StartWithWindows), new XElement("AutoDownloadUpdates", Profile.AutoDownloadUpdates)),
                 new XElement("Network", new XElement("ListenPort", ListenPort), new XElement("DiscoveryPort", DiscoveryPort), new XElement("EnableDiscovery", EnableDiscovery)),

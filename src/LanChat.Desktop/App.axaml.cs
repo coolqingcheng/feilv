@@ -6,6 +6,7 @@ using Avalonia.Platform;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using LanChat.Core.Services;
+using LanChat.Core.Localization;
 using LanChat.Desktop.Services;
 using LanChat.Desktop.ViewModels;
 using LanChat.Desktop.Views;
@@ -19,7 +20,26 @@ public partial class App : Application
 {
     private ILanService? _lan;
     private TrayIcon? _tray;
-    public override void Initialize() => AvaloniaXamlLoader.Load(this);
+    private NativeMenuItem? _openMenuItem;
+    private NativeMenuItem? _exitMenuItem;
+    private readonly ResourceDictionary _translations = new();
+    public override void Initialize()
+    {
+        AvaloniaXamlLoader.Load(this);
+        Resources.MergedDictionaries.Add(_translations);
+        Resources["Translate"] = new TranslationConverter();
+        RefreshTranslations();
+        Localizer.Changed += RefreshTranslations;
+    }
+
+    private void RefreshTranslations()
+    {
+        if (!Dispatcher.UIThread.CheckAccess()) { Dispatcher.UIThread.Post(RefreshTranslations); return; }
+        foreach (var (key, value) in Localizer.Catalog) _translations["Loc." + key] = Localizer.Text(value[0]);
+        if (_openMenuItem is not null) _openMenuItem.Header = Localizer.Text("打开飞驴");
+        if (_exitMenuItem is not null) _exitMenuItem.Header = Localizer.Text("退出");
+        if (_tray is not null) _tray.ToolTipText = Localizer.Text("飞驴 · 局域网文件传输");
+    }
 
     public override void OnFrameworkInitializationCompleted()
     {
@@ -41,6 +61,7 @@ public partial class App : Application
             }
             var store = new IndexedFileStore(Program.Options.DataDirectory);
             var profile = store.InitialProfile;
+            Localizer.SetPreference(profile.Language);
             RequestedThemeVariant = profile.Theme switch { "Light" => ThemeVariant.Light, "Dark" => ThemeVariant.Dark, _ => ThemeVariant.Default };
             _lan = new LanService(store, profile, Program.Options);
             var window = new MainWindow();
@@ -61,9 +82,9 @@ public partial class App : Application
             };
             Program.Instance?.SetActivationHandler(() => Dispatcher.UIThread.Post(window.Restore));
             var menu = new NativeMenu();
-            var open = new NativeMenuItem("打开飞驴"); open.Click += (_, _) => window.Restore(); menu.Items.Add(open);
+            var open = _openMenuItem = new NativeMenuItem(Localizer.Text("打开飞驴")); open.Click += (_, _) => window.Restore(); menu.Items.Add(open);
             menu.Items.Add(new NativeMenuItemSeparator());
-            var exit = new NativeMenuItem("退出"); exit.Click += async (_, _) => await ShutdownAsync();
+            var exit = _exitMenuItem = new NativeMenuItem(Localizer.Text("退出")); exit.Click += async (_, _) => await ShutdownAsync();
             async Task ShutdownAsync()
             {
                 if (shuttingDown) return;
@@ -77,7 +98,7 @@ public partial class App : Application
                 window.AllowClose = true; desktop.Shutdown();
             }
             menu.Items.Add(exit);
-            _tray = new TrayIcon { Icon = window.Icon, ToolTipText = "飞驴 · 局域网文件传输", Menu = menu, IsVisible = true };
+            _tray = new TrayIcon { Icon = window.Icon, ToolTipText = Localizer.Text("飞驴 · 局域网文件传输"), Menu = menu, IsVisible = true };
             _tray.Clicked += (_, _) => window.Restore();
             TrayIcon.SetIcons(this, new TrayIcons { _tray });
             window.Opened += InitializeOnceAsync;

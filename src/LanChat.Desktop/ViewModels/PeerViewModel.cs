@@ -1,6 +1,7 @@
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LanChat.Core.Models;
+using LanChat.Core.Localization;
 using LanChat.Desktop.Services;
 using System.Windows.Input;
 
@@ -59,7 +60,7 @@ public partial class PeerViewModel : ViewModelBase, IDisposable
     public void OfferChanged(ChatMessage message)
     {
         if (_completedAttachmentId == message.AttachmentId || (IsTransferring && !IsPreparingTransfer)) return;
-        TransferName = message.FileName ?? "文件";
+        TransferName = message.FileName ?? Localizer.Text("文件");
         TransferStatus = message.Delivery switch { DeliveryState.Sent => "等待对方接收", DeliveryState.Failed => "发送失败", DeliveryState.Rejected => "对方已拒绝", _ => "发送接收请求…" };
         TransferSpeed = ""; IsTransferring = false; IsPreparingTransfer = false; TransferProgress = 0;
     }

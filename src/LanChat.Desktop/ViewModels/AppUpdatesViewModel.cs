@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LanChat.Core.Models;
+using LanChat.Core.Localization;
 using LanChat.Core.Services;
 using LanChat.Desktop.Services;
 
@@ -10,17 +11,19 @@ public partial class AppUpdatesViewModel(IAppUpdateService service, UserProfile 
 {
     private readonly CancellationTokenSource _stop = new();
     private PreparedAppUpdate? _prepared;
+    private bool _notesProvided;
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(CheckCommand)), NotifyCanExecuteChangedFor(nameof(InstallCommand))] private bool _isBusy;
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(InstallCommand))] private bool _isReady;
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(InstallCommand)), NotifyCanExecuteChangedFor(nameof(CheckCommand))] private bool _isInstalling;
     [ObservableProperty] private string _status = "检查新版本，下载并校验后提示更新。";
     [ObservableProperty] private string _readyVersion = "";
     [ObservableProperty, NotifyPropertyChangedFor(nameof(ReleaseNotesTitle))] private string _availableVersion = "";
-    [ObservableProperty, NotifyPropertyChangedFor(nameof(HasReleaseNotes))] private string _releaseNotes = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(HasReleaseNotes)), NotifyPropertyChangedFor(nameof(ReleaseNotesText))] private string _releaseNotes = "";
     [ObservableProperty] private double _progress;
     public string ReadyMessage => $"飞驴 {ReadyVersion} 已下载并通过校验";
     public string ReleaseNotesTitle => $"v{AvailableVersion} 更新内容";
     public bool HasReleaseNotes => ReleaseNotes.Length > 0;
+    public string ReleaseNotesText => _notesProvided ? ReleaseNotes : Localizer.Text(ReleaseNotes);
     public event Action? UpdateReady;
     public event Func<PreparedAppUpdate, Task>? InstallRequested;
     private bool CanCheck => !IsBusy && !IsInstalling;
@@ -51,7 +54,9 @@ public partial class AppUpdatesViewModel(IAppUpdateService service, UserProfile 
             var release = await service.CheckAsync(typeof(AppUpdatesViewModel).Assembly.GetName().Version!, _stop.Token);
             if (release is null) { Status = "当前已是最新正式版。"; return; }
             AvailableVersion = release.Version;
+            _notesProvided = !string.IsNullOrWhiteSpace(release.ReleaseNotes);
             ReleaseNotes = string.IsNullOrWhiteSpace(release.ReleaseNotes) ? "此版本未提供更新说明。" : release.ReleaseNotes;
+            OnPropertyChanged(nameof(ReleaseNotesText));
             if (_prepared is not null && AppReleases.SamePackage(_prepared.Release, release))
             {
                 _prepared = _prepared with { Release = release };

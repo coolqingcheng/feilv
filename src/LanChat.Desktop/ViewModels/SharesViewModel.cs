@@ -2,12 +2,13 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LanChat.Core.Models;
+using LanChat.Core.Localization;
 using LanChat.Core.Services;
 using LanChat.Desktop.Services;
 
 namespace LanChat.Desktop.ViewModels;
 
-public sealed class SharedEntryViewModel(SharedEntry model)
+public sealed class SharedEntryViewModel(SharedEntry model) : ViewModelBase
 {
     public SharedEntry Model { get; } = model;
     public string Name => Model.Name;
@@ -31,6 +32,8 @@ public partial class SharesViewModel(ILanService lan, IUiServices ui, Action<str
     public bool CanGoUp => _navigation.Count > 0;
     public bool IsEmpty => RemoteEntries.Count == 0;
     public bool HasPeer => Peer is not null;
+    public string LocationLabel => _rootId is null ? Localizer.Text("所有共享文件夹") : Location;
+    partial void OnLocationChanged(string value) => OnPropertyChanged(nameof(LocationLabel));
 
     public void UpdatePeer(PeerViewModel peer)
     {

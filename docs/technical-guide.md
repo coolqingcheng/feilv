@@ -4,6 +4,16 @@
 
 本文记录飞驴的网络、存储、更新及构建实现。以下开发命令均在仓库根目录执行。
 
+## 界面语言
+
+同一个安装包支持简体中文和 English。首次运行默认跟随系统语言：中文系统使用简体中文，其他系统使用 English。设置中的语言按钮立即切换并异步保存到 `Data/config.xml` 的 `Profile/Language`，可选 `System`、`zh-CN`、`en-US`；旧配置和无效值使用 `System`。不修改操作系统语言，也不翻译文件名、用户设备名、路径和发行说明。
+
+翻译资源统一维护在 `src/LanChat.Core/Localization/Strings.json`，每项包含中文原文和英文译文，格式化占位符保持对应。资源编译进 Core 程序集，通过源生成 JSON 上下文加载，兼容 Native AOT，无运行时反射或额外语言 DLL。静态 XAML 文案使用 `DynamicResource`；状态与错误在展示边界通过转换器翻译，网络协议、传输状态判断、存储值和更新助手结果日志保持原有格式。模板中只有 `state` 和 `error` 参数递归翻译，设备名和文件名按原文输出，避免误改包含花括号或界面词语的用户内容。
+
+主 ViewModel 统一处理语言变更并刷新当前模块和已加载条目，释放时取消订阅；虚拟列表行不单独订阅全局事件。托盘菜单同步刷新；更新助手通过子进程环境接收本次选择的有效语言，重启客户端后重新读取原配置。Windows 安装向导在一个 EXE 内包含中英文，不改变可执行文件名与安装标识。
+
+手机扫码网页按照浏览器 `Accept-Language` 首选项显示中英文，无该请求头时沿用电脑端语言。页面右上角的语言切换仅影响当前网页，目录浏览和上传请求保留所选语言，不修改电脑设置或其他访问者的语言。
+
 ## 二维码分享
 
 标题栏设置图标旁的二维码按钮会启动独立的局域网 HTTP 服务，显示访问二维码和完整地址。手机与电脑在同一局域网时，扫码即可在浏览器多选文件上传、浏览共享目录及子目录、下载文件；无需安装客户端。多网卡电脑可选择二维码使用的本机 IP，也可复制地址或直接在浏览器打开。
@@ -36,7 +46,7 @@ TCP 使用双向 TLS，设备身份采用首次信任证书指纹，之后拒绝
 飞驴.exe                         Windows 主程序；macOS/Linux 为 feilv
 app-manifest.json                发行包文件及 SHA-256 清单
 Data/
-  config.xml                    唯一配置：身份、昵称、头像、主题、通知、启动项、端口、共享
+  config.xml                    唯一配置：身份、昵称、头像、主题、语言、通知、启动项、端口、共享
   records.dat                   追加写入的记录元数据，含校验和
   records.idx                   固定长度索引，可从 records.dat 重建
   identity.pfx                  TLS 私钥与证书
@@ -98,11 +108,11 @@ git diff
 
 ```powershell
 .\scripts\publish.ps1 -Runtime win-x64
-# artifacts/feilv-v1.4.7-win-x64-setup.exe
+# artifacts/feilv-v1.4.8-win-x64-setup.exe
 ```
 
 版本号由 Directory.Build.props 统一维护，设置页、发行包和程序版本一致。Native AOT 依赖目标系统的原生链接器：Windows 为 MSVC C++ 与 Windows SDK，macOS 为 Xcode 命令行工具，Linux 为 clang、zlib 开发包。Windows 安装包使用 Inno Setup 6.7.1 或更新版本，其 BrowseForFolder 脚本接口通过 IFileDialog 打开现代系统目录选择器；GitHub Windows 构建机已包含编译器。本地已有原生发行目录时，也可用 scripts/build-installer.ps1 -SourceDirectory 目录直接封装。发布必须在目标系统和架构的机器上执行，不会回退到托管发布。
 
-GitHub Actions 在 Windows x64、macOS Intel/Apple Silicon、Linux x64/ARM64 五种原生运行器上构建。每个平台/架构只有一份带版本号的包：Windows 为单个带中文向导的 EXE 安装包，macOS/Linux 为 tar.gz。均包含原生主程序、Avalonia 的必要原生库、许可证及 app-manifest.json，不包含托管主 DLL，目标电脑无需安装 .NET。macOS/Linux 完整解压后运行 `./feilv`；Linux 桌面需要 X11、fontconfig、OpenGL 等系统库。macOS 当前使用临时签名，没有 Apple 开发者公证，首次打开可能需要在系统安全设置中允许。
+GitHub Actions 在 Windows x64、macOS Intel/Apple Silicon、Linux x64/ARM64 五种原生运行器上构建。每个平台/架构只有一份带版本号的包：Windows 为单个带中英文向导的 EXE 安装包，macOS/Linux 为 tar.gz。均包含原生主程序、Avalonia 的必要原生库、许可证及 app-manifest.json，不包含托管主 DLL，目标电脑无需安装 .NET。macOS/Linux 完整解压后运行 `./feilv`；Linux 桌面需要 X11、fontconfig、OpenGL 等系统库。macOS 当前使用临时签名，没有 Apple 开发者公证，首次打开可能需要在系统安全设置中允许。
 
 推送 main 时执行完整集成与 UI 检查。发布新版本时修改版本号，推送后在 Actions 手动运行工作流并勾选 publish；所有检查和五个平台构建、真实原生程序清单验证全部成功后，统一创建版本标签与 Release，再公开完整资产。Windows 还会验证首次安装、覆盖安装、真实更新助手调用安装包并重启 AOT 程序、卸载后保留数据。也支持推送与版本号一致的 `v*` 标签触发发布。构建中途不会公开不完整版本。

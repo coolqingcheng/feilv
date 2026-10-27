@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LanChat.Core.Models;
+using LanChat.Core.Localization;
 using LanChat.Desktop.Services;
 
 namespace LanChat.Desktop.ViewModels;
@@ -33,9 +34,9 @@ public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiService
     public bool IsIndeterminate => IsBusy && Progress <= 0;
     public bool CanRespond => IsOpen && !IsBusy && !IsCompleted;
     public bool HasError => Error.Length > 0;
-    public string FileName => Current?.FileName ?? "附件";
+    public string FileName => Current?.FileName ?? Localizer.Text("附件");
     public string Size => (Current?.IsFolder == true ? "文件夹 · " : "") + ImageLoader.FileSize(Current?.FileSize ?? 0);
-    public string Source => "来自 " + (string.IsNullOrEmpty(Current?.PeerNickname) ? "未知电脑" : Current.PeerNickname);
+    public string Source => "来自 " + (string.IsNullOrEmpty(Current?.PeerNickname) ? Localizer.Text("未知电脑") : Current.PeerNickname);
     public string Address => "IP " + Current?.PeerAddress;
     public string QueueHint => IsRejecting ? "正在通知发送方…" : _pending.Count > 0 ? $"还有 {_pending.Count} 个文件等待" + (AutomaticEnabled ? "接收" : "确认")
         : IsCompleted ? "文件已保存，可打开所在文件夹查看。" : IsBusy || IsAutomatic ? "正在接收，文件按日期保存" : "确认后开始接收，文件按日期保存";

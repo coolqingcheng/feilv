@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LanChat.Core.Services;
 using LanChat.Core.Models;
+using LanChat.Core.Localization;
 using LanChat.Desktop.Services;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -18,6 +19,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private string _nickname;
     [ObservableProperty] private Bitmap? _avatar;
     [ObservableProperty] private string _theme;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(LanguageDescription))] private string _language;
     [ObservableProperty] private bool _showNotifications;
     [ObservableProperty] private bool _autoReceive;
     [ObservableProperty] private bool _startWithWindows;
@@ -28,12 +30,13 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private string _manualAddress = "";
     [ObservableProperty] private string _manualPort = "45832";
     [ObservableProperty] private bool _isConnecting;
-    public string Initial => string.IsNullOrWhiteSpace(Nickname) ? "我" : Nickname[..1].ToUpperInvariant();
+    public string Initial => string.IsNullOrWhiteSpace(Nickname) ? Localizer.Text("我") : Nickname[..1].ToUpperInvariant();
     public string DeviceId => _lan.Profile.Id[..12];
     public string VersionLabel => $"飞驴  /  {typeof(SettingsViewModel).Assembly.GetName().Version?.ToString(3)}";
     public string DataDirectory => _store.DataDirectory;
     public bool SupportsWindowsStartup => OperatingSystem.IsWindows();
     public string ThemeDescription => Theme switch { "Dark" => "当前主题：Dark", "Light" => "当前主题：Light", _ => "当前主题：跟随系统" };
+    public string LanguageDescription => Language switch { "zh-CN" => "当前语言：简体中文", "en-US" => "当前语言：English", _ => "当前语言：跟随系统" };
     public string LocalEndpoint => $"{LocalAddress}:{_lan.Port}";
     private static string LocalAddress => NetworkInterface.GetAllNetworkInterfaces()
         .Where(x => x.OperationalStatus == OperationalStatus.Up && x.NetworkInterfaceType != NetworkInterfaceType.Loopback)
@@ -45,6 +48,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     {
         _lan = lan; _store = store; _ui = ui; _status = status;
         _nickname = lan.Profile.Nickname; _theme = lan.Profile.Theme;
+        _language = Localizer.Normalize(lan.Profile.Language);
         _downloadDirectory = Path.Combine(store.DataDirectory, "Files"); _showNotifications = lan.Profile.ShowNotifications;
         _autoReceive = lan.Profile.AutoReceive;
         _startWithWindows = lan.Profile.StartWithWindows;
@@ -108,6 +112,21 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     }
 
     [RelayCommand] private void OpenDownloads() { Directory.CreateDirectory(DownloadDirectory); _ui.OpenFile(DownloadDirectory); }
+
+    [RelayCommand]
+    private async Task SetLanguageAsync(string language)
+    {
+        var previous = _lan.Profile.Language;
+        Language = _lan.Profile.Language = Localizer.Normalize(language);
+        Localizer.SetPreference(Language);
+        try { await _lan.UpdateProfileAsync(); }
+        catch (Exception ex)
+        {
+            Language = _lan.Profile.Language = previous;
+            Localizer.SetPreference(previous);
+            _status("语言保存失败：" + ex.Message);
+        }
+    }
 
     [RelayCommand]
     private async Task ConnectAsync()

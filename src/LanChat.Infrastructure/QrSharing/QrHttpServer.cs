@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using LanChat.Core.Models;
+using LanChat.Core.Localization;
 using LanChat.Core.Services;
 using LanChat.Infrastructure.Files;
 
@@ -77,11 +78,16 @@ public sealed class QrHttpServer : IQrHttpServer
         {
             var stream = client.GetStream();
             var responseStarted = false;
+            var webLanguage = Localizer.Language;
             try
             {
                 deadline.CancelAfter(TimeSpan.FromSeconds(30));
                 await using var request = new HttpRequestReader(stream);
                 await request.ReadAsync(deadline.Token).ConfigureAwait(false);
+                var requestedLanguage = Query(request.Target, "lang");
+                webLanguage = requestedLanguage is "zh-CN" or "en-US" ? requestedLanguage
+                    : request.Headers.TryGetValue("Accept-Language", out var accepted)
+                        ? (accepted.StartsWith("zh", StringComparison.OrdinalIgnoreCase) ? "zh-CN" : "en-US") : Localizer.Language;
                 deadline.CancelAfter(TimeSpan.FromSeconds(60));
                 var queryAt = request.Target.IndexOf('?');
                 var route = queryAt < 0 ? request.Target : request.Target[..queryAt];
@@ -93,7 +99,7 @@ public sealed class QrHttpServer : IQrHttpServer
                     {
                         var root = new SharedFolder("qr", "", _downloadRoot);
                         var entries = SharedFileAccess.Browse(root, relative).Where(e => !e.Name.StartsWith(".feilu-upload-", StringComparison.Ordinal)).ToList();
-                        var html = QrWebPage.Render(BasePath, relative, entries);
+                        var html = QrWebPage.Render(BasePath, relative, entries, webLanguage);
                         await BytesAsync(200, "text/html; charset=utf-8", Encoding.UTF8.GetBytes(html), request.Method == "HEAD");
                     }
                     else if (route == BasePath + "download")
@@ -178,7 +184,7 @@ public sealed class QrHttpServer : IQrHttpServer
                 await HeadersAsync(code, type, bytes.Length);
                 if (!head) await stream.WriteAsync(bytes, deadline.Token).ConfigureAwait(false);
             }
-            Task TextAsync(int code, string text) => BytesAsync(code, "text/plain; charset=utf-8", Encoding.UTF8.GetBytes(text));
+            Task TextAsync(int code, string text) => BytesAsync(code, "text/plain; charset=utf-8", Encoding.UTF8.GetBytes(Localizer.Translate(text, webLanguage)));
         }
     }
 

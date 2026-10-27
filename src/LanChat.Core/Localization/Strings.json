@@ -1,0 +1,1638 @@
+{
+  "Feilv": [
+    "飞驴",
+    "Feilv"
+  ],
+  "FeilvLANFileTransfer": [
+    "飞驴 · 局域网文件传输",
+    "Feilv · LAN file transfer"
+  ],
+  "DeviceAvatar": [
+    "设备头像",
+    "Device avatar"
+  ],
+  "ChangeAvatar": [
+    "更换头像",
+    "Change avatar"
+  ],
+  "DeviceName": [
+    "设备名称",
+    "Device name"
+  ],
+  "ShownToRecipients": [
+    "发送文件时显示给对方",
+    "Shown to recipients"
+  ],
+  "ShowIncomingFileNotificationsInTheBackground": [
+    "后台收到文件时显示接收提示",
+    "Show incoming file notifications in the background"
+  ],
+  "AutomaticallyReceiveFilesAndFolders": [
+    "自动接收文件和文件夹",
+    "Automatically receive files and folders"
+  ],
+  "LaunchFeilvAtStartup": [
+    "开机启动飞驴",
+    "Launch Feilv at startup"
+  ],
+  "CheckAndDownloadUpdatesAutomaticallyNotifyAfterVerification": [
+    "自动检查并下载更新，校验后提示",
+    "Check and download updates automatically; notify after verification"
+  ],
+  "SaveSettings": [
+    "保存设置",
+    "Save settings"
+  ],
+  "Appearance": [
+    "外观主题",
+    "Appearance"
+  ],
+  "System": [
+    "跟随系统",
+    "System"
+  ],
+  "LANConnection": [
+    "局域网连接",
+    "LAN connection"
+  ],
+  "DevicesAppearAutomaticallyConnectByIPIfADeviceIsMissing": [
+    "设备会自动发现。未发现对方时，可通过 IP 手动连接。",
+    "Devices appear automatically. Connect by IP if a device is missing."
+  ],
+  "LocalAddress": [
+    "本机地址",
+    "Local address"
+  ],
+  "PeerIPEG19216818": [
+    "对方 IP，如 192.168.1.8",
+    "Peer IP, e.g. 192.168.1.8"
+  ],
+  "PeerIPAddress": [
+    "对方 IP 地址",
+    "Peer IP address"
+  ],
+  "Port": [
+    "端口",
+    "Port"
+  ],
+  "PeerPort": [
+    "对方端口",
+    "Peer port"
+  ],
+  "Connect": [
+    "连接",
+    "Connect"
+  ],
+  "FilesAndStorage": [
+    "文件与存储",
+    "Files and storage"
+  ],
+  "ReceivedFilesAreSavedByDate": [
+    "接收文件按日期保存",
+    "Received files are saved by date"
+  ],
+  "OpenDownloadsFolder": [
+    "打开接收目录",
+    "Open downloads folder"
+  ],
+  "DeviceID": [
+    "设备标识",
+    "Device ID"
+  ],
+  "SoftwareUpdates": [
+    "软件更新",
+    "Software updates"
+  ],
+  "CheckForUpdates": [
+    "检查更新",
+    "Check for updates"
+  ],
+  "UpdateAndRestart": [
+    "立即更新并重启",
+    "Update and restart"
+  ],
+  "EasyFileTransfersOnYourLAN": [
+    "局域网内，轻松传文件。",
+    "Easy file transfers on your LAN."
+  ],
+  "BackToTransfers": [
+    "返回传输首页",
+    "Back to transfers"
+  ],
+  "QRSharing": [
+    "二维码分享",
+    "QR sharing"
+  ],
+  "Settings": [
+    "设置",
+    "Settings"
+  ],
+  "SharedFolders": [
+    "共享文件夹",
+    "Shared folders"
+  ],
+  "TransfersSharingAndSettings": [
+    "文件、共享与设置",
+    "Transfers, sharing and settings"
+  ],
+  "MoreOptions": [
+    "更多功能",
+    "More options"
+  ],
+  "Transfers": [
+    "传输首页",
+    "Transfers"
+  ],
+  "MinimizeToTray": [
+    "最小化到系统托盘",
+    "Minimize to tray"
+  ],
+  "HideToTray": [
+    "隐藏到系统托盘",
+    "Hide to tray"
+  ],
+  "Devices": [
+    "在线设备",
+    "Devices"
+  ],
+  "History": [
+    "收发记录",
+    "History"
+  ],
+  "Send": [
+    "发送",
+    "Send"
+  ],
+  "ChooseFiles": [
+    "选择文件",
+    "Choose files"
+  ],
+  "ChooseFolders": [
+    "选择文件夹",
+    "Choose folders"
+  ],
+  "WaitingForDevices": [
+    "等待在线电脑",
+    "Waiting for devices"
+  ],
+  "OpenFeilvOnAnotherComputerOnTheSameLANOrConnectByIPInSettings": [
+    "同一局域网内打开飞驴即可自动发现，也可在设置中手动连接。",
+    "Open Feilv on another computer on the same LAN, or connect by IP in Settings."
+  ],
+  "SearchFilenames": [
+    "搜索文件名",
+    "Search filenames"
+  ],
+  "ClearSearch": [
+    "清空搜索",
+    "Clear search"
+  ],
+  "DeleteRecordKeepLocalFiles": [
+    "删除记录（保留本地文件）",
+    "Delete record (keep local files)"
+  ],
+  "DeleteRecord": [
+    "删除记录",
+    "Delete record"
+  ],
+  "SendFiles": [
+    "发送文件",
+    "Send files"
+  ],
+  "DropFilesOntoADeviceToSend": [
+    "拖文件到在线设备即可直接发送",
+    "Drop files onto a device to send"
+  ],
+  "DropThenChooseRecipients": [
+    "松开后勾选接收电脑",
+    "Drop, then choose recipients"
+  ],
+  "SendFilesAndFoldersToMultipleComputers": [
+    "支持文件和文件夹，可发送到多台电脑",
+    "Send files and folders to multiple computers"
+  ],
+  "SendTo": [
+    "发给谁",
+    "Send to"
+  ],
+  "CancelSending": [
+    "取消发送",
+    "Cancel sending"
+  ],
+  "NoDevicesFoundConnectByIPInSettings": [
+    "未发现在线设备，可在设置中手动连接。",
+    "No devices found. Connect by IP in Settings."
+  ],
+  "MySharedFolders": [
+    "我的共享文件夹",
+    "My shared folders"
+  ],
+  "OtherComputersOnYourLANCanBrowseAndDownloadTheseFiles": [
+    "局域网内的其他电脑可以浏览和下载。",
+    "Other computers on your LAN can browse and download these files."
+  ],
+  "AddFolder": [
+    "添加文件夹",
+    "Add folder"
+  ],
+  "StopSharing": [
+    "停止共享",
+    "Stop sharing"
+  ],
+  "BrowseOtherComputers": [
+    "其他电脑的共享",
+    "Browse other computers"
+  ],
+  "Refresh": [
+    "刷新",
+    "Refresh"
+  ],
+  "ChooseAnOnlineComputer": [
+    "选择一台在线电脑",
+    "Choose an online computer"
+  ],
+  "SharingComputer": [
+    "共享来源电脑",
+    "Sharing computer"
+  ],
+  "ChooseAComputerToBrowseItsSharesConnectByIPInSettingsIfNeeded": [
+    "选择电脑后浏览共享。未发现设备时，可在设置中手动连接。",
+    "Choose a computer to browse its shares. Connect by IP in Settings if needed."
+  ],
+  "Back": [
+    "返回",
+    "Back"
+  ],
+  "NoSharedFilesTryRefreshing": [
+    "暂无共享文件，可点击刷新。",
+    "No shared files. Try refreshing."
+  ],
+  "ScanToTransfer": [
+    "扫码传文件",
+    "Scan to transfer"
+  ],
+  "ConnectYourPhoneToTheSameLANToUploadAndDownloadInABrowser": [
+    "手机与电脑连接同一局域网，用浏览器上传或下载文件。",
+    "Connect your phone to the same LAN to upload and download in a browser."
+  ],
+  "LocalIPForSharing": [
+    "分享使用的本机 IP",
+    "Local IP for sharing"
+  ],
+  "CopyLink": [
+    "复制地址",
+    "Copy link"
+  ],
+  "OpenInBrowser": [
+    "浏览器打开",
+    "Open in browser"
+  ],
+  "StartSharing": [
+    "启动分享",
+    "Start sharing"
+  ],
+  "StopSharing2": [
+    "停止分享",
+    "Stop sharing"
+  ],
+  "SharedDirectories": [
+    "分享目录",
+    "Shared directories"
+  ],
+  "UploadDestination": [
+    "上传到电脑的目录",
+    "Upload destination"
+  ],
+  "LeaveBlankForDefault": [
+    "留空使用默认目录",
+    "Leave blank for default"
+  ],
+  "Browse": [
+    "选择",
+    "Browse"
+  ],
+  "DownloadDirectory": [
+    "手机可下载的目录",
+    "Download directory"
+  ],
+  "BothDirectoriesDefaultTo": [
+    "留空时，两个目录都使用：",
+    "Both directories default to:"
+  ],
+  "SaveAndApplyDirectories": [
+    "保存并应用目录",
+    "Save and apply directories"
+  ],
+  "FeilvIncomingFile": [
+    "飞驴 · 接收文件",
+    "Feilv · Incoming file"
+  ],
+  "Decline": [
+    "拒绝",
+    "Decline"
+  ],
+  "ShowInFolder": [
+    "打开所在文件夹",
+    "Show in folder"
+  ],
+  "Close": [
+    "关闭",
+    "Close"
+  ],
+  "FeilvUpdateReady": [
+    "飞驴 · 更新已就绪",
+    "Feilv · Update ready"
+  ],
+  "UpdateReady": [
+    "新版已准备好",
+    "Update ready"
+  ],
+  "FeilvWillCloseAndRestartYourLocalDataWillBeKept": [
+    "更新会退出并重新启动飞驴，本地数据保留。",
+    "Feilv will close and restart. Your local data will be kept."
+  ],
+  "Later": [
+    "稍后",
+    "Later"
+  ],
+  "UpdateNow": [
+    "立即更新",
+    "Update now"
+  ],
+  "FeilvUpdating": [
+    "飞驴 · 正在更新",
+    "Feilv · Updating"
+  ],
+  "UpdatingFeilv": [
+    "飞驴正在更新",
+    "Updating Feilv"
+  ],
+  "OpenFeilv": [
+    "打开飞驴",
+    "Open Feilv"
+  ],
+  "Quit": [
+    "退出",
+    "Quit"
+  ],
+  "ChooseFilesToSend": [
+    "选择要发送的文件",
+    "Choose files to send"
+  ],
+  "ChooseAnImage": [
+    "选择图片",
+    "Choose an image"
+  ],
+  "Images": [
+    "图片",
+    "Images"
+  ],
+  "ChooseFoldersToSend": [
+    "选择要发送的文件夹",
+    "Choose folders to send"
+  ],
+  "FeilvIncomingFile2": [
+    "飞驴 · 收到文件",
+    "Feilv · Incoming file"
+  ],
+  "Me": [
+    "我",
+    "Me"
+  ],
+  "Attachment": [
+    "附件",
+    "Attachment"
+  ],
+  "File": [
+    "文件",
+    "File"
+  ],
+  "Folder": [
+    "文件夹",
+    "Folder"
+  ],
+  "UnknownDevice": [
+    "未知设备",
+    "Unknown device"
+  ],
+  "UnknownComputer": [
+    "未知电脑",
+    "Unknown computer"
+  ],
+  "IPNotRecorded": [
+    "IP 未记录",
+    "IP not recorded"
+  ],
+  "DeclinedByRecipient": [
+    "对方已拒绝",
+    "Declined by recipient"
+  ],
+  "Declined": [
+    "已拒绝",
+    "Declined"
+  ],
+  "Sending": [
+    "发送中",
+    "Sending"
+  ],
+  "Receiving": [
+    "接收中",
+    "Receiving"
+  ],
+  "Receiving2": [
+    "下载中",
+    "Receiving"
+  ],
+  "Retry": [
+    "重试",
+    "Retry"
+  ],
+  "ShowInFolder2": [
+    "打开文件夹",
+    "Show in folder"
+  ],
+  "Unavailable": [
+    "不可用",
+    "Unavailable"
+  ],
+  "Receive": [
+    "接收",
+    "Receive"
+  ],
+  "Connecting": [
+    "正在连接…",
+    "Connecting…"
+  ],
+  "Online": [
+    "在线",
+    "Online"
+  ],
+  "Offline": [
+    "离线",
+    "Offline"
+  ],
+  "UnknownVersion": [
+    "版本未知",
+    "Unknown version"
+  ],
+  "PreparingToSend": [
+    "准备发送…",
+    "Preparing to send…"
+  ],
+  "WaitingForRecipient": [
+    "等待对方接收",
+    "Waiting for recipient"
+  ],
+  "SendFailed": [
+    "发送失败",
+    "Send failed"
+  ],
+  "SendingFileOffer": [
+    "发送接收请求…",
+    "Sending file offer…"
+  ],
+  "Sent": [
+    "发送完成",
+    "Sent"
+  ],
+  "Received": [
+    "接收完成",
+    "Received"
+  ],
+  "PreparingFolder": [
+    "准备文件夹",
+    "Preparing folder"
+  ],
+  "PreparingToSend2": [
+    "准备发送",
+    "Preparing to send"
+  ],
+  "Connecting2": [
+    "连接中",
+    "Connecting"
+  ],
+  "Completed": [
+    "已完成",
+    "Completed"
+  ],
+  "Queued": [
+    "排队等待",
+    "Queued"
+  ],
+  "Failed": [
+    "失败",
+    "Failed"
+  ],
+  "Cancelled": [
+    "已取消",
+    "Cancelled"
+  ],
+  "FolderReceived": [
+    "文件夹接收完成",
+    "Folder received"
+  ],
+  "FileReceived": [
+    "文件接收完成",
+    "File received"
+  ],
+  "DecliningFile": [
+    "正在拒绝接收…",
+    "Declining file…"
+  ],
+  "ReceivingFolder": [
+    "正在接收文件夹…",
+    "Receiving folder…"
+  ],
+  "ReceivingFile": [
+    "正在接收文件…",
+    "Receiving file…"
+  ],
+  "PreparingToReceive": [
+    "正在准备接收…",
+    "Preparing to receive…"
+  ],
+  "ReceiveThisFolder": [
+    "是否接收这个文件夹？",
+    "Receive this folder?"
+  ],
+  "ReceiveThisFile": [
+    "是否接收这个文件？",
+    "Receive this file?"
+  ],
+  "NotifyingSender": [
+    "正在通知发送方…",
+    "Notifying sender…"
+  ],
+  "SavedUseShowInFolderToFindIt": [
+    "文件已保存，可打开所在文件夹查看。",
+    "Saved. Use Show in folder to find it."
+  ],
+  "ReceivingFilesAreSavedByDate": [
+    "正在接收，文件按日期保存",
+    "Receiving. Files are saved by date."
+  ],
+  "ConfirmToReceiveFilesAreSavedByDate": [
+    "确认后开始接收，文件按日期保存",
+    "Confirm to receive. Files are saved by date."
+  ],
+  "Receiving3": [
+    "正在接收…",
+    "Receiving…"
+  ],
+  "RetryReceive": [
+    "重试接收",
+    "Retry receive"
+  ],
+  "NoFilesReceivedYet": [
+    "还没有收到文件",
+    "No files received yet"
+  ],
+  "NoMatchingFiles": [
+    "没有找到匹配的文件",
+    "No matching files"
+  ],
+  "FilesFromYourLANAppearHere": [
+    "局域网内的文件会显示在这里",
+    "Files from your LAN appear here"
+  ],
+  "TryADifferentFilename": [
+    "试试其他文件名",
+    "Try a different filename"
+  ],
+  "LoadingHistory": [
+    "正在加载记录…",
+    "Loading history…"
+  ],
+  "ScrollUpForOlderRecords": [
+    "向上滚动，加载更早记录",
+    "Scroll up for older records"
+  ],
+  "AllRecordsLoaded": [
+    "已显示全部记录",
+    "All records loaded"
+  ],
+  "UpdatesAreDownloadedAndVerifiedBeforeYouAreNotified": [
+    "检查新版本，下载并校验后提示更新。",
+    "Updates are downloaded and verified before you are notified."
+  ],
+  "CheckingForUpdates": [
+    "正在检查更新…",
+    "Checking for updates…"
+  ],
+  "YouHaveTheLatestStableVersion": [
+    "当前已是最新正式版。",
+    "You have the latest stable version."
+  ],
+  "NoReleaseNotesProvided": [
+    "此版本未提供更新说明。",
+    "No release notes provided."
+  ],
+  "NewVersionFoundDownloadingAndVerifyingInTheBackground": [
+    "发现新版本，正在后台下载并校验…",
+    "New version found. Downloading and verifying in the background…"
+  ],
+  "WaitForActiveTransfersToFinishBeforeUpdating": [
+    "文件正在传输，请完成后再更新。",
+    "Wait for active transfers to finish before updating."
+  ],
+  "InstallUpdatesFromAPublishedBuild": [
+    "请在正式客户端中安装更新。",
+    "Install updates from a published build."
+  ],
+  "PreparingTheUpdateFeilvWillRestart": [
+    "正在准备更新，飞驴即将重启…",
+    "Preparing the update. Feilv will restart…"
+  ],
+  "PreparingUpdate": [
+    "正在准备更新…",
+    "Preparing update…"
+  ],
+  "InstallingUpdatePleaseWait": [
+    "正在安装更新，请稍候…",
+    "Installing update, please wait…"
+  ],
+  "RestartingFeilv": [
+    "正在重新启动飞驴…",
+    "Restarting Feilv…"
+  ],
+  "StartingLANService": [
+    "正在启动局域网服务…",
+    "Starting LAN service…"
+  ],
+  "LANServiceReadyDiscoveringDevices": [
+    "局域网服务已启动 · 自动发现附近设备",
+    "LAN service ready · Discovering devices"
+  ],
+  "DeviceNameMustBe140Characters": [
+    "设备名称应为 1–40 个字符",
+    "Device name must be 1–40 characters"
+  ],
+  "SettingsSaved": [
+    "设置已保存",
+    "Settings saved"
+  ],
+  "AvatarUpdated": [
+    "头像已更新",
+    "Avatar updated"
+  ],
+  "CurrentThemeDark": [
+    "当前主题：Dark",
+    "Current theme: Dark"
+  ],
+  "CurrentThemeLight": [
+    "当前主题：Light",
+    "Current theme: Light"
+  ],
+  "CurrentThemeSystem": [
+    "当前主题：跟随系统",
+    "Current theme: System"
+  ],
+  "Language": [
+    "界面语言",
+    "Language"
+  ],
+  "ChangesApplyImmediatelyAndAreSavedAutomatically": [
+    "切换后立即生效，自动保存。",
+    "Changes apply immediately and are saved automatically."
+  ],
+  "CurrentLanguageSystem": [
+    "当前语言：跟随系统",
+    "Current language: System"
+  ],
+  "CurrentLanguageSimplifiedChinese": [
+    "当前语言：简体中文",
+    "Current language: Simplified Chinese"
+  ],
+  "CurrentLanguageEnglish": [
+    "当前语言：English",
+    "Current language: English"
+  ],
+  "Chinese": [
+    "简体中文",
+    "简体中文"
+  ],
+  "English": [
+    "English",
+    "English"
+  ],
+  "AllSharedFolders": [
+    "所有共享文件夹",
+    "All shared folders"
+  ],
+  "FolderBrowse": [
+    "文件夹 · 点击浏览",
+    "Folder · Browse"
+  ],
+  "Open": [
+    "打开",
+    "Open"
+  ],
+  "Download": [
+    "下载",
+    "Download"
+  ],
+  "FolderSharedLANClientsCanBrowseAndDownloadIt": [
+    "文件夹已共享，局域网客户端可浏览和下载",
+    "Folder shared. LAN clients can browse and download it."
+  ],
+  "SharingStopped": [
+    "已停止共享",
+    "Sharing stopped"
+  ],
+  "ServiceStartedConnectToALANThenRestartSharing": [
+    "服务已启动，连接局域网后重新启动分享。",
+    "Service started. Connect to a LAN, then restart sharing."
+  ],
+  "SharingActiveScanToUploadAndDownload": [
+    "服务运行中 · 手机扫码即可上传和下载",
+    "Sharing active · Scan to upload and download"
+  ],
+  "SharingStoppedTheQRLinkIsNoLongerValid": [
+    "已停止分享，二维码链接已失效。",
+    "Sharing stopped. The QR link is no longer valid."
+  ],
+  "DirectoriesAppliedScanTheNewQRCode": [
+    "目录已应用，分享链接已更新，请重新扫码。",
+    "Directories applied. Scan the new QR code."
+  ],
+  "DirectorySettingsSaved": [
+    "目录设置已保存。",
+    "Directory settings saved."
+  ],
+  "LinkCopied": [
+    "访问地址已复制。",
+    "Link copied."
+  ],
+  "ClickTheQRButtonToStartSharing": [
+    "点击右上角二维码按钮即可启动分享。",
+    "Click the QR button to start sharing."
+  ],
+  "RecordDeletedLocalFilesKept": [
+    "记录已删除，本地文件保留。",
+    "Record deleted. Local files kept."
+  ],
+  "ThePreviousBatchIsStillSendingPleaseWait": [
+    "上一批文件正在发送，请稍候。",
+    "The previous batch is still sending. Please wait."
+  ],
+  "SelectAtLeastOneRecipient": [
+    "请先勾选接收电脑。",
+    "Select at least one recipient."
+  ],
+  "ThisComputerIsOfflineWaitForItToReconnect": [
+    "这台电脑已离线，请等待上线后发送。",
+    "This computer is offline. Wait for it to reconnect."
+  ],
+  "ThisComputerIsOfflineFilesWereNotSent": [
+    "这台电脑已离线，文件未发送。",
+    "This computer is offline. Files were not sent."
+  ],
+  "DeviceIsOffline": [
+    "设备已离线",
+    "Device is offline"
+  ],
+  "TheLocalFileIsMissingAndCannotBeLocated": [
+    "本地文件已移除，当前记录无法定位。",
+    "The local file is missing and cannot be located."
+  ],
+  "SenderNotFoundWaitForItToReconnect": [
+    "未找到来源设备，请等待对方上线。",
+    "Sender not found. Wait for it to reconnect."
+  ],
+  "FileSentAgain": [
+    "文件已重新发送。",
+    "File sent again."
+  ],
+  "FileReceivedUseShowInFolderToFindIt": [
+    "文件已接收，可打开文件夹定位。",
+    "File received. Use Show in folder to find it."
+  ],
+  "ThisRecordHasNoReceivableFile": [
+    "这条记录不是可接收的文件。",
+    "This record has no receivable file."
+  ],
+  "DeletingRecordPleaseWait": [
+    "记录正在删除，请稍候。",
+    "Deleting record. Please wait."
+  ],
+  "TheFileIsBeingReceivedAndCannotBeDeclined": [
+    "文件正在接收，无法拒绝。",
+    "The file is being received and cannot be declined."
+  ],
+  "SenderNotFoundWaitForItToReconnect2": [
+    "未找到来源电脑，请等待对方上线。",
+    "Sender not found. Wait for it to reconnect."
+  ],
+  "DeclinedSenderNotified": [
+    "已拒绝接收，已通知发送方。",
+    "Declined. Sender notified."
+  ],
+  "TheReceivedFileOrFolderWasMovedOrDeletedReceiveItAgain": [
+    "接收的文件或文件夹已被移动或删除，请重新接收。",
+    "The received file or folder was moved or deleted. Receive it again."
+  ],
+  "ReceptionCancelledYouCanRetryLater": [
+    "接收已取消，可以稍后重试。",
+    "Reception cancelled. You can retry later."
+  ],
+  "DeclineNotificationCancelledTryDecliningAgainLater": [
+    "拒绝通知已取消，可稍后重试拒绝。",
+    "Decline notification cancelled. Try declining again later."
+  ],
+  "CannotReadThisImage": [
+    "无法读取这张图片",
+    "Cannot read this image"
+  ],
+  "AvatarIsTooLargeChooseASmallerImage": [
+    "头像过大，请选择较小的图片",
+    "Avatar is too large. Choose a smaller image."
+  ],
+  "EnterAValidIPAddressAndPort": [
+    "请输入正确的 IP 地址和端口。",
+    "Enter a valid IP address and port."
+  ],
+  "CannotAccessTheClipboard": [
+    "无法访问剪贴板。",
+    "Cannot access the clipboard."
+  ],
+  "TheReceivedFileOrFolderWasMovedOrDeleted": [
+    "接收的文件或文件夹已被移动或删除。",
+    "The received file or folder was moved or deleted."
+  ],
+  "CannotAccessThisUserSStartupSettings": [
+    "无法访问当前用户的开机启动项。",
+    "Cannot access this user's startup settings."
+  ],
+  "DevicesOnlineDropFilesToSend": [
+    "{count} 台电脑在线 · 拖文件到设备即可发送",
+    "{count} devices online · Drop files to send"
+  ],
+  "SelectedSendOneAtATime": [
+    "已选 {count} 台电脑 · 按顺序发送",
+    "{count} selected · Send one at a time"
+  ],
+  "SendItems": [
+    "发送 {count} 项",
+    "Send {count} items"
+  ],
+  "SendingTo": [
+    "正在向 {name} 发送：{file}",
+    "Sending to {name}: {file}"
+  ],
+  "SentFileOffersToComputers": [
+    "已向 {count} 台电脑发送 {sent} 项接收请求。",
+    "Sent {sent} file offers to {count} computers."
+  ],
+  "SentFileOffersToComputersFailed": [
+    "已向 {count} 台电脑发送 {sent} 项接收请求。 {failed} 项失败：{error}",
+    "Sent {sent} file offers to {count} computers. {failed} failed: {error}"
+  ],
+  "From": [
+    "来自 {name}",
+    "From {name}"
+  ],
+  "To": [
+    "发给 {name}",
+    "To {name}"
+  ],
+  "Sent2": [
+    "发送时间：{time}",
+    "Sent: {time}"
+  ],
+  "Received2": [
+    "接收时间：{time}",
+    "Received: {time}"
+  ],
+  "Folder2": [
+    "文件夹 · {size}",
+    "Folder · {size}"
+  ],
+  "MoreFilesQueuedToReceive": [
+    "还有 {count} 个文件等待接收",
+    "{count} more files queued to receive"
+  ],
+  "MoreFilesAwaitingConfirmation": [
+    "还有 {count} 个文件等待确认",
+    "{count} more files awaiting confirmation"
+  ],
+  "Feilv2": [
+    "飞驴  /  {version}",
+    "Feilv  /  {version}"
+  ],
+  "FeilvDownloadedAndVerified": [
+    "飞驴 {version} 已下载并通过校验",
+    "Feilv {version} downloaded and verified"
+  ],
+  "FeilvDownloadedAndVerifiedUpdateNowOrLater": [
+    "飞驴 {version} 已下载并通过校验，可以立即更新或稍后处理。",
+    "Feilv {version} downloaded and verified. Update now or later."
+  ],
+  "WhatSNewInV": [
+    "v{version} 更新内容",
+    "What's new in v{version}"
+  ],
+  "Downloading": [
+    "正在下载 {version} · {percent}% · {speed}",
+    "Downloading {version} · {percent}% · {speed}"
+  ],
+  "ConnectedToYouCanNowSendFilesToThisComputer": [
+    "已连接到 {name}，发送文件时即可选择这台电脑。",
+    "Connected to {name}. You can now send files to this computer."
+  ],
+  "DropToSendTo": [
+    "松开发送给 {name}",
+    "Drop to send to {name}"
+  ],
+  "Chinese2": [
+    "{state} · {speed}\n{file}",
+    "{state} · {speed}\n{file}"
+  ],
+  "Chinese3": [
+    "{state} · {speed}",
+    "{state} · {speed}"
+  ],
+  "CouldNotLoadFileHistory": [
+    "读取文件记录失败：{error}",
+    "Could not load file history: {error}"
+  ],
+  "CouldNotLoadHistory": [
+    "读取历史记录失败：{error}",
+    "Could not load history: {error}"
+  ],
+  "CouldNotDeleteRecord": [
+    "删除记录失败：{error}",
+    "Could not delete record: {error}"
+  ],
+  "SendFailed2": [
+    "发送失败：{error}",
+    "Send failed: {error}"
+  ],
+  "CouldNotOpenFolder": [
+    "打开文件夹失败：{error}",
+    "Could not open folder: {error}"
+  ],
+  "TransferFailed": [
+    "传输失败：{error}",
+    "Transfer failed: {error}"
+  ],
+  "ReceiveFailed": [
+    "接收失败：{error}",
+    "Receive failed: {error}"
+  ],
+  "CouldNotNotifySenderTryDecliningAgain": [
+    "拒绝通知失败，可重试拒绝：{error}",
+    "Could not notify sender. Try declining again: {error}"
+  ],
+  "CouldNotShowFileInFolder": [
+    "打开所在文件夹失败：{error}",
+    "Could not show file in folder: {error}"
+  ],
+  "UpdateNotReady": [
+    "更新未就绪：{error}",
+    "Update not ready: {error}"
+  ],
+  "CouldNotStartUpdate": [
+    "无法开始更新：{error}",
+    "Could not start update: {error}"
+  ],
+  "StartupSettingWasNotApplied": [
+    "开机启动设置未生效：{error}",
+    "Startup setting was not applied: {error}"
+  ],
+  "StartupFailed": [
+    "启动失败：{error}",
+    "Startup failed: {error}"
+  ],
+  "SaveFailed": [
+    "保存失败：{error}",
+    "Save failed: {error}"
+  ],
+  "AvatarUpdateFailed": [
+    "头像更新失败：{error}",
+    "Avatar update failed: {error}"
+  ],
+  "CouldNotSaveTheme": [
+    "主题保存失败：{error}",
+    "Could not save theme: {error}"
+  ],
+  "CouldNotSaveLanguage": [
+    "语言保存失败：{error}",
+    "Could not save language: {error}"
+  ],
+  "ConnectionFailed": [
+    "连接失败：{error}",
+    "Connection failed: {error}"
+  ],
+  "SharingFailed": [
+    "共享失败：{error}",
+    "Sharing failed: {error}"
+  ],
+  "RemoveFailed": [
+    "移除失败：{error}",
+    "Remove failed: {error}"
+  ],
+  "CouldNotReadSharedDirectory": [
+    "读取共享目录失败：{error}",
+    "Could not read shared directory: {error}"
+  ],
+  "Downloaded": [
+    "下载完成：{path}",
+    "Downloaded: {path}"
+  ],
+  "DownloadFailed": [
+    "下载失败：{error}",
+    "Download failed: {error}"
+  ],
+  "CouldNotStartSharing": [
+    "启动分享失败：{error}",
+    "Could not start sharing: {error}"
+  ],
+  "CouldNotStopSharing": [
+    "停止分享失败：{error}",
+    "Could not stop sharing: {error}"
+  ],
+  "CouldNotSaveDirectories": [
+    "保存目录失败：{error}",
+    "Could not save directories: {error}"
+  ],
+  "CopyFailed": [
+    "复制失败：{error}",
+    "Copy failed: {error}"
+  ],
+  "OpenFailed": [
+    "打开失败：{error}",
+    "Open failed: {error}"
+  ],
+  "DiscoveryCouldNotStartConnectByIPInstead": [
+    "自动发现未启动，可手动连接。{error}",
+    "Discovery could not start. Connect by IP instead. {error}"
+  ],
+  "QuitFeilvAndRunTheInstallerManuallyTheInstalledExecutableMustBeNamedExe": [
+    "请退出客户端后手动运行安装包，安装版主程序名称应为飞驴.exe。",
+    "Quit Feilv and run the installer manually. The installed executable must be named 飞驴.exe."
+  ],
+  "CannotStartTheVerifiedInstaller": [
+    "无法启动已校验的安装程序。",
+    "Cannot start the verified installer."
+  ],
+  "InstallerDidNotFinishExitCode": [
+    "安装程序未完成，退出代码：{code}",
+    "Installer did not finish. Exit code: {code}"
+  ],
+  "InstalledApplicationVersionDoesNotMatch": [
+    "安装后的程序版本不匹配。",
+    "Installed application version does not match."
+  ],
+  "InstallationHasNoValidFileManifest": [
+    "安装目录缺少有效文件清单。",
+    "Installation has no valid file manifest."
+  ],
+  "InstallationFileManifestIsEmpty": [
+    "安装目录的文件清单为空。",
+    "Installation file manifest is empty."
+  ],
+  "InstallationApplicationInformationIsInvalid": [
+    "安装目录的程序信息无效。",
+    "Installation application information is invalid."
+  ],
+  "ReleaseManifestIsEmpty": [
+    "发行清单为空。",
+    "Release manifest is empty."
+  ],
+  "ReleaseArchitectureDoesNotMatchThisSystem": [
+    "发行架构与运行架构不一致。",
+    "Release architecture does not match this system."
+  ],
+  "UpdateVersionPlatformOrFileManifestDoesNotMatch": [
+    "更新包的版本、平台或文件清单不匹配。",
+    "Update version, platform or file manifest does not match."
+  ],
+  "InstallerChecksumDoesNotMatchReleaseMetadata": [
+    "安装程序的校验信息与发行信息不一致。",
+    "Installer checksum does not match release metadata."
+  ],
+  "UpdateFileManifestIsInvalid": [
+    "更新文件清单无效。",
+    "Update file manifest is invalid."
+  ],
+  "UpdateFileIsMissingOrHasTheWrongSize": [
+    "更新文件缺失或大小不匹配：{path}",
+    "Update file is missing or has the wrong size: {path}"
+  ],
+  "UpdateFileVerificationFailed": [
+    "更新文件校验失败：{path}",
+    "Update file verification failed: {path}"
+  ],
+  "UpdatePackageIsMissingTheApplication": [
+    "更新包缺少主程序。",
+    "Update package is missing the application."
+  ],
+  "UpdatePackageContainsUnlistedFiles": [
+    "更新包中有未列入清单的文件。",
+    "Update package contains unlisted files."
+  ],
+  "UpdatePackageContainsAnUnsafePath": [
+    "更新包包含不安全路径。",
+    "Update package contains an unsafe path."
+  ],
+  "UpdatePathIsOutsideTheTargetDirectory": [
+    "更新路径超出目录。",
+    "Update path is outside the target directory."
+  ],
+  "UpdateDirectoryCannotContainLinks": [
+    "更新目录不能包含链接。",
+    "Update directory cannot contain links."
+  ],
+  "UpdateDirectoryIsInvalid": [
+    "更新目录无效。",
+    "Update directory is invalid."
+  ],
+  "CannotLocateTheRunningApplication": [
+    "无法定位当前程序。",
+    "Cannot locate the running application."
+  ],
+  "UpdatingIsUnavailableInDevelopmentBuildsUseAPublishedRelease": [
+    "开发环境不能替换程序，请使用正式发行版。",
+    "Updating is unavailable in development builds. Use a published release."
+  ],
+  "CannotStartTheUpdateHelper": [
+    "无法启动更新助手。",
+    "Cannot start the update helper."
+  ],
+  "UpdateHelperIsNotReadyFeilvWillKeepRunning": [
+    "更新助手未就绪，当前程序继续运行。",
+    "Update helper is not ready. Feilv will keep running."
+  ],
+  "UpdateInstructionsAreInvalid": [
+    "更新指令无效。",
+    "Update instructions are invalid."
+  ],
+  "UpdateInstructionsAreEmpty": [
+    "更新指令为空。",
+    "Update instructions are empty."
+  ],
+  "UpdateHelperDirectoryIsInvalid": [
+    "更新助手目录无效。",
+    "Update helper directory is invalid."
+  ],
+  "TheApplicationWaitingToExitDoesNotMatch": [
+    "等待退出的程序身份不匹配。",
+    "The application waiting to exit does not match."
+  ],
+  "UpdateWasNotConfirmedKeepingTheCurrentVersion": [
+    "更新请求未确认，保留当前版本。",
+    "Update was not confirmed. Keeping the current version."
+  ],
+  "NewVersionFailedToStartThePreviousVersionWasRestored": [
+    "新版启动失败，已恢复原程序。",
+    "New version failed to start. The previous version was restored."
+  ],
+  "CannotRestartFeilv": [
+    "无法重新启动飞驴。",
+    "Cannot restart Feilv."
+  ],
+  "UpdateServiceIsTemporarilyRateLimitedTryAgainLater": [
+    "更新服务暂时受限，请稍后重试。",
+    "Update service is temporarily rate limited. Try again later."
+  ],
+  "ReleaseVersionIsInvalid": [
+    "发行版本号无效。",
+    "Release version is invalid."
+  ],
+  "UpdateHasNoChecksumUpdateStopped": [
+    "更新包缺少校验信息，已停止更新。",
+    "Update has no checksum. Update stopped."
+  ],
+  "ReleasePackageSizeIsInvalid": [
+    "发行包大小无效。",
+    "Release package size is invalid."
+  ],
+  "UpdateMetadataIsInvalid": [
+    "更新信息无效。",
+    "Update metadata is invalid."
+  ],
+  "UpdateSizeDoesNotMatchReleaseMetadata": [
+    "更新包大小与发行信息不一致。",
+    "Update size does not match release metadata."
+  ],
+  "UpdateDownloadExceedsTheExpectedSize": [
+    "更新下载超过预期大小。",
+    "Update download exceeds the expected size."
+  ],
+  "UpdateSHA256OrSizeVerificationFailedTheCurrentApplicationWasKept": [
+    "更新包 SHA-256 或大小校验失败，未更改当前程序。",
+    "Update SHA-256 or size verification failed. The current application was kept."
+  ],
+  "UpdatePackageHasNoValidManifest": [
+    "更新包缺少有效清单。",
+    "Update package has no valid manifest."
+  ],
+  "UpdateManifestIsEmpty": [
+    "更新清单为空。",
+    "Update manifest is empty."
+  ],
+  "UpdateDownloadURLDidNotPassValidation": [
+    "更新下载地址未通过验证。",
+    "Update download URL did not pass validation."
+  ],
+  "UpdateDownloadRedirectIsInvalid": [
+    "更新下载重定向无效。",
+    "Update download redirect is invalid."
+  ],
+  "TooManyUpdateDownloadRedirects": [
+    "更新下载重定向次数过多。",
+    "Too many update download redirects."
+  ],
+  "ExtractedUpdateExceedsTheSizeLimit": [
+    "更新包解压大小超出限制。",
+    "Extracted update exceeds the size limit."
+  ],
+  "UpdateFileSizeIsIncorrect": [
+    "更新文件大小错误。",
+    "Update file size is incorrect."
+  ],
+  "UpdatePackageCannotContainSymbolicLinks": [
+    "更新包不能含符号链接。",
+    "Update package cannot contain symbolic links."
+  ],
+  "UpdatePackageCanOnlyContainRegularFiles": [
+    "更新包只能包含普通文件。",
+    "Update package can only contain regular files."
+  ],
+  "UpdateResponseExceedsTheSizeLimit": [
+    "更新响应超过大小限制。",
+    "Update response exceeds the size limit."
+  ],
+  "InvalidSharedPath": [
+    "无效的共享路径。",
+    "Invalid shared path."
+  ],
+  "CannotAccessPathsOutsideTheSharedFolder": [
+    "不能访问共享文件夹之外的路径。",
+    "Cannot access paths outside the shared folder."
+  ],
+  "AccessThroughSymbolicLinksOrDirectoryJunctionsIsUnsupported": [
+    "不支持通过符号链接或目录联接访问文件。",
+    "Access through symbolic links or directory junctions is unsupported."
+  ],
+  "SharedDirectoryDoesNotExist": [
+    "共享目录不存在。",
+    "Shared directory does not exist."
+  ],
+  "MessageExceedsTheSizeLimit": [
+    "消息超过大小限制。",
+    "Message exceeds the size limit."
+  ],
+  "InvalidPacketLength": [
+    "无效的数据包长度。",
+    "Invalid packet length."
+  ],
+  "CannotReadMessage": [
+    "无法读取消息。",
+    "Cannot read message."
+  ],
+  "ConfigXmlHasNoLanChatRootElement": [
+    "config.xml 缺少 LanChat 根节点。",
+    "config.xml has no LanChat root element."
+  ],
+  "DeviceIDOrNameInConfigXmlIsInvalid": [
+    "config.xml 中的设备标识或昵称无效。",
+    "Device ID or name in config.xml is invalid."
+  ],
+  "RecordStorageHeaderIsIncomplete": [
+    "记录存储文件头不完整。",
+    "Record storage header is incomplete."
+  ],
+  "RecordStorageVersionIsInvalid": [
+    "记录存储文件版本无效。",
+    "Record storage version is invalid."
+  ],
+  "RecordIndexPointsToAnInvalidPosition": [
+    "记录索引指向无效位置。",
+    "Record index points to an invalid position."
+  ],
+  "RecordDataVerificationFailed": [
+    "记录数据校验失败。",
+    "Record data verification failed."
+  ],
+  "RecordDataFormatIsInvalid": [
+    "记录数据格式无效。",
+    "Record data format is invalid."
+  ],
+  "RecordMetadataExceedsTheSizeLimit": [
+    "单条记录元数据过大。",
+    "Record metadata exceeds the size limit."
+  ],
+  "RecordDataFileIsCorrupted": [
+    "记录数据文件损坏。",
+    "Record data file is corrupted."
+  ],
+  "ChooseARealFolderDirectoryLinksCannotBeSent": [
+    "请选择实际文件夹，不能发送目录链接。",
+    "Choose a real folder. Directory links cannot be sent."
+  ],
+  "FolderContentsChangedSendTheFolderAgain": [
+    "文件夹内容已变化，请重新发送。",
+    "Folder contents changed. Send the folder again."
+  ],
+  "FolderTotalSizeVerificationFailed": [
+    "文件夹总大小校验失败。",
+    "Folder total size verification failed."
+  ],
+  "FolderTransferWasInterruptedOrHasAnInvalidFormat": [
+    "文件夹传输中断或格式无效。",
+    "Folder transfer was interrupted or has an invalid format."
+  ],
+  "AFileInTheFolderHasInvalidMetadata": [
+    "文件夹中的文件元数据无效。",
+    "A file in the folder has invalid metadata."
+  ],
+  "FolderTransferWasInterrupted": [
+    "文件夹传输中断。",
+    "Folder transfer was interrupted."
+  ],
+  "AFileInTheFolderFailedSHA256Verification": [
+    "文件夹中的文件 SHA-256 校验失败。",
+    "A file in the folder failed SHA-256 verification."
+  ],
+  "FolderPathIsInvalid": [
+    "文件夹路径无效。",
+    "Folder path is invalid."
+  ],
+  "FolderPathIsOutsideTheDestination": [
+    "文件夹路径越界。",
+    "Folder path is outside the destination."
+  ],
+  "ClientIdentityIsMissing": [
+    "客户端身份缺失。",
+    "Client identity is missing."
+  ],
+  "CannotConnectToThisComputerItself": [
+    "不能连接到自己。",
+    "Cannot connect to this computer itself."
+  ],
+  "DeviceIdentityHasChanged": [
+    "设备身份已改变。",
+    "Device identity has changed."
+  ],
+  "ClientIdentityVerificationFailed": [
+    "客户端身份校验失败。",
+    "Client identity verification failed."
+  ],
+  "TextMustBe116000Characters": [
+    "文字长度应为 1–16000 个字符。",
+    "Text must be 1–16000 characters."
+  ],
+  "FileDoesNotExist": [
+    "文件不存在。",
+    "File does not exist."
+  ],
+  "ImagesCannotExceed20MBSendItAsARegularFile": [
+    "图片不能超过 20 MB，可作为普通文件发送。",
+    "Images cannot exceed 20 MB. Send it as a regular file."
+  ],
+  "FolderDoesNotExist": [
+    "文件夹不存在。",
+    "Folder does not exist."
+  ],
+  "ThisOfferWasDeclinedSendTheFileAgain": [
+    "这个请求已被拒绝，请重新发送文件。",
+    "This offer was declined. Send the file again."
+  ],
+  "ThisRecordCannotBeDeclined": [
+    "这条记录不能拒绝。",
+    "This record cannot be declined."
+  ],
+  "PeerDidNotAcknowledgeTheDeclineNotification": [
+    "对方未确认拒绝通知。",
+    "Peer did not acknowledge the decline notification."
+  ],
+  "DeclineNotificationIsInvalid": [
+    "拒绝通知无效。",
+    "Decline notification is invalid."
+  ],
+  "AttachmentDoesNotBelongToThisDevice": [
+    "附件不属于此设备。",
+    "Attachment does not belong to this device."
+  ],
+  "DeclineNotificationDoesNotMatchTheSentRecord": [
+    "拒绝通知与发送记录不匹配。",
+    "Decline notification does not match the sent record."
+  ],
+  "FileMetadataVerificationFailed": [
+    "文件元数据校验失败。",
+    "File metadata verification failed."
+  ],
+  "FileTransferWasInterrupted": [
+    "文件传输中断。",
+    "File transfer was interrupted."
+  ],
+  "FileSHA256VerificationFailed": [
+    "文件 SHA-256 校验失败。",
+    "File SHA-256 verification failed."
+  ],
+  "SharedFolderWasRemoved": [
+    "共享文件夹已被移除。",
+    "Shared folder was removed."
+  ],
+  "DeviceNameMustBe140Characters2": [
+    "昵称应为 1–40 个字符。",
+    "Device name must be 1–40 characters."
+  ],
+  "PermissionDeniedForThisFileOrDirectory": [
+    "没有权限访问此文件或目录。",
+    "Permission denied for this file or directory."
+  ],
+  "FileWasMovedOrDeleted": [
+    "文件已被移动或删除。",
+    "File was moved or deleted."
+  ],
+  "SharedFolderWasMovedOrDeleted": [
+    "共享文件夹已被移动或删除。",
+    "Shared folder was moved or deleted."
+  ],
+  "RequestFailedRefreshAndTryAgain": [
+    "请求失败，请刷新后重试。",
+    "Request failed. Refresh and try again."
+  ],
+  "RemoteRequestFailed": [
+    "远端请求失败。",
+    "Remote request failed."
+  ],
+  "CannotCommunicateWithThisComputerItself": [
+    "不能与自己通信。",
+    "Cannot communicate with this computer itself."
+  ],
+  "AttachmentDoesNotExistOrDoesNotBelongToThisSession": [
+    "附件不存在或不属于此会话。",
+    "Attachment does not exist or does not belong to this session."
+  ],
+  "UnsupportedRequest": [
+    "不支持的请求。",
+    "Unsupported request."
+  ],
+  "TLSHandshakeFailed": [
+    "TLS 握手失败：{error}",
+    "TLS handshake failed: {error}"
+  ],
+  "MessageIsEmpty": [
+    "消息为空。",
+    "Message is empty."
+  ],
+  "MessageFormatIsInvalid": [
+    "消息格式不正确。",
+    "Message format is invalid."
+  ],
+  "AttachmentContentsChangedSendItAgain": [
+    "附件内容已变化，请重新发送。",
+    "Attachment contents changed. Send it again."
+  ],
+  "ThisFileWasDeclinedAskTheSenderToSendItAgain": [
+    "这个文件已拒绝接收，请让对方重新发送。",
+    "This file was declined. Ask the sender to send it again."
+  ],
+  "FolderMetadataVerificationFailed": [
+    "文件夹元数据校验失败。",
+    "Folder metadata verification failed."
+  ],
+  "ClickTheQRButtonToStartSharing2": [
+    "点击二维码按钮即可开始分享",
+    "Click the QR button to start sharing"
+  ],
+  "ParentDirectory": [
+    "返回上级目录",
+    "Parent directory"
+  ],
+  "ThisDirectoryIsEmpty": [
+    "这个目录暂时没有文件",
+    "This directory is empty"
+  ],
+  "FeilvFileSharing": [
+    "飞驴 · 文件分享",
+    "Feilv · File sharing"
+  ],
+  "ConnectYourPhoneAndComputerToTheSameLANToTransferFiles": [
+    "手机与电脑连接同一个局域网，即可传文件。",
+    "Connect your phone and computer to the same LAN to transfer files."
+  ],
+  "UploadToComputer": [
+    "上传到电脑",
+    "Upload to computer"
+  ],
+  "UploadFiles": [
+    "开始上传",
+    "Upload files"
+  ],
+  "DownloadFiles": [
+    "下载文件",
+    "Download files"
+  ],
+  "SharedDirectory": [
+    "共享目录",
+    "Shared directory"
+  ],
+  "ClickAFileToDownloadOrAFolderToBrowse": [
+    "点击文件即可下载，点击文件夹继续浏览。",
+    "Click a file to download, or a folder to browse."
+  ],
+  "UploadAndDownloadDirectoriesAreSetSeparatelyOnTheComputerThisLinkExpires": [
+    "上传和下载目录由电脑端分别设置。电脑停止分享后，此链接失效。",
+    "Upload and download directories are set separately on the computer. This link expires when sharing stops."
+  ],
+  "ChooseFilesFirst": [
+    "请先选择文件",
+    "Choose files first"
+  ],
+  "Uploading": [
+    "正在上传：",
+    "Uploading: "
+  ],
+  "UploadFailed": [
+    "上传失败",
+    "Upload failed"
+  ],
+  "ConnectionLostCheckThatTheComputerIsStillSharing": [
+    "连接已中断，请检查电脑是否仍在分享",
+    "Connection lost. Check that the computer is still sharing."
+  ],
+  "RefreshFileList": [
+    "刷新文件列表",
+    "Refresh file list"
+  ],
+  "SharingLinkIsInvalidOrHasExpired": [
+    "分享链接无效或已停止。",
+    "Sharing link is invalid or has expired."
+  ],
+  "PageNotFound": [
+    "找不到此页面。",
+    "Page not found."
+  ],
+  "UnsupportedUploadRequest": [
+    "不支持的上传请求。",
+    "Unsupported upload request."
+  ],
+  "Uploaded": [
+    "已上传：{file}",
+    "Uploaded: {file}"
+  ],
+  "UnsupportedOperation": [
+    "不支持此操作。",
+    "Unsupported operation."
+  ],
+  "CouldNotCompleteTheOperationCheckTheFileAndDirectoryThenRetry": [
+    "无法完成操作，请检查文件和目录后重试。",
+    "Could not complete the operation. Check the file and directory, then retry."
+  ],
+  "InvalidFilename": [
+    "文件名无效。",
+    "Invalid filename."
+  ],
+  "TooManyFilesWithTheSameName": [
+    "同名文件过多。",
+    "Too many files with the same name."
+  ],
+  "RequestHeaderIsTooLong": [
+    "请求头过长。",
+    "Request header is too long."
+  ],
+  "InvalidHTTPRequest": [
+    "HTTP 请求无效。",
+    "Invalid HTTP request."
+  ],
+  "InvalidHTTPRequestHeaders": [
+    "HTTP 请求头无效。",
+    "Invalid HTTP request headers."
+  ],
+  "ConflictingRequestLengths": [
+    "请求长度冲突。",
+    "Conflicting request lengths."
+  ],
+  "UnsupportedTransferEncoding": [
+    "不支持的传输编码。",
+    "Unsupported transfer encoding."
+  ],
+  "UploadRequiresAValidContentLength": [
+    "上传需要有效的内容长度。",
+    "Upload requires a valid content length."
+  ],
+  "InvalidUploadChunk": [
+    "上传分块无效。",
+    "Invalid upload chunk."
+  ],
+  "UploadTrailersAreTooLong": [
+    "上传尾部过长。",
+    "Upload trailers are too long."
+  ],
+  "UploadInterrupted": [
+    "上传中断。",
+    "Upload interrupted."
+  ],
+  "InvalidUploadChunkEnding": [
+    "上传分块结尾无效。",
+    "Invalid upload chunk ending."
+  ],
+  "UploadChunkHeaderIsTooLong": [
+    "上传分块头过长。",
+    "Upload chunk header is too long."
+  ]
+}

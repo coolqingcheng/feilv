@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:icons="using:LanChat.Desktop.Controls"
         xmlns:vm="using:LanChat.Desktop.ViewModels" xmlns:views="using:LanChat.Desktop.Views"
         x:Class="LanChat.Desktop.Views.MainWindow" x:DataType="vm:MainWindowViewModel"
-        Title="飞驴 · 局域网文件传输" Width="420" Height="760" MinWidth="360" MinHeight="540"
+        Title="{DynamicResource Loc.FeilvLANFileTransfer}" Width="420" Height="760" MinWidth="360" MinHeight="540"
         WindowStartupLocation="CenterScreen" SystemDecorations="None" Background="Transparent" TransparencyLevelHint="Transparent">
   <Window.Styles>
     <Style Selector="Border.windowFrame"><Setter Property="Margin" Value="16" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="16" /><Setter Property="BoxShadow" Value="{DynamicResource WindowShadow}" /></Style>
@@ -14,22 +14,22 @@
       <Grid RowDefinitions="44,*,Auto">
         <Grid Background="{DynamicResource RailBrush}" ColumnDefinitions="*,Auto" PointerPressed="TitleBarPointerPressed">
           <StackPanel Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" VerticalAlignment="Center">
-            <Button x:Name="BackToFilesButton" IsVisible="{Binding !IsFiles}" Classes="icon" Command="{Binding NavigateCommand}" CommandParameter="Files" Padding="4" MinWidth="26" MinHeight="28" ToolTip.Tip="返回传输首页"><icons:SvgIcon Kind="arrow-up" Width="16" Height="16" RenderTransform="rotate(-90deg)" /></Button>
+            <Button x:Name="BackToFilesButton" IsVisible="{Binding !IsFiles}" Classes="icon" Command="{Binding NavigateCommand}" CommandParameter="Files" Padding="4" MinWidth="26" MinHeight="28" ToolTip.Tip="{DynamicResource Loc.BackToTransfers}"><icons:SvgIcon Kind="arrow-up" Width="16" Height="16" RenderTransform="rotate(-90deg)" /></Button>
             <icons:BrandLogo Width="18" Height="18" VerticalAlignment="Center" />
-            <TextBlock Text="{Binding PageTitle}" FontWeight="SemiBold" FontSize="12" />
+            <TextBlock Text="{Binding PageTitle, Converter={StaticResource Translate}}" FontWeight="SemiBold" FontSize="12" />
           </StackPanel>
           <StackPanel Grid.Column="1" Orientation="Horizontal">
-            <Button x:Name="QrShareButton" Classes="window" Height="44" Command="{Binding OpenQrShareCommand}" IsEnabled="{Binding !Inbox.IsPickerOpen}" ToolTip.Tip="二维码分享" AutomationProperties.Name="二维码分享"><icons:SvgIcon Kind="qr-code" Width="15" Height="15" /></Button>
-            <Button x:Name="MainMenuButton" Classes="window" Height="44" IsEnabled="{Binding !Inbox.IsPickerOpen}" ToolTip.Tip="文件、共享与设置" AutomationProperties.Name="更多功能">
+            <Button x:Name="QrShareButton" Classes="window" Height="44" Command="{Binding OpenQrShareCommand}" IsEnabled="{Binding !Inbox.IsPickerOpen}" ToolTip.Tip="{DynamicResource Loc.QRSharing}" AutomationProperties.Name="{DynamicResource Loc.QRSharing}"><icons:SvgIcon Kind="qr-code" Width="15" Height="15" /></Button>
+            <Button x:Name="MainMenuButton" Classes="window" Height="44" IsEnabled="{Binding !Inbox.IsPickerOpen}" ToolTip.Tip="{DynamicResource Loc.TransfersSharingAndSettings}" AutomationProperties.Name="{DynamicResource Loc.MoreOptions}">
               <icons:SvgIcon Kind="settings" Width="15" Height="15" />
               <Button.Flyout><MenuFlyout>
-                <MenuItem Header="传输首页" Command="{Binding NavigateCommand}" CommandParameter="Files" />
-                <MenuItem Header="共享文件夹" Command="{Binding NavigateCommand}" CommandParameter="Shares" />
-                <MenuItem Header="设置" Command="{Binding NavigateCommand}" CommandParameter="Settings" />
+                <MenuItem Header="{DynamicResource Loc.Transfers}" Command="{Binding NavigateCommand}" CommandParameter="Files" />
+                <MenuItem Header="{DynamicResource Loc.SharedFolders}" Command="{Binding NavigateCommand}" CommandParameter="Shares" />
+                <MenuItem Header="{DynamicResource Loc.Settings}" Command="{Binding NavigateCommand}" CommandParameter="Settings" />
               </MenuFlyout></Button.Flyout>
             </Button>
-            <Button Classes="window" Height="44" Click="MinimizeClicked" ToolTip.Tip="最小化到系统托盘"><icons:SvgIcon Kind="minus" Width="14" Height="14" /></Button>
-            <Button Classes="window" Height="44" Click="CloseClicked" ToolTip.Tip="隐藏到系统托盘"><icons:SvgIcon Kind="x" Width="15" Height="15" /></Button>
+            <Button Classes="window" Height="44" Click="MinimizeClicked" ToolTip.Tip="{DynamicResource Loc.MinimizeToTray}"><icons:SvgIcon Kind="minus" Width="14" Height="14" /></Button>
+            <Button Classes="window" Height="44" Click="CloseClicked" ToolTip.Tip="{DynamicResource Loc.HideToTray}"><icons:SvgIcon Kind="x" Width="15" Height="15" /></Button>
           </StackPanel>
         </Grid>
         <Grid Grid.Row="1" IsVisible="{Binding IsFiles}"><views:FileInboxView DataContext="{Binding Inbox}" /></Grid>
@@ -37,7 +37,7 @@
         <Grid Grid.Row="1" IsVisible="{Binding IsSettings}"><views:SettingsView DataContext="{Binding Settings}" /></Grid>
         <Grid Grid.Row="1" IsVisible="{Binding IsQr}"><views:QrShareView DataContext="{Binding QrShare}" /></Grid>
         <Border Grid.Row="2" IsVisible="{Binding ShowPageStatus}" Background="{DynamicResource RailBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="14,9">
-          <TextBlock Text="{Binding Status}" ToolTip.Tip="{Binding Status}" Classes="muted" FontSize="11" TextWrapping="Wrap" MaxHeight="48" TextTrimming="CharacterEllipsis" />
+          <TextBlock Text="{Binding Status, Converter={StaticResource Translate}}" ToolTip.Tip="{Binding Status, Converter={StaticResource Translate}}" Classes="muted" FontSize="11" TextWrapping="Wrap" MaxHeight="48" TextTrimming="CharacterEllipsis" />
         </Border>
       </Grid>
     </Border>

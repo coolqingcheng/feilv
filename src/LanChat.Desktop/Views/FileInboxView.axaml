@@ -59,9 +59,9 @@
     <Grid x:Name="InboxContent" IsEnabled="{Binding !IsPickerOpen}" RowDefinitions="*,Auto">
       <TabControl x:Name="HomeTabs" SelectedIndex="{Binding SelectedTab}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Background="{DynamicResource PanelBrush}">
         <TabControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="2" /></ItemsPanelTemplate></TabControl.ItemsPanel>
-        <TabItem Header="在线设备" Tag="laptop">
+        <TabItem Header="{DynamicResource Loc.Devices}" Tag="laptop">
           <Grid RowDefinitions="Auto,*" Background="{DynamicResource DeviceListBrush}">
-            <TextBlock Text="{Binding OnlineHint}" Classes="muted" FontSize="11" TextWrapping="Wrap" Margin="14,12" />
+            <TextBlock Text="{Binding OnlineHint, Converter={StaticResource Translate}}" Classes="muted" FontSize="11" TextWrapping="Wrap" Margin="14,12" />
             <ScrollViewer x:Name="DeviceScroll" Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
             <ItemsControl x:Name="OnlineDeviceList" ItemsSource="{Binding Recipients}">
               <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel CacheLength="0.5" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
@@ -75,19 +75,19 @@
                   <StackPanel Grid.Column="1" Spacing="5" Margin="5,0,6,0" VerticalAlignment="Center">
                     <TextBlock Text="{Binding Nickname}" FontWeight="SemiBold" TextWrapping="Wrap" />
                     <WrapPanel>
-                      <TextBlock Text="{Binding Address}" Classes="muted" FontSize="12" Margin="0,0,10,0" />
-                      <TextBlock Text="{Binding VersionLabel}" Classes="muted" FontSize="12" />
+                      <TextBlock Text="{Binding Address, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" Margin="0,0,10,0" />
+                      <TextBlock Text="{Binding VersionLabel, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" />
                     </WrapPanel>
                   </StackPanel>
-                  <Button Classes="deviceSend" Grid.Column="2" Content="发送" IsEnabled="{Binding IsOnline}" Background="Transparent" FontSize="12" Padding="8,9" VerticalAlignment="Center">
+                  <Button Classes="deviceSend" Grid.Column="2" Content="{DynamicResource Loc.Send}" IsEnabled="{Binding IsOnline}" Background="Transparent" FontSize="12" Padding="8,9" VerticalAlignment="Center">
                     <Button.Flyout><MenuFlyout>
-                      <MenuItem Header="选择文件" Command="{Binding SendFilesCommand}" CommandParameter="{Binding}" />
-                      <MenuItem Header="选择文件夹" Command="{Binding SendFolderCommand}" CommandParameter="{Binding}" />
+                      <MenuItem Header="{DynamicResource Loc.ChooseFiles}" Command="{Binding SendFilesCommand}" CommandParameter="{Binding}" />
+                      <MenuItem Header="{DynamicResource Loc.ChooseFolders}" Command="{Binding SendFolderCommand}" CommandParameter="{Binding}" />
                     </MenuFlyout></Button.Flyout>
                   </Button>
                   <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" IsVisible="{Binding HasTransfer}" Margin="5,10,0,0" Spacing="5">
                     <TextBlock Text="{Binding TransferName}" TextTrimming="CharacterEllipsis" Classes="muted" FontSize="11" />
-                    <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{Binding TransferStatus}" TextTrimming="CharacterEllipsis" FontSize="11" Foreground="{DynamicResource AccentBrush}" /><TextBlock Grid.Column="1" Text="{Binding TransferSpeed}" Margin="8,0,0,0" FontSize="11" Foreground="{DynamicResource AccentBrush}" /></Grid>
+                    <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{Binding TransferStatus, Converter={StaticResource Translate}}" TextTrimming="CharacterEllipsis" FontSize="11" Foreground="{DynamicResource AccentBrush}" /><TextBlock Grid.Column="1" Text="{Binding TransferSpeed}" Margin="8,0,0,0" FontSize="11" Foreground="{DynamicResource AccentBrush}" /></Grid>
                     <ProgressBar IsVisible="{Binding IsTransferring}" IsIndeterminate="{Binding IsPreparingTransfer}" Value="{Binding TransferProgress}" Maximum="100" Height="3" Foreground="{DynamicResource AccentBrush}" />
                   </StackPanel>
                 </Grid></Border>
@@ -95,18 +95,18 @@
             </ItemsControl>
             </ScrollViewer>
             <StackPanel Grid.Row="1" IsVisible="{Binding NoRecipients}" VerticalAlignment="Center" Margin="24" Spacing="12" IsHitTestVisible="False">
-              <icons:SvgIcon Kind="laptop" Width="32" Height="32" /><TextBlock Text="等待在线电脑" HorizontalAlignment="Center" /><TextBlock Text="同一局域网内打开飞驴即可自动发现，也可在设置中手动连接。" TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Classes="muted" />
+              <icons:SvgIcon Kind="laptop" Width="32" Height="32" /><TextBlock Text="{DynamicResource Loc.WaitingForDevices}" HorizontalAlignment="Center" /><TextBlock Text="{DynamicResource Loc.OpenFeilvOnAnotherComputerOnTheSameLANOrConnectByIPInSettings}" TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Classes="muted" />
             </StackPanel>
           </Grid>
         </TabItem>
-        <TabItem Header="收发记录" Tag="file"><Grid RowDefinitions="Auto,*">
+        <TabItem Header="{DynamicResource Loc.History}" Tag="file"><Grid RowDefinitions="Auto,*">
       <Grid Margin="14,12">
-        <TextBox x:Name="FileSearch" Text="{Binding Search}" Watermark="搜索文件名" Padding="36,9,34,9" AutomationProperties.Name="搜索文件名" />
+        <TextBox x:Name="FileSearch" Text="{Binding Search}" Watermark="{DynamicResource Loc.SearchFilenames}" Padding="36,9,34,9" AutomationProperties.Name="{DynamicResource Loc.SearchFilenames}" />
         <icons:SvgIcon Kind="search" Width="16" Height="16" HorizontalAlignment="Left" Margin="12,0" IsHitTestVisible="False" />
-        <Button Classes="icon" IsVisible="{Binding HasSearch}" Command="{Binding ClearSearchCommand}" HorizontalAlignment="Right" Margin="2" MinWidth="28" MinHeight="28" Padding="5" ToolTip.Tip="清空搜索" AutomationProperties.Name="清空搜索"><icons:SvgIcon Kind="x" Width="14" Height="14" /></Button>
+        <Button Classes="icon" IsVisible="{Binding HasSearch}" Command="{Binding ClearSearchCommand}" HorizontalAlignment="Right" Margin="2" MinWidth="28" MinHeight="28" Padding="5" ToolTip.Tip="{DynamicResource Loc.ClearSearch}" AutomationProperties.Name="{DynamicResource Loc.ClearSearch}"><icons:SvgIcon Kind="x" Width="14" Height="14" /></Button>
       </Grid>
       <Grid Grid.Row="1" RowDefinitions="Auto,*">
-        <TextBlock Text="{Binding HistoryHint}" Classes="muted" FontSize="11" HorizontalAlignment="Center" Margin="8,0,8,8" />
+        <TextBlock Text="{Binding HistoryHint, Converter={StaticResource Translate}}" Classes="muted" FontSize="11" HorizontalAlignment="Center" Margin="8,0,8,8" />
         <ScrollViewer x:Name="FileScroll" Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
           <ItemsControl x:Name="FileItems" ItemsSource="{Binding Files}">
             <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel CacheLength="0.5" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
@@ -114,7 +114,7 @@
               <DataTemplate x:DataType="vm:FileHistoryItemViewModel">
                 <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="14,13">
                   <Grid ColumnDefinitions="36,*,Auto" RowDefinitions="Auto,*">
-                    <Button Grid.Column="2" Classes="deleteRecord" Command="{Binding DeleteCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" ToolTip.Tip="删除记录（保留本地文件）" AutomationProperties.Name="删除记录">
+                    <Button Grid.Column="2" Classes="deleteRecord" Command="{Binding DeleteCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" ToolTip.Tip="{DynamicResource Loc.DeleteRecordKeepLocalFiles}" AutomationProperties.Name="{DynamicResource Loc.DeleteRecord}">
                       <icons:SvgIcon Kind="x" Foreground="{Binding $parent[Button].Foreground}" Width="12" Height="12" />
                     </Button>
                     <Border Grid.RowSpan="2" Width="32" Height="40" Background="{DynamicResource SelectedBrush}" CornerRadius="9" VerticalAlignment="Center">
@@ -123,16 +123,16 @@
                     <StackPanel Grid.Column="1" Grid.RowSpan="2" Spacing="3" Margin="10,0,5,0" VerticalAlignment="Center">
                       <TextBlock Text="{Binding FileName}" FontWeight="SemiBold" FontSize="14" TextWrapping="Wrap" ToolTip.Tip="{Binding FileName}" />
                       <WrapPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Size}" Classes="muted" FontSize="12" Margin="0,0,8,0" />
-                        <TextBlock Text="{Binding Source}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Size, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" Margin="0,0,8,0" />
+                        <TextBlock Text="{Binding Source, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
                       </WrapPanel>
-                      <TextBlock Text="{Binding Address}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
-                      <TextBlock Text="{Binding Time}" Classes="muted" FontSize="11" ToolTip.Tip="{Binding TimeDescription}" />
-                      <TextBlock Text="{Binding RejectionLabel}" IsVisible="{Binding IsRejected}" Classes="muted" FontSize="11" />
-                      <TextBlock Text="{Binding TransferText}" IsVisible="{Binding IsBusy}" Foreground="{DynamicResource AccentBrush}" FontSize="11" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Address, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Time}" Classes="muted" FontSize="11" ToolTip.Tip="{Binding TimeDescription, Converter={StaticResource Translate}}" />
+                      <TextBlock Text="{Binding RejectionLabel, Converter={StaticResource Translate}}" IsVisible="{Binding IsRejected}" Classes="muted" FontSize="11" />
+                      <TextBlock Text="{Binding TransferText, Converter={StaticResource Translate}}" IsVisible="{Binding IsBusy}" Foreground="{DynamicResource AccentBrush}" FontSize="11" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="2" Grid.Row="1" VerticalAlignment="Center" Spacing="5" MinWidth="58">
-                      <Button Classes="fileAction" Classes.receiveAction="{Binding IsReceiveAction}" Content="{Binding ActionLabel}" Command="{Binding ActCommand}" IsEnabled="{Binding CanAct}" FontSize="12" Padding="5,8" HorizontalAlignment="Stretch" />
+                      <Button Classes="fileAction" Classes.receiveAction="{Binding IsReceiveAction}" Content="{Binding ActionLabel, Converter={StaticResource Translate}}" Command="{Binding ActCommand}" IsEnabled="{Binding CanAct}" FontSize="12" Padding="5,8" HorizontalAlignment="Stretch" />
                       <ProgressBar IsVisible="{Binding IsBusy}" Value="{Binding Progress}" Minimum="0" Maximum="100" Height="3" Foreground="{DynamicResource AccentBrush}" />
                     </StackPanel>
                   </Grid>
@@ -143,8 +143,8 @@
         </ScrollViewer>
         <StackPanel Grid.Row="1" IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Margin="20" IsHitTestVisible="False">
           <icons:SvgIcon Kind="file" Width="30" Height="30" />
-          <TextBlock Text="{Binding EmptyText}" HorizontalAlignment="Center" />
-          <TextBlock Text="{Binding EmptyHint}" Classes="muted" FontSize="12" TextWrapping="Wrap" TextAlignment="Center" />
+          <TextBlock Text="{Binding EmptyText, Converter={StaticResource Translate}}" HorizontalAlignment="Center" />
+          <TextBlock Text="{Binding EmptyHint, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" TextWrapping="Wrap" TextAlignment="Center" />
         </StackPanel>
       </Grid>
         </Grid></TabItem>
@@ -152,33 +152,33 @@
       <Border Grid.Row="1" Background="{DynamicResource RailBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="14">
         <StackPanel Spacing="9">
           <Button x:Name="SendFilesButton" Classes="primary" Command="{Binding BeginSendCommand}" IsEnabled="{Binding !IsSending}" HorizontalAlignment="Stretch">
-            <StackPanel Orientation="Horizontal" Spacing="8"><icons:SvgIcon Kind="send" Foreground="White" Width="17" Height="17" /><TextBlock Text="发送文件" /></StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8"><icons:SvgIcon Kind="send" Foreground="White" Width="17" Height="17" /><TextBlock Text="{DynamicResource Loc.SendFiles}" /></StackPanel>
           </Button>
-          <TextBlock x:Name="FileDropHint" Text="拖文件到在线设备即可直接发送" Classes="muted" FontSize="11" HorizontalAlignment="Center" />
-          <TextBlock x:Name="TransferSummary" Text="{Binding TransferSummary}" IsVisible="{Binding ShowTransferSummary}" Foreground="{DynamicResource AccentBrush}" FontSize="11" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
-          <TextBlock Text="{Binding Feedback}" IsVisible="{Binding HasFeedback}" Classes="muted" FontSize="11" TextWrapping="Wrap" MaxHeight="48" TextTrimming="CharacterEllipsis" />
+          <TextBlock x:Name="FileDropHint" Text="{Binding DropHint, Converter={StaticResource Translate}}" Classes="muted" FontSize="11" HorizontalAlignment="Center" />
+          <TextBlock x:Name="TransferSummary" Text="{Binding TransferSummary, Converter={StaticResource Translate}}" IsVisible="{Binding ShowTransferSummary}" Foreground="{DynamicResource AccentBrush}" FontSize="11" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis" />
+          <TextBlock Text="{Binding Feedback, Converter={StaticResource Translate}}" IsVisible="{Binding HasFeedback}" Classes="muted" FontSize="11" TextWrapping="Wrap" MaxHeight="48" TextTrimming="CharacterEllipsis" />
         </StackPanel>
       </Border>
     </Grid>
     <Border x:Name="DropOverlay" IsVisible="False" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="2" CornerRadius="12" Margin="8" IsHitTestVisible="False">
-      <StackPanel VerticalAlignment="Center" Spacing="14" Margin="24"><icons:SvgIcon Kind="download" Width="34" Height="34" Foreground="{DynamicResource AccentBrush}" /><TextBlock Text="松开后勾选接收电脑" TextAlignment="Center" FontSize="16" /><TextBlock Text="支持文件和文件夹，可发送到多台电脑" TextWrapping="Wrap" TextAlignment="Center" Classes="muted" FontSize="12" /></StackPanel>
+      <StackPanel VerticalAlignment="Center" Spacing="14" Margin="24"><icons:SvgIcon Kind="download" Width="34" Height="34" Foreground="{DynamicResource AccentBrush}" /><TextBlock Text="{DynamicResource Loc.DropThenChooseRecipients}" TextAlignment="Center" FontSize="16" /><TextBlock Text="{DynamicResource Loc.SendFilesAndFoldersToMultipleComputers}" TextWrapping="Wrap" TextAlignment="Center" Classes="muted" FontSize="12" /></StackPanel>
     </Border>
     <Border x:Name="RecipientOverlay" IsVisible="{Binding IsPickerOpen}" Background="#66000000" Padding="18">
       <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource WindowBorderBrush}" BorderThickness="1" CornerRadius="13" Padding="16" VerticalAlignment="Center" MaxWidth="350">
         <Grid RowDefinitions="Auto,*,Auto" MaxHeight="440">
-          <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10"><TextBlock Text="发给谁" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" /><Button x:Name="CancelRecipientButton" Grid.Column="1" Classes="icon" Command="{Binding CancelPickerCommand}" ToolTip.Tip="取消发送" AutomationProperties.Name="取消发送"><icons:SvgIcon Kind="x" Width="16" Height="16" /></Button></Grid>
+          <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10"><TextBlock Text="{DynamicResource Loc.SendTo}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" /><Button x:Name="CancelRecipientButton" Grid.Column="1" Classes="icon" Command="{Binding CancelPickerCommand}" ToolTip.Tip="{DynamicResource Loc.CancelSending}" AutomationProperties.Name="{DynamicResource Loc.CancelSending}"><icons:SvgIcon Kind="x" Width="16" Height="16" /></Button></Grid>
           <Grid Grid.Row="1" MinHeight="88">
             <ScrollViewer MaxHeight="260" HorizontalScrollBarVisibility="Disabled"><ItemsControl x:Name="RecipientList" ItemsSource="{Binding Recipients}" IsEnabled="{Binding !IsSending}">
               <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:PeerViewModel">
-                <CheckBox IsChecked="{Binding IsRecipientSelected}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,10"><StackPanel Spacing="4"><TextBlock Text="{Binding Nickname}" TextWrapping="Wrap" /><TextBlock Text="{Binding Address}" Classes="muted" FontSize="12" /></StackPanel></CheckBox>
+                <CheckBox IsChecked="{Binding IsRecipientSelected}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,10"><StackPanel Spacing="4"><TextBlock Text="{Binding Nickname}" TextWrapping="Wrap" /><TextBlock Text="{Binding Address, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" /></StackPanel></CheckBox>
               </DataTemplate></ItemsControl.ItemTemplate>
             </ItemsControl></ScrollViewer>
-            <TextBlock Text="未发现在线设备，可在设置中手动连接。" IsVisible="{Binding NoRecipients}" Classes="muted" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Margin="10" />
+            <TextBlock Text="{DynamicResource Loc.NoDevicesFoundConnectByIPInSettings}" IsVisible="{Binding NoRecipients}" Classes="muted" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Margin="10" />
           </Grid>
           <StackPanel Grid.Row="2" Margin="0,12,0,0" Spacing="10">
-            <TextBlock Text="{Binding PickerSelectionHint}" Classes="muted" FontSize="11" />
-            <Button x:Name="ConfirmRecipientButton" Content="{Binding PickerAction}" Classes="primary" Command="{Binding ConfirmSendCommand}" IsEnabled="{Binding CanConfirm}" HorizontalAlignment="Stretch" />
-            <Button Content="选择文件夹" Command="{Binding ConfirmFoldersCommand}" IsVisible="{Binding !HasPendingItems}" IsEnabled="{Binding CanConfirm}" HorizontalAlignment="Stretch" />
+            <TextBlock Text="{Binding PickerSelectionHint, Converter={StaticResource Translate}}" Classes="muted" FontSize="11" />
+            <Button x:Name="ConfirmRecipientButton" Content="{Binding PickerAction, Converter={StaticResource Translate}}" Classes="primary" Command="{Binding ConfirmSendCommand}" IsEnabled="{Binding CanConfirm}" HorizontalAlignment="Stretch" />
+            <Button Content="{DynamicResource Loc.ChooseFolders}" Command="{Binding ConfirmFoldersCommand}" IsVisible="{Binding !HasPendingItems}" IsEnabled="{Binding CanConfirm}" HorizontalAlignment="Stretch" />
           </StackPanel>
         </Grid>
       </Border>

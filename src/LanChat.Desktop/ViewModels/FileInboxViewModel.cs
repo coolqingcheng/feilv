@@ -26,6 +26,8 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
     public ObservableCollection<PeerViewModel> Recipients { get; } = [];
     [ObservableProperty, NotifyPropertyChangedFor(nameof(IsDevices)), NotifyPropertyChangedFor(nameof(IsHistory)), NotifyPropertyChangedFor(nameof(ShowTransferSummary))] private int _selectedTab;
     [ObservableProperty] private string _search = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(DropHint))] private string _dropTargetName = "";
+    public string DropHint => DropTargetName.Length == 0 ? "拖文件到在线设备即可直接发送" : "松开发送给 " + DropTargetName;
     [ObservableProperty, NotifyPropertyChangedFor(nameof(IsEmpty)), NotifyPropertyChangedFor(nameof(HistoryHint))] private bool _isLoading;
     [ObservableProperty, NotifyPropertyChangedFor(nameof(HistoryHint))] private bool _hasMore;
     [ObservableProperty] private bool _isPickerOpen;

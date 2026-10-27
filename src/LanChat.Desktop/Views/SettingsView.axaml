@@ -5,47 +5,57 @@
       <Border Classes="card" Padding="16"><StackPanel Spacing="16">
         <Grid ColumnDefinitions="76,*">
           <Grid Width="60" Height="60" HorizontalAlignment="Left"><Border CornerRadius="30" Background="{DynamicResource SelectedBrush}"><TextBlock Text="{Binding Initial}" FontSize="25" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border><Border CornerRadius="30" ClipToBounds="True"><Image Source="{Binding Avatar}" Stretch="UniformToFill" /></Border></Grid>
-          <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center"><TextBlock Text="设备头像" FontWeight="SemiBold" /><Button Content="更换头像" Command="{Binding ChangeAvatarCommand}" FontSize="12" Padding="10,5" HorizontalAlignment="Left" /></StackPanel>
+          <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center"><TextBlock Text="{DynamicResource Loc.DeviceAvatar}" FontWeight="SemiBold" /><Button Content="{DynamicResource Loc.ChangeAvatar}" Command="{Binding ChangeAvatarCommand}" FontSize="12" Padding="10,5" HorizontalAlignment="Left" /></StackPanel>
         </Grid>
-        <StackPanel Spacing="8"><TextBlock Text="设备名称" Classes="section" /><TextBox Text="{Binding Nickname}" MaxLength="40" Watermark="发送文件时显示给对方" /></StackPanel>
-        <CheckBox IsChecked="{Binding ShowNotifications}"><TextBlock Text="后台收到文件时显示接收提示" TextWrapping="Wrap" /></CheckBox>
-        <CheckBox x:Name="AutoReceiveOption" IsChecked="{Binding AutoReceive}"><TextBlock Text="自动接收文件和文件夹" TextWrapping="Wrap" /></CheckBox>
-        <CheckBox x:Name="StartWithWindowsOption" IsChecked="{Binding StartWithWindows}" IsVisible="{Binding SupportsWindowsStartup}"><TextBlock Text="开机启动飞驴" TextWrapping="Wrap" /></CheckBox>
-        <CheckBox IsChecked="{Binding AutoDownloadUpdates}"><TextBlock Text="自动检查并下载更新，校验后提示" TextWrapping="Wrap" /></CheckBox>
-        <Button Classes="primary" Content="保存设置" Command="{Binding SaveCommand}" HorizontalAlignment="Stretch" />
+        <StackPanel Spacing="8"><TextBlock Text="{DynamicResource Loc.DeviceName}" Classes="section" /><TextBox Text="{Binding Nickname}" MaxLength="40" Watermark="{DynamicResource Loc.ShownToRecipients}" /></StackPanel>
+        <CheckBox IsChecked="{Binding ShowNotifications}"><TextBlock Text="{DynamicResource Loc.ShowIncomingFileNotificationsInTheBackground}" TextWrapping="Wrap" /></CheckBox>
+        <CheckBox x:Name="AutoReceiveOption" IsChecked="{Binding AutoReceive}"><TextBlock Text="{DynamicResource Loc.AutomaticallyReceiveFilesAndFolders}" TextWrapping="Wrap" /></CheckBox>
+        <CheckBox x:Name="StartWithWindowsOption" IsChecked="{Binding StartWithWindows}" IsVisible="{Binding SupportsWindowsStartup}"><TextBlock Text="{DynamicResource Loc.LaunchFeilvAtStartup}" TextWrapping="Wrap" /></CheckBox>
+        <CheckBox IsChecked="{Binding AutoDownloadUpdates}"><TextBlock Text="{DynamicResource Loc.CheckAndDownloadUpdatesAutomaticallyNotifyAfterVerification}" TextWrapping="Wrap" /></CheckBox>
+        <Button Classes="primary" Content="{DynamicResource Loc.SaveSettings}" Command="{Binding SaveCommand}" HorizontalAlignment="Stretch" />
       </StackPanel></Border>
       <Border Classes="card" Padding="16"><StackPanel Spacing="12">
-        <TextBlock Text="外观主题" FontSize="15" FontWeight="SemiBold" />
-        <Grid ColumnDefinitions="*,*,*"><Button Content="跟随系统" Command="{Binding SetThemeCommand}" CommandParameter="System" HorizontalAlignment="Stretch" Padding="6,10" Margin="0,0,4,0" /><Button Grid.Column="1" Content="Dark" Command="{Binding SetThemeCommand}" CommandParameter="Dark" HorizontalAlignment="Stretch" Padding="6,10" Margin="2,0" /><Button Grid.Column="2" Content="Light" Command="{Binding SetThemeCommand}" CommandParameter="Light" HorizontalAlignment="Stretch" Padding="6,10" Margin="4,0,0,0" /></Grid>
-        <TextBlock Text="{Binding ThemeDescription}" Classes="muted" FontSize="11" />
+        <TextBlock Text="{DynamicResource Loc.Language}" FontSize="15" FontWeight="SemiBold" />
+        <Grid ColumnDefinitions="*,*,*">
+          <Button x:Name="SystemLanguageButton" Content="{DynamicResource Loc.System}" Command="{Binding SetLanguageCommand}" CommandParameter="System" HorizontalAlignment="Stretch" FontSize="12" Padding="4,10" Margin="0,0,4,0" />
+          <Button x:Name="ChineseLanguageButton" Grid.Column="1" Content="{DynamicResource Loc.Chinese}" Command="{Binding SetLanguageCommand}" CommandParameter="zh-CN" HorizontalAlignment="Stretch" FontSize="12" Padding="4,10" Margin="2,0" />
+          <Button x:Name="EnglishLanguageButton" Grid.Column="2" Content="English" Command="{Binding SetLanguageCommand}" CommandParameter="en-US" HorizontalAlignment="Stretch" FontSize="12" Padding="4,10" Margin="4,0,0,0" />
+        </Grid>
+        <TextBlock x:Name="LanguageDescription" Text="{Binding LanguageDescription, Converter={StaticResource Translate}}" Classes="muted" FontSize="11" />
+        <TextBlock Text="{DynamicResource Loc.ChangesApplyImmediatelyAndAreSavedAutomatically}" Classes="muted" FontSize="11" TextWrapping="Wrap" />
       </StackPanel></Border>
       <Border Classes="card" Padding="16"><StackPanel Spacing="12">
-        <TextBlock Text="局域网连接" FontSize="15" FontWeight="SemiBold" />
-        <TextBlock Text="设备会自动发现。未发现对方时，可通过 IP 手动连接。" Classes="muted" TextWrapping="Wrap" FontSize="12" />
-        <TextBlock Text="本机地址" Classes="section" /><SelectableTextBlock Text="{Binding LocalEndpoint}" FontSize="12" TextWrapping="Wrap" />
-        <TextBox x:Name="ManualAddressBox" Text="{Binding ManualAddress}" Watermark="对方 IP，如 192.168.1.8" AutomationProperties.Name="对方 IP 地址" />
-        <Grid ColumnDefinitions="*,Auto"><TextBox Text="{Binding ManualPort}" Watermark="端口" AutomationProperties.Name="对方端口" /><Button Grid.Column="1" Content="连接" Command="{Binding ConnectCommand}" IsEnabled="{Binding !IsConnecting}" Margin="8,0,0,0" Padding="16,8" /></Grid>
+        <TextBlock Text="{DynamicResource Loc.Appearance}" FontSize="15" FontWeight="SemiBold" />
+        <Grid ColumnDefinitions="*,*,*"><Button Content="{DynamicResource Loc.System}" Command="{Binding SetThemeCommand}" CommandParameter="System" HorizontalAlignment="Stretch" Padding="6,10" Margin="0,0,4,0" /><Button Grid.Column="1" Content="Dark" Command="{Binding SetThemeCommand}" CommandParameter="Dark" HorizontalAlignment="Stretch" Padding="6,10" Margin="2,0" /><Button Grid.Column="2" Content="Light" Command="{Binding SetThemeCommand}" CommandParameter="Light" HorizontalAlignment="Stretch" Padding="6,10" Margin="4,0,0,0" /></Grid>
+        <TextBlock Text="{Binding ThemeDescription, Converter={StaticResource Translate}}" Classes="muted" FontSize="11" />
       </StackPanel></Border>
       <Border Classes="card" Padding="16"><StackPanel Spacing="12">
-        <TextBlock Text="文件与存储" FontSize="15" FontWeight="SemiBold" /><TextBlock Text="接收文件按日期保存" Classes="section" />
+        <TextBlock Text="{DynamicResource Loc.LANConnection}" FontSize="15" FontWeight="SemiBold" />
+        <TextBlock Text="{DynamicResource Loc.DevicesAppearAutomaticallyConnectByIPIfADeviceIsMissing}" Classes="muted" TextWrapping="Wrap" FontSize="12" />
+        <TextBlock Text="{DynamicResource Loc.LocalAddress}" Classes="section" /><SelectableTextBlock Text="{Binding LocalEndpoint}" FontSize="12" TextWrapping="Wrap" />
+        <TextBox x:Name="ManualAddressBox" Text="{Binding ManualAddress}" Watermark="{DynamicResource Loc.PeerIPEG19216818}" AutomationProperties.Name="{DynamicResource Loc.PeerIPAddress}" />
+        <Grid ColumnDefinitions="*,Auto"><TextBox Text="{Binding ManualPort}" Watermark="{DynamicResource Loc.Port}" AutomationProperties.Name="{DynamicResource Loc.PeerPort}" /><Button Grid.Column="1" Content="{DynamicResource Loc.Connect}" Command="{Binding ConnectCommand}" IsEnabled="{Binding !IsConnecting}" Margin="8,0,0,0" Padding="16,8" /></Grid>
+      </StackPanel></Border>
+      <Border Classes="card" Padding="16"><StackPanel Spacing="12">
+        <TextBlock Text="{DynamicResource Loc.FilesAndStorage}" FontSize="15" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Loc.ReceivedFilesAreSavedByDate}" Classes="section" />
         <TextBlock Text="{Binding DownloadDirectory}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
-        <Button Content="打开接收目录" Command="{Binding OpenDownloadsCommand}" HorizontalAlignment="Stretch" />
-        <TextBlock Text="设备标识" Classes="section" /><TextBlock Text="{Binding DeviceId}" FontSize="12" Classes="muted" />
+        <Button Content="{DynamicResource Loc.OpenDownloadsFolder}" Command="{Binding OpenDownloadsCommand}" HorizontalAlignment="Stretch" />
+        <TextBlock Text="{DynamicResource Loc.DeviceID}" Classes="section" /><TextBlock Text="{Binding DeviceId}" FontSize="12" Classes="muted" />
       </StackPanel></Border>
       <Border Classes="card" Padding="16" DataContext="{Binding Updates}" x:DataType="vm:AppUpdatesViewModel"><StackPanel Spacing="12">
-        <TextBlock Text="软件更新" FontSize="15" FontWeight="SemiBold" />
-        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
+        <TextBlock Text="{DynamicResource Loc.SoftwareUpdates}" FontSize="15" FontWeight="SemiBold" />
+        <TextBlock Text="{Binding Status, Converter={StaticResource Translate}}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
         <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress}" IsVisible="{Binding IsBusy}" Height="4" />
         <StackPanel Spacing="8" IsVisible="{Binding HasReleaseNotes}">
-          <TextBlock Text="{Binding ReleaseNotesTitle}" FontWeight="SemiBold" FontSize="12" />
+          <TextBlock Text="{Binding ReleaseNotesTitle, Converter={StaticResource Translate}}" FontWeight="SemiBold" FontSize="12" />
           <ScrollViewer MaxHeight="180" HorizontalScrollBarVisibility="Disabled">
-            <TextBlock x:Name="SettingsReleaseNotes" Text="{Binding ReleaseNotes}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
+            <TextBlock x:Name="SettingsReleaseNotes" Text="{Binding ReleaseNotesText}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
           </ScrollViewer>
         </StackPanel>
-        <Button Content="检查更新" Command="{Binding CheckCommand}" HorizontalAlignment="Stretch" />
-        <Button Content="立即更新并重启" Command="{Binding InstallCommand}" IsVisible="{Binding IsReady}" Classes="primary" HorizontalAlignment="Stretch" />
+        <Button Content="{DynamicResource Loc.CheckForUpdates}" Command="{Binding CheckCommand}" HorizontalAlignment="Stretch" />
+        <Button Content="{DynamicResource Loc.UpdateAndRestart}" Command="{Binding InstallCommand}" IsVisible="{Binding IsReady}" Classes="primary" HorizontalAlignment="Stretch" />
       </StackPanel></Border>
-      <StackPanel Margin="0,0,0,10" Spacing="6"><TextBlock Text="{Binding VersionLabel}" Classes="muted" TextAlignment="Center" FontSize="11" /><TextBlock Text="局域网内，轻松传文件。" Classes="muted" TextAlignment="Center" FontSize="11" /></StackPanel>
+      <StackPanel Margin="0,0,0,10" Spacing="6"><TextBlock Text="{Binding VersionLabel, Converter={StaticResource Translate}}" Classes="muted" TextAlignment="Center" FontSize="11" /><TextBlock Text="{DynamicResource Loc.EasyFileTransfersOnYourLAN}" Classes="muted" TextAlignment="Center" FontSize="11" /></StackPanel>
     </StackPanel>
   </ScrollViewer>
 </UserControl>

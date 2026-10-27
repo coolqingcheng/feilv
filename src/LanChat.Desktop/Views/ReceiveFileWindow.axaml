@@ -1,25 +1,25 @@
 <Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:LanChat.Desktop.ViewModels" xmlns:icons="using:LanChat.Desktop.Controls"
         x:Class="LanChat.Desktop.Views.ReceiveFileWindow" x:DataType="vm:ReceiveOffersViewModel"
-        Title="飞驴 · 接收文件" Width="420" SizeToContent="Height" CanResize="False" ShowInTaskbar="False"
+        Title="{DynamicResource Loc.FeilvIncomingFile}" Width="420" SizeToContent="Height" CanResize="False" ShowInTaskbar="False"
         ShowActivated="False" Topmost="True" SystemDecorations="None" Background="Transparent" TransparencyLevelHint="Transparent">
   <Border Margin="16" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource WindowBorderBrush}" BorderThickness="1" CornerRadius="14" BoxShadow="{DynamicResource WindowShadow}" Padding="18">
     <StackPanel Spacing="13">
-      <Grid ColumnDefinitions="Auto,*"><icons:BrandLogo Width="21" Height="24" /><TextBlock Grid.Column="1" Text="{Binding Header}" FontSize="15" FontWeight="SemiBold" Margin="9,0,0,0" VerticalAlignment="Center" /></Grid>
+      <Grid ColumnDefinitions="Auto,*"><icons:BrandLogo Width="21" Height="24" /><TextBlock Grid.Column="1" Text="{Binding Header, Converter={StaticResource Translate}}" FontSize="15" FontWeight="SemiBold" Margin="9,0,0,0" VerticalAlignment="Center" /></Grid>
       <Border Background="{DynamicResource CardBrush}" CornerRadius="10" Padding="12">
-        <StackPanel Spacing="6"><TextBlock Text="{Binding FileName}" TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding FileName}" FontWeight="SemiBold" /><TextBlock Text="{Binding Size}" Classes="muted" FontSize="12" /><TextBlock Text="{Binding Source}" TextWrapping="Wrap" Classes="muted" FontSize="12" /><TextBlock Text="{Binding Address}" Classes="muted" FontSize="12" /></StackPanel>
+        <StackPanel Spacing="6"><TextBlock Text="{Binding FileName}" TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding FileName}" FontWeight="SemiBold" /><TextBlock Text="{Binding Size, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" /><TextBlock Text="{Binding Source, Converter={StaticResource Translate}}" TextWrapping="Wrap" Classes="muted" FontSize="12" /><TextBlock Text="{Binding Address, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" /></StackPanel>
       </Border>
-      <TextBlock Text="{Binding QueueHint}" Classes="muted" FontSize="11" TextWrapping="Wrap" />
+      <TextBlock Text="{Binding QueueHint, Converter={StaticResource Translate}}" Classes="muted" FontSize="11" TextWrapping="Wrap" />
       <ProgressBar x:Name="ReceiveProgressBar" IsVisible="{Binding ShowTransferProgress}" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" Minimum="0" Maximum="100" Height="4" Foreground="{DynamicResource AccentBrush}" />
-      <TextBlock IsVisible="{Binding ShowTransferProgress}" Text="{Binding SpeedText}" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
-      <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error}" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" FontSize="12" MaxHeight="60" />
+      <TextBlock IsVisible="{Binding ShowTransferProgress}" Text="{Binding SpeedText, Converter={StaticResource Translate}}" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+      <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error, Converter={StaticResource Translate}}" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" FontSize="12" MaxHeight="60" />
       <Grid ColumnDefinitions="*,*" IsVisible="{Binding ShowDecisionActions}">
-        <Button x:Name="RejectReceiveButton" Content="拒绝" Command="{Binding RejectCommand}" IsEnabled="{Binding CanRespond}" HorizontalAlignment="Stretch" Margin="0,0,6,0" Padding="12,10" />
-        <Button x:Name="AcceptReceiveButton" Grid.Column="1" Content="{Binding AcceptLabel}" Command="{Binding AcceptCommand}" IsEnabled="{Binding CanRespond}" Classes="primary" HorizontalAlignment="Stretch" Margin="6,0,0,0" Padding="12,10" IsDefault="True" />
+        <Button x:Name="RejectReceiveButton" Content="{DynamicResource Loc.Decline}" Command="{Binding RejectCommand}" IsEnabled="{Binding CanRespond}" HorizontalAlignment="Stretch" Margin="0,0,6,0" Padding="12,10" />
+        <Button x:Name="AcceptReceiveButton" Grid.Column="1" Content="{Binding AcceptLabel, Converter={StaticResource Translate}}" Command="{Binding AcceptCommand}" IsEnabled="{Binding CanRespond}" Classes="primary" HorizontalAlignment="Stretch" Margin="6,0,0,0" Padding="12,10" IsDefault="True" />
       </Grid>
       <Grid ColumnDefinitions="*,*" IsVisible="{Binding IsCompleted}">
-        <Button x:Name="OpenReceivedFolderButton" Content="打开所在文件夹" Command="{Binding OpenReceivedFolderCommand}" IsEnabled="{Binding !IsBusy}" Classes="primary" HorizontalAlignment="Stretch" Margin="0,0,6,0" Padding="10,10" />
-        <Button x:Name="CloseReceiveButton" Grid.Column="1" Content="关闭" Command="{Binding DeferCommand}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" Margin="6,0,0,0" Padding="12,10" />
+        <Button x:Name="OpenReceivedFolderButton" Content="{DynamicResource Loc.ShowInFolder}" Command="{Binding OpenReceivedFolderCommand}" IsEnabled="{Binding !IsBusy}" Classes="primary" HorizontalAlignment="Stretch" Margin="0,0,6,0" Padding="10,10" />
+        <Button x:Name="CloseReceiveButton" Grid.Column="1" Content="{DynamicResource Loc.Close}" Command="{Binding DeferCommand}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" Margin="6,0,0,0" Padding="12,10" />
       </Grid>
     </StackPanel>
   </Border>

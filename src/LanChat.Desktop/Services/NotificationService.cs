@@ -1,3 +1,4 @@
+using LanChat.Core.Localization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -23,10 +24,10 @@ public sealed class NotificationService
             ShowInTaskbar = false,
             ShowActivated = false,
             Topmost = true,
-            Title = "飞驴 · 收到文件"
+            Title = Localizer.Text("飞驴 · 收到文件")
         };
         var content = new StackPanel { Spacing = 9, Margin = new Thickness(20, 16) };
-        content.Children.Add(new TextBlock { Text = "飞驴  ·  " + title, FontWeight = FontWeight.SemiBold, FontSize = 14, TextTrimming = TextTrimming.CharacterEllipsis });
+        content.Children.Add(new TextBlock { Text = Localizer.Text("飞驴") + "  ·  " + title, FontWeight = FontWeight.SemiBold, FontSize = 14, TextTrimming = TextTrimming.CharacterEllipsis });
         content.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, MaxHeight = 40, TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 12 });
         var border = new Border { Child = content, Margin = new Thickness(16), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand) };
         border.Bind(Border.BackgroundProperty, popup.GetResourceObservable("PanelBrush"));

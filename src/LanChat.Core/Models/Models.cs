@@ -9,6 +9,7 @@ public sealed record UserProfile
     public string Nickname { get; set; } = Environment.UserName;
     public string? AvatarPath { get; set; }
     public string Theme { get; set; } = "System";
+    public string Language { get; set; } = "System";
     public bool ShowNotifications { get; set; } = true;
     public bool AutoReceive { get; set; } = true;
     public bool StartWithWindows { get; set; } = true;

@@ -4,24 +4,24 @@
   <ScrollViewer x:Name="QrScroll" Background="{DynamicResource CanvasBrush}" HorizontalScrollBarVisibility="Disabled">
     <StackPanel Margin="14,18" Spacing="16">
       <Border Classes="card" Padding="16"><StackPanel Spacing="12">
-        <TextBlock Text="扫码传文件" FontSize="18" FontWeight="SemiBold" />
-        <TextBlock Text="手机与电脑连接同一局域网，用浏览器上传或下载文件。" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+        <TextBlock Text="{DynamicResource Loc.ScanToTransfer}" FontSize="18" FontWeight="SemiBold" />
+        <TextBlock Text="{DynamicResource Loc.ConnectYourPhoneToTheSameLANToUploadAndDownloadInABrowser}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
         <Border IsVisible="{Binding IsRunning}" Background="White" CornerRadius="10" Padding="4" HorizontalAlignment="Center"><icons:QrCode x:Name="ShareQrCode" Text="{Binding Url}" Width="208" Height="208" /></Border>
-        <ComboBox x:Name="QrAddressPicker" ItemsSource="{Binding Addresses}" SelectedItem="{Binding SelectedAddress}" IsVisible="{Binding IsRunning}" HorizontalAlignment="Stretch" AutomationProperties.Name="分享使用的本机 IP" />
+        <ComboBox x:Name="QrAddressPicker" ItemsSource="{Binding Addresses}" SelectedItem="{Binding SelectedAddress}" IsVisible="{Binding IsRunning}" HorizontalAlignment="Stretch" AutomationProperties.Name="{DynamicResource Loc.LocalIPForSharing}" />
         <SelectableTextBlock Text="{Binding Url}" IsVisible="{Binding IsRunning}" TextWrapping="Wrap" FontSize="12" />
-        <Grid ColumnDefinitions="*,*" IsVisible="{Binding IsRunning}"><Button Content="复制地址" Command="{Binding CopyLinkCommand}" HorizontalAlignment="Stretch" Margin="0,0,4,0" /><Button Content="浏览器打开" Grid.Column="1" Command="{Binding OpenBrowserCommand}" HorizontalAlignment="Stretch" Margin="4,0,0,0" /></Grid>
-        <Button Content="启动分享" Command="{Binding StartCommand}" IsVisible="{Binding !IsRunning}" IsEnabled="{Binding !IsBusy}" Classes="primary" HorizontalAlignment="Stretch" />
-        <Button x:Name="StopQrSharingButton" Content="停止分享" Command="{Binding StopCommand}" IsVisible="{Binding IsRunning}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" />
-        <TextBlock Text="{Binding Status}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+        <Grid ColumnDefinitions="*,*" IsVisible="{Binding IsRunning}"><Button Content="{DynamicResource Loc.CopyLink}" Command="{Binding CopyLinkCommand}" HorizontalAlignment="Stretch" Margin="0,0,4,0" /><Button Content="{DynamicResource Loc.OpenInBrowser}" Grid.Column="1" Command="{Binding OpenBrowserCommand}" HorizontalAlignment="Stretch" Margin="4,0,0,0" /></Grid>
+        <Button Content="{DynamicResource Loc.StartSharing}" Command="{Binding StartCommand}" IsVisible="{Binding !IsRunning}" IsEnabled="{Binding !IsBusy}" Classes="primary" HorizontalAlignment="Stretch" />
+        <Button x:Name="StopQrSharingButton" Content="{DynamicResource Loc.StopSharing2}" Command="{Binding StopCommand}" IsVisible="{Binding IsRunning}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" />
+        <TextBlock Text="{Binding Status, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
       </StackPanel></Border>
       <Border Classes="card" Padding="16"><StackPanel Spacing="12" IsEnabled="{Binding CanEdit}">
-        <TextBlock Text="分享目录" FontSize="15" FontWeight="SemiBold" />
-        <TextBlock Text="上传到电脑的目录" Classes="section" />
-        <Grid ColumnDefinitions="*,Auto"><TextBox x:Name="QrUploadDirectory" Text="{Binding UploadDirectory}" Watermark="留空使用默认目录" /><Button Grid.Column="1" Content="选择" Command="{Binding ChooseUploadCommand}" Margin="8,0,0,0" Padding="12,8" /></Grid>
-        <TextBlock Text="手机可下载的目录" Classes="section" />
-        <Grid ColumnDefinitions="*,Auto"><TextBox x:Name="QrDownloadDirectory" Text="{Binding DownloadDirectory}" Watermark="留空使用默认目录" /><Button Grid.Column="1" Content="选择" Command="{Binding ChooseDownloadCommand}" Margin="8,0,0,0" Padding="12,8" /></Grid>
-        <TextBlock Text="留空时，两个目录都使用：" Classes="muted" FontSize="11" /><TextBlock Text="{Binding DefaultDirectory}" Classes="muted" FontSize="11" TextWrapping="Wrap" />
-        <Button Content="保存并应用目录" Command="{Binding ApplyDirectoriesCommand}" Classes="primary" HorizontalAlignment="Stretch" />
+        <TextBlock Text="{DynamicResource Loc.SharedDirectories}" FontSize="15" FontWeight="SemiBold" />
+        <TextBlock Text="{DynamicResource Loc.UploadDestination}" Classes="section" />
+        <Grid ColumnDefinitions="*,Auto"><TextBox x:Name="QrUploadDirectory" Text="{Binding UploadDirectory}" Watermark="{DynamicResource Loc.LeaveBlankForDefault}" /><Button Grid.Column="1" Content="{DynamicResource Loc.Browse}" Command="{Binding ChooseUploadCommand}" Margin="8,0,0,0" Padding="12,8" /></Grid>
+        <TextBlock Text="{DynamicResource Loc.DownloadDirectory}" Classes="section" />
+        <Grid ColumnDefinitions="*,Auto"><TextBox x:Name="QrDownloadDirectory" Text="{Binding DownloadDirectory}" Watermark="{DynamicResource Loc.LeaveBlankForDefault}" /><Button Grid.Column="1" Content="{DynamicResource Loc.Browse}" Command="{Binding ChooseDownloadCommand}" Margin="8,0,0,0" Padding="12,8" /></Grid>
+        <TextBlock Text="{DynamicResource Loc.BothDirectoriesDefaultTo}" Classes="muted" FontSize="11" /><TextBlock Text="{Binding DefaultDirectory}" Classes="muted" FontSize="11" TextWrapping="Wrap" />
+        <Button Content="{DynamicResource Loc.SaveAndApplyDirectories}" Command="{Binding ApplyDirectoriesCommand}" Classes="primary" HorizontalAlignment="Stretch" />
       </StackPanel></Border>
     </StackPanel>
   </ScrollViewer>

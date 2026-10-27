@@ -2,4 +2,7 @@
   <PropertyGroup>
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Localization/Strings.json" />
+  </ItemGroup>
 </Project>

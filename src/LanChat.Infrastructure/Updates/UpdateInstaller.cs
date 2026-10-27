@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using LanChat.Core.Models;
+using LanChat.Core.Localization;
 
 namespace LanChat.Infrastructure.Updates;
 
@@ -29,6 +30,7 @@ public static class UpdateInstaller
         var start = new ProcessStartInfo(helperExecutable)
         { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Path.GetDirectoryName(helperExecutable)! };
         start.ArgumentList.Add("--apply-update"); start.ArgumentList.Add(planPath);
+        start.Environment["FEILV_UPDATE_LANGUAGE"] = Localizer.Language;
         var acknowledged = Path.Combine(Path.GetDirectoryName(planPath)!, "helper-ready");
         File.Delete(acknowledged);
         File.Delete(Path.Combine(Path.GetDirectoryName(planPath)!, "apply-approved"));

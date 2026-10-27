@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LanChat.Core.Models;
+using LanChat.Core.Localization;
 using LanChat.Core.Services;
 using LanChat.Desktop.Services;
 using LanChat.Infrastructure.QrSharing;
@@ -50,6 +51,17 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         lan.MessageReceived += OnMessageReceived;
         lan.TransferChanged += OnTransferChanged;
         lan.Error += OnError;
+        Localizer.Changed += OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged()
+    {
+        if (_disposed) return;
+        RefreshLanguage(); Inbox.RefreshLanguage(); Incoming.RefreshLanguage(); Shares.RefreshLanguage();
+        Settings.RefreshLanguage(); QrShare.RefreshLanguage(); Updates.RefreshLanguage();
+        foreach (var peer in _peers.Values.Concat(Inbox.Recipients).Distinct()) peer.RefreshLanguage();
+        foreach (var item in Inbox.Files) item.RefreshLanguage();
+        foreach (var entry in Shares.RemoteEntries) entry.RefreshLanguage();
     }
 
     private void OnPeerChanged(Peer peer) => Dispatcher.UIThread.Post(() => { if (!_disposed) UpdatePeer(peer); });
@@ -133,6 +145,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        Localizer.Changed -= OnLanguageChanged;
         _lan.PeerChanged -= OnPeerChanged; _lan.MessageReceived -= OnMessageReceived;
         _lan.TransferChanged -= OnTransferChanged; _lan.Error -= OnError;
         Inbox.HistoryDeleted -= Incoming.Remove;

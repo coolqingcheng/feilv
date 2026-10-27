@@ -1,5 +1,6 @@
 using Avalonia;
 using LanChat.Core.Models;
+using LanChat.Core.Localization;
 using LanChat.Desktop.Services;
 using LanChat.Infrastructure.Storage;
 using LanChat.Infrastructure.Updates;
@@ -31,6 +32,7 @@ internal static class Program
         if (args is ["--apply-update", var plan])
         {
             UpdatePlanPath = plan;
+            Localizer.SetPreference(Environment.GetEnvironmentVariable("FEILV_UPDATE_LANGUAGE"));
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
             return;
         }
@@ -46,6 +48,7 @@ internal static class Program
         var baseDirectory = Value("--data-dir") ?? AppPaths.DefaultBaseDirectory;
         UpdateReadyPath = Value("--update-ready");
         var config = XmlConfiguration.Load(baseDirectory);
+        Localizer.SetPreference(config.Profile.Language);
         Options = new NodeOptions
         {
             DataDirectory = baseDirectory,

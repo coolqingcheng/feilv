@@ -1,3 +1,4 @@
+using LanChat.Core.Localization;
 using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
@@ -12,7 +13,7 @@ public sealed class DesktopUiServices(Func<Window> window) : IUiServices
     {
         var files = await window().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "选择要发送的文件", AllowMultiple = true, FileTypeFilter = [FilePickerFileTypes.All]
+            Title = Localizer.Text("选择要发送的文件"), AllowMultiple = true, FileTypeFilter = [FilePickerFileTypes.All]
         });
         return TakePaths(files);
     }
@@ -21,22 +22,22 @@ public sealed class DesktopUiServices(Func<Window> window) : IUiServices
     {
         var files = await window().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = imageOnly ? "选择图片" : "选择要发送的文件",
+            Title = imageOnly ? Localizer.Text("选择图片") : Localizer.Text("选择要发送的文件"),
             AllowMultiple = false,
-            FileTypeFilter = imageOnly ? [new FilePickerFileType("图片") { Patterns = ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.gif"] }] : [FilePickerFileTypes.All]
+            FileTypeFilter = imageOnly ? [new FilePickerFileType(Localizer.Text("图片")) { Patterns = ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.gif"] }] : [FilePickerFileTypes.All]
         });
         return TakePaths(files).FirstOrDefault();
     }
 
     public async Task<IReadOnlyList<string>> PickFoldersAsync()
     {
-        var folders = await window().StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "选择要发送的文件夹", AllowMultiple = true });
+        var folders = await window().StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = Localizer.Text("选择要发送的文件夹"), AllowMultiple = true });
         return TakePaths(folders);
     }
 
     public async Task<string?> PickFolderAsync()
     {
-        var folders = await window().StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "选择文件夹", AllowMultiple = false });
+        var folders = await window().StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = Localizer.Text("选择文件夹"), AllowMultiple = false });
         return TakePaths(folders).FirstOrDefault();
     }
 
