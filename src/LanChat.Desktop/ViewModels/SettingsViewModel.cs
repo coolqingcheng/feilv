@@ -119,7 +119,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         var previous = _lan.Profile.Language;
         Language = _lan.Profile.Language = Localizer.Normalize(language);
         Localizer.SetPreference(Language);
-        try { await _lan.UpdateProfileAsync(); }
+        try { await _store.SaveProfileAsync(_lan.Profile); }
         catch (Exception ex)
         {
             Language = _lan.Profile.Language = previous;
