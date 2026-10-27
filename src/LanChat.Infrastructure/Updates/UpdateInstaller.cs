@@ -19,8 +19,11 @@ public static class UpdateInstaller
         var planPath = Path.Combine(Path.GetDirectoryName(package.PayloadDirectory)!, "install.json");
         await using (var stream = new FileStream(planPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous))
             await JsonSerializer.SerializeAsync(stream, plan, UpdateJsonContext.Default.UpdateInstallPlan, ct).ConfigureAwait(false);
-        var start = new ProcessStartInfo(UpdatePackage.ResolvePath(package.PayloadDirectory, package.Manifest.Executable))
-        { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = package.PayloadDirectory };
+        var helperExecutable = AppReleases.IsInstaller(package.Release)
+            ? await WindowsSetupUpdate.PrepareHelperAsync(package, target, ct).ConfigureAwait(false)
+            : UpdatePackage.ResolvePath(package.PayloadDirectory, package.Manifest.Executable);
+        var start = new ProcessStartInfo(helperExecutable)
+        { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Path.GetDirectoryName(helperExecutable)! };
         start.ArgumentList.Add("--apply-update"); start.ArgumentList.Add(planPath);
         var acknowledged = Path.Combine(Path.GetDirectoryName(planPath)!, "helper-ready");
         File.Delete(acknowledged);
@@ -46,10 +49,12 @@ public static class UpdateInstaller
             await using var stream = File.OpenRead(planPath);
             var plan = await JsonSerializer.DeserializeAsync(stream, UpdateJsonContext.Default.UpdateInstallPlan).ConfigureAwait(false) ?? throw new InvalidDataException("更新指令为空。");
             var package = plan.Package;
+            var isSetup = AppReleases.IsInstaller(package.Release);
+            var expectedHelper = isSetup ? Path.Combine(directory, "helper", "飞驴.exe") : UpdatePackage.ResolvePath(package.PayloadDirectory, package.Manifest.Executable);
             if (Path.GetDirectoryName(package.PayloadDirectory) != directory || Path.GetFileName(package.PayloadDirectory) != "payload"
                 || Path.GetFileName(Path.GetDirectoryName(directory)) != "Updates"
                 || Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(directory))) != "Data"
-                || Path.GetFullPath(Environment.ProcessPath!) != UpdatePackage.ResolvePath(package.PayloadDirectory, package.Manifest.Executable))
+                || Path.GetFullPath(Environment.ProcessPath!) != expectedHelper)
                 throw new InvalidDataException("更新助手目录无效。");
             UpdatePackage.EnsureNoLinks(Path.GetDirectoryName(Path.GetDirectoryName(directory))!, package.PayloadDirectory);
             await UpdatePackage.ValidateAsync(package).ConfigureAwait(false);
@@ -64,7 +69,7 @@ public static class UpdateInstaller
             if (!File.Exists(Path.Combine(directory, "apply-approved"))) throw new IOException("更新请求未确认，保留当前版本。");
             var backup = Path.Combine(directory, "backup");
             List<ReplacedFile> transaction;
-            try { transaction = ApplyFiles(package, plan.TargetExecutable, backup); }
+            try { transaction = isSetup ? await WindowsSetupUpdate.InstallAsync(plan, backup).ConfigureAwait(false) : ApplyFiles(package, plan.TargetExecutable, backup); }
             catch { using var restored = Restart(plan, null); throw; }
             var ready = Path.Combine(directory, "app-ready");
             File.Delete(ready);
@@ -79,6 +84,7 @@ public static class UpdateInstaller
             catch
             {
                 Rollback(transaction);
+                if (isSetup) WindowsSetupUpdate.RestoreRegistration();
                 using var restored = Restart(plan, null);
                 throw;
             }

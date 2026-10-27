@@ -34,6 +34,7 @@ internal static class Program
             if (instance.ActivateExistingAsync().GetAwaiter().GetResult() || !instance.TryStart()) return;
         }
         Instance = instance;
+        using var installerMutex = OperatingSystem.IsWindows() ? new Mutex(false, @"Local\Feilv.Application") : null;
         string? Value(string key) => Array.IndexOf(args, key) is var index && index >= 0 && index + 1 < args.Length ? args[index + 1] : null;
         IsSmokeTest = args.Contains("--smoke-test");
         var baseDirectory = Value("--data-dir") ?? AppPaths.DefaultBaseDirectory;

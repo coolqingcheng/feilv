@@ -62,8 +62,12 @@ if ($Runtime.StartsWith('linux-') -and !$env:DISPLAY) {
 }
 if (!$smoke.WaitForExit(60000)) { throw 'Native GUI smoke test did not finish.' }
 if ($smoke.ExitCode -ne 0) { throw "Native GUI smoke test failed: $($smoke.ExitCode)" }
-$extension = if ($isWindowsRuntime) { '.zip' } else { '.tar.gz' }
-$package = Join-Path $OutputDirectory "feilv-v$version-$Runtime$extension"
-if ($isWindowsRuntime) { [IO.Compression.ZipFile]::CreateFromDirectory($stage, $package) }
-else { & tar --format=ustar -czf $package -C $stage .; if ($LASTEXITCODE -ne 0) { throw 'Archive creation failed.' } }
-Write-Host "Native AOT package: $package"
+if ($isWindowsRuntime) {
+    & (Join-Path $PSScriptRoot 'build-installer.ps1') -SourceDirectory $stage -OutputDirectory $OutputDirectory
+    if ($env:GITHUB_ACTIONS -eq 'true') { & (Join-Path $PSScriptRoot 'test-installer.ps1') -InstallerPath (Join-Path $OutputDirectory "feilv-v$version-win-x64-setup.exe") }
+} else {
+    $package = Join-Path $OutputDirectory "feilv-v$version-$Runtime.tar.gz"
+    & tar --format=ustar -czf $package -C $stage .
+    if ($LASTEXITCODE -ne 0) { throw 'Archive creation failed.' }
+    Write-Host "Native AOT package: $package"
+}

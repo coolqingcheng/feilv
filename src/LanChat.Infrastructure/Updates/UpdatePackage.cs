@@ -11,16 +11,20 @@ public static class UpdatePackage
         await using var stream = File.OpenRead(Path.Combine(root, "app-manifest.json"));
         var manifest = await JsonSerializer.DeserializeAsync(stream, UpdateJsonContext.Default.PackageManifest).ConfigureAwait(false)
             ?? throw new InvalidDataException("发行清单为空。");
-        var release = new AppRelease(manifest.Version, manifest.Runtime, AppReleases.AssetName(manifest.Version, manifest.Runtime), "", 0);
+        var release = new AppRelease(manifest.Version, manifest.Runtime, "distribution", "", 0);
         if (manifest.Runtime != AppReleases.Runtime) throw new InvalidDataException("发行架构与运行架构不一致。");
-        await ValidateAsync(new PreparedAppUpdate(release, root, manifest)).ConfigureAwait(false);
+        await ValidateAsync(new PreparedAppUpdate(release, root, manifest), rejectExtraFiles: false).ConfigureAwait(false);
     }
 
-    public static async Task ValidateAsync(PreparedAppUpdate package, CancellationToken ct = default)
+    public static async Task ValidateAsync(PreparedAppUpdate package, CancellationToken ct = default, bool rejectExtraFiles = true)
     {
         var manifest = package.Manifest;
         if (manifest.Version != package.Release.Version || manifest.Runtime != package.Release.Runtime || manifest.Files.Count is < 1 or > 256)
             throw new InvalidDataException("更新包的版本、平台或文件清单不匹配。");
+        if (AppReleases.IsInstaller(package.Release) && (manifest.Files.Count != 1 || manifest.Executable != package.Release.AssetName
+            || manifest.Files[0].Path != package.Release.AssetName || manifest.Files[0].Size != package.Release.Size
+            || !manifest.Files[0].Sha256.Equals(package.Release.Sha256, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidDataException("安装程序的校验信息与 GitHub 发行信息不一致。");
         var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var file in manifest.Files)
         {
@@ -34,9 +38,12 @@ public static class UpdatePackage
             if (!Convert.ToHexString(digest).Equals(file.Sha256, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("更新文件校验失败：" + file.Path);
         }
         if (!paths.Contains(manifest.Executable)) throw new InvalidDataException("更新包缺少主程序。");
-        var actualFiles = Directory.EnumerateFiles(package.PayloadDirectory, "*", SearchOption.AllDirectories)
-            .Select(path => Path.GetRelativePath(package.PayloadDirectory, path).Replace('\\', '/'));
-        if (actualFiles.Any(path => path != "app-manifest.json" && !paths.Contains(path))) throw new InvalidDataException("更新包中有未列入清单的文件。");
+        if (rejectExtraFiles)
+        {
+            var actualFiles = Directory.EnumerateFiles(package.PayloadDirectory, "*", SearchOption.AllDirectories)
+                .Select(path => Path.GetRelativePath(package.PayloadDirectory, path).Replace('\\', '/'));
+            if (actualFiles.Any(path => path != "app-manifest.json" && !paths.Contains(path))) throw new InvalidDataException("更新包中有未列入清单的文件。");
+        }
         if (!OperatingSystem.IsWindows())
             File.SetUnixFileMode(ResolvePath(package.PayloadDirectory, manifest.Executable), UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.GroupExecute | UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
     }

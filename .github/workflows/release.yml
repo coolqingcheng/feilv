@@ -64,7 +64,7 @@ jobs:
         with:
           name: feilv-${{ matrix.rid }}
           path: |
-            artifacts/feilv-*.zip
+            artifacts/feilv-*-setup.exe
             artifacts/feilv-*.tar.gz
           if-no-files-found: error
           retention-days: 14

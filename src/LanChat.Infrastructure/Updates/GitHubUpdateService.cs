@@ -50,7 +50,8 @@ public sealed class GitHubUpdateService : IAppUpdateService
         if (!tag.StartsWith('v') || !Version.TryParse(tag[1..], out var version) || version.Build < 0 || version.Revision >= 0)
             throw new InvalidDataException("发行版本号无效。");
         if (version <= new Version(currentVersion.Major, currentVersion.Minor, Math.Max(0, currentVersion.Build))) return null;
-        var assetName = AppReleases.AssetName(version.ToString(3), _runtime);
+        var assetNames = new[] { AppReleases.AssetName(version.ToString(3), _runtime), AppReleases.ArchiveAssetName(version.ToString(3), _runtime) }.Distinct();
+        foreach (var assetName in assetNames)
         foreach (var asset in root.GetProperty("assets").EnumerateArray())
         {
             if (asset.GetProperty("name").GetString() != assetName) continue;
@@ -66,7 +67,7 @@ public sealed class GitHubUpdateService : IAppUpdateService
 
     public async Task<PreparedAppUpdate> DownloadAsync(AppRelease release, IProgress<UpdateDownloadProgress>? progress = null, CancellationToken cancellationToken = default)
     {
-        if (release.Runtime != _runtime || release.AssetName != AppReleases.AssetName(release.Version, _runtime)
+        if (release.Runtime != _runtime || (release.AssetName != AppReleases.AssetName(release.Version, _runtime) && release.AssetName != AppReleases.ArchiveAssetName(release.Version, _runtime))
             || !Version.TryParse(release.Version, out _) || !IsSha256(release.Sha256) || release.Size is <= 0 or > MaximumArchiveSize)
             throw new InvalidDataException("更新信息无效。");
         Directory.CreateDirectory(_updatesDirectory);
@@ -126,7 +127,15 @@ public sealed class GitHubUpdateService : IAppUpdateService
                 }
                 finally { ArrayPool<byte>.Shared.Return(buffer); }
             }
-            await ExtractAsync(archive, payload, release.Runtime.StartsWith("win-", StringComparison.Ordinal), cancellationToken).ConfigureAwait(false);
+            if (AppReleases.IsInstaller(release))
+            {
+                File.Move(archive, Path.Combine(payload, release.AssetName));
+                var installerManifest = new PackageManifest(release.Version, release.Runtime, release.AssetName,
+                    [new PackageFile(release.AssetName, release.Size, release.Sha256)]);
+                await using var output = new FileStream(Path.Combine(payload, "app-manifest.json"), FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
+                await JsonSerializer.SerializeAsync(output, installerManifest, UpdateJsonContext.Default.PackageManifest, cancellationToken).ConfigureAwait(false);
+            }
+            else await ExtractAsync(archive, payload, release.Runtime.StartsWith("win-", StringComparison.Ordinal), cancellationToken).ConfigureAwait(false);
             var manifestPath = Path.Combine(payload, "app-manifest.json");
             if (!File.Exists(manifestPath) || new FileInfo(manifestPath).Length > 512 * 1024) throw new InvalidDataException("更新包缺少有效清单。");
             PackageManifest manifest;

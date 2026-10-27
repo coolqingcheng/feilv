@@ -31,7 +31,7 @@ internal static partial class Program
         ZipFile.CreateFromDirectory(source, archive, CompressionLevel.NoCompression, false);
         byte[] digest;
         await using (var stream = File.OpenRead(archive)) digest = await SHA256.HashDataAsync(stream);
-        var release = new AppRelease("9.8.7", "win-x64", AppReleases.AssetName("9.8.7", "win-x64"), Convert.ToHexString(digest).ToLowerInvariant(), new FileInfo(archive).Length);
+        var release = new AppRelease("9.8.7", "win-x64", AppReleases.ArchiveAssetName("9.8.7", "win-x64"), Convert.ToHexString(digest).ToLowerInvariant(), new FileInfo(archive).Length);
         var handler = new UpdateHttpHandler(archive, release);
         using var service = new GitHubUpdateService(root, new HttpClient(handler), "win-x64");
         var discovered = await service.CheckAsync(new Version(1, 4, 0));
@@ -81,6 +81,27 @@ internal static partial class Program
         var configuration = XmlConfiguration.Load(Path.Combine(root, "configuration"));
         configuration.Profile.AutoDownloadUpdates = false; configuration.Save(Path.Combine(root, "configuration"));
         Check(!XmlConfiguration.Load(Path.Combine(root, "configuration")).Profile.AutoDownloadUpdates, "automatic update download opt-out persists in the existing XML configuration");
+        var setupRelease = release with { AssetName = AppReleases.AssetName(release.Version, release.Runtime) };
+        var setupHandler = new UpdateHttpHandler(archive, setupRelease) { IncludeLegacyArchive = true };
+        using var setupService = new GitHubUpdateService(Path.Combine(root, "setup-download"), new HttpClient(setupHandler), "win-x64");
+        Check(await setupService.CheckAsync(new Version(1, 0, 0)) == setupRelease, "Windows selects the wizard installer even when a legacy ZIP appears first in the release assets");
+        var setupPackage = await setupService.DownloadAsync(setupRelease);
+        Check(AppReleases.IsInstaller(setupPackage.Release) && setupPackage.Manifest.Files.Count == 1
+            && File.Exists(Path.Combine(setupPackage.PayloadDirectory, setupRelease.AssetName)), "a Windows installer becomes ready after streaming SHA-256 validation without executing it or extracting a ZIP");
+        var forged = setupPackage with { Manifest = setupPackage.Manifest with { Files = [new(setupRelease.AssetName, setupRelease.Size, new string('0', 64))] } };
+        await MustFailAsync(() => UpdatePackage.ValidateAsync(forged), "installer cache metadata cannot replace the digest received from GitHub");
+        await File.AppendAllTextAsync(Path.Combine(setupPackage.PayloadDirectory, setupRelease.AssetName), "modified");
+        await MustFailAsync(() => UpdatePackage.ValidateAsync(setupPackage), "the staged setup EXE is rechecked before confirmed execution");
+        if (OperatingSystem.IsWindows())
+        {
+            Directory.CreateDirectory(Path.Combine(source, "Data"));
+            await File.WriteAllTextAsync(Path.Combine(source, "Data", "config.xml"), "preserve user data");
+            await File.WriteAllTextAsync(Path.Combine(source, "unins000.exe"), "uninstaller bookkeeping");
+            await UpdatePackage.VerifyDistributionAsync(source);
+            Check(true, "installed distribution checks hash program files without scanning or rejecting user data and uninstaller files");
+            var helper = await WindowsSetupUpdate.PrepareHelperAsync(setupPackage, Path.Combine(source, "飞驴.exe"), CancellationToken.None);
+            Check(File.Exists(helper) && !Directory.Exists(Path.Combine(Path.GetDirectoryName(helper)!, "Data")), "installer updates copy only the declared executable and dependencies into their isolated helper");
+        }
     }
 
     private sealed class UpdateHttpHandler(string archive, AppRelease release) : HttpMessageHandler
@@ -90,12 +111,14 @@ internal static partial class Program
         public bool RedirectToUntrusted { get; set; }
         public string? LastApi { get; private set; }
         public int Downloads { get; private set; }
+        public bool IncludeLegacyArchive { get; set; }
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {
             if (request.RequestUri!.Host == "api.github.com")
             {
                 LastApi = request.RequestUri.ToString();
-                var json = $$"""{"tag_name":"v{{release.Version}}","draft":false,"prerelease":{{Prerelease.ToString().ToLowerInvariant()}},"assets":[{"name":"{{release.AssetName}}","size":{{release.Size}},"digest":{{(MissingDigest ? "null" : "\"sha256:" + release.Sha256 + "\"")}}}]}""";
+                var legacy = IncludeLegacyArchive ? $$"""{"name":"{{AppReleases.ArchiveAssetName(release.Version, release.Runtime)}}","size":{{release.Size}},"digest":"sha256:{{release.Sha256}}"},""" : "";
+                var json = $$"""{"tag_name":"v{{release.Version}}","draft":false,"prerelease":{{Prerelease.ToString().ToLowerInvariant()}},"assets":[{{legacy}}{"name":"{{release.AssetName}}","size":{{release.Size}},"digest":{{(MissingDigest ? "null" : "\"sha256:" + release.Sha256 + "\"")}}}]}""";
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") });
             }
             Downloads++;
