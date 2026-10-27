@@ -4,6 +4,8 @@
     <ResourceDictionary>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Dark">
+          <x:String x:Key="ThemeToggleTarget">Light</x:String>
+          <x:String x:Key="ThemeToggleIcon">sun</x:String>
           <SolidColorBrush x:Key="RailBrush">#252526</SolidColorBrush>
           <SolidColorBrush x:Key="PanelBrush">#1E1E1F</SolidColorBrush>
           <SolidColorBrush x:Key="CanvasBrush">#252526</SolidColorBrush>
@@ -26,6 +28,8 @@
           <BoxShadows x:Key="TabPillShadow">0 1 3 0 #22000000</BoxShadows>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
+          <x:String x:Key="ThemeToggleTarget">Dark</x:String>
+          <x:String x:Key="ThemeToggleIcon">moon</x:String>
           <SolidColorBrush x:Key="RailBrush">#E0E0E0</SolidColorBrush>
           <SolidColorBrush x:Key="PanelBrush">#FAFAFA</SolidColorBrush>
           <SolidColorBrush x:Key="CanvasBrush">#EEEEF0</SolidColorBrush>

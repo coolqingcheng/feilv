@@ -1631,6 +1631,10 @@
     "上传分块结尾无效。",
     "Invalid upload chunk ending."
   ],
+  "ToggleLightDarkTheme": [
+    "切换亮暗主题",
+    "Toggle light/dark theme"
+  ],
   "UploadChunkHeaderIsTooLong": [
     "上传分块头过长。",
     "Upload chunk header is too long."

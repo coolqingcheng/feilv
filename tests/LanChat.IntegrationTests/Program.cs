@@ -243,6 +243,7 @@ internal static partial class Program
         RunGitHubUpdateUiTests(window, node, store, ui);
         RunAutomaticReceiveTests();
         RunLocalizationUiTests();
+        RunThemeToggleTests(window, model, store);
         model.Dispose();
         window.AllowClose = true; window.Close();
         Pump(node.DisposeAsync().AsTask()); Pump(remote.DisposeAsync().AsTask());

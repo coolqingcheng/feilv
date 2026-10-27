@@ -29,7 +29,7 @@ Feilv is a LAN file transfer app built with **C# / Avalonia UI**. It discovers d
 | :---: | :---: |
 | <img src="docs/images/en/devices-dark.png" width="340" alt="Online devices showing names, IP addresses, versions, transfer progress and speed" /> | <img src="docs/images/en/history-light.png" width="340" alt="Transfer history showing filenames, sizes, source computers, IP addresses, timestamps and receive actions" /> |
 
-<p align="center"><sub>Actual v1.4.8 interface, populated with demo devices, files and transfers.</sub></p>
+<p align="center"><sub>Actual v1.4.9 interface, populated with demo devices, files and transfers.</sub></p>
 
 <details>
 <summary><strong>More: QR sharing, languages, themes, sending and receiving</strong></summary>
@@ -91,6 +91,8 @@ On macOS / Linux, extract the **entire** archive and run `./feilv`. macOS builds
 **Background operation:** Minimizing or closing the main window hides it in the system tray. Incoming transfers display a separate progress and result popup. Choose **Quit** in the tray menu to exit fully. Launch at startup is enabled on first use and can be disabled in Settings.
 
 **Language:** Choose **System / 简体中文 / English** under **Settings → Language**. Changes apply immediately and are saved to `Data/config.xml`. Chinese system locales default to Simplified Chinese; other locales default to English. Filenames, device names and authored release notes are preserved. The QR webpage follows the browser's language and has an independent switch in its upper-right corner.
+
+**Quick theme switch:** Click the sun / moon icon beside Settings in the title bar to switch appearance and save your choice immediately. The sun switches to light; the moon switches to dark. Choose **Settings → Appearance → System** to follow your system theme again.
 
 ## Data and updates
 

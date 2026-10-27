@@ -13,14 +13,17 @@
     <Border x:Name="WindowSurface" Classes="windowSurface">
       <Grid RowDefinitions="44,*,Auto">
         <Grid Background="{DynamicResource RailBrush}" ColumnDefinitions="*,Auto" PointerPressed="TitleBarPointerPressed">
-          <StackPanel Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" VerticalAlignment="Center">
-            <Button x:Name="BackToFilesButton" IsVisible="{Binding !IsFiles}" Classes="icon" Command="{Binding NavigateCommand}" CommandParameter="Files" Padding="4" MinWidth="26" MinHeight="28" ToolTip.Tip="{DynamicResource Loc.BackToTransfers}"><icons:SvgIcon Kind="arrow-up" Width="16" Height="16" RenderTransform="rotate(-90deg)" /></Button>
-            <icons:BrandLogo Width="18" Height="18" VerticalAlignment="Center" />
-            <TextBlock Text="{Binding PageTitle, Converter={StaticResource Translate}}" FontWeight="SemiBold" FontSize="12" />
-          </StackPanel>
+          <Grid ColumnDefinitions="Auto,Auto,*" Margin="12,0,8,0" VerticalAlignment="Center">
+            <Button x:Name="BackToFilesButton" IsVisible="{Binding !IsFiles}" Classes="icon" Command="{Binding NavigateCommand}" CommandParameter="Files" Padding="4" MinWidth="26" MinHeight="28" Margin="0,0,8,0" ToolTip.Tip="{DynamicResource Loc.BackToTransfers}"><icons:SvgIcon Kind="arrow-up" Width="16" Height="16" RenderTransform="rotate(-90deg)" /></Button>
+            <icons:BrandLogo Grid.Column="1" Width="18" Height="18" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <TextBlock x:Name="PageHeading" Grid.Column="2" Text="{Binding PageTitle, Converter={StaticResource Translate}}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding PageTitle, Converter={StaticResource Translate}}" />
+          </Grid>
           <StackPanel Grid.Column="1" Orientation="Horizontal">
-            <Button x:Name="QrShareButton" Classes="window" Height="44" Command="{Binding OpenQrShareCommand}" IsEnabled="{Binding !Inbox.IsPickerOpen}" ToolTip.Tip="{DynamicResource Loc.QRSharing}" AutomationProperties.Name="{DynamicResource Loc.QRSharing}"><icons:SvgIcon Kind="qr-code" Width="15" Height="15" /></Button>
-            <Button x:Name="MainMenuButton" Classes="window" Height="44" IsEnabled="{Binding !Inbox.IsPickerOpen}" ToolTip.Tip="{DynamicResource Loc.TransfersSharingAndSettings}" AutomationProperties.Name="{DynamicResource Loc.MoreOptions}">
+            <Button x:Name="QrShareButton" Classes="window" Width="34" Height="44" Command="{Binding OpenQrShareCommand}" IsEnabled="{Binding !Inbox.IsPickerOpen}" ToolTip.Tip="{DynamicResource Loc.QRSharing}" AutomationProperties.Name="{DynamicResource Loc.QRSharing}"><icons:SvgIcon Kind="qr-code" Width="15" Height="15" /></Button>
+            <Button x:Name="ThemeToggleButton" Classes="window" Width="34" Height="44" Command="{Binding Settings.SetThemeCommand}" CommandParameter="{DynamicResource ThemeToggleTarget}" ToolTip.Tip="{DynamicResource Loc.ToggleLightDarkTheme}" AutomationProperties.Name="{DynamicResource Loc.ToggleLightDarkTheme}">
+              <icons:SvgIcon x:Name="ThemeToggleIcon" Kind="{DynamicResource ThemeToggleIcon}" Width="15" Height="15" />
+            </Button>
+            <Button x:Name="MainMenuButton" Classes="window" Width="34" Height="44" IsEnabled="{Binding !Inbox.IsPickerOpen}" ToolTip.Tip="{DynamicResource Loc.TransfersSharingAndSettings}" AutomationProperties.Name="{DynamicResource Loc.MoreOptions}">
               <icons:SvgIcon Kind="settings" Width="15" Height="15" />
               <Button.Flyout><MenuFlyout>
                 <MenuItem Header="{DynamicResource Loc.Transfers}" Command="{Binding NavigateCommand}" CommandParameter="Files" />

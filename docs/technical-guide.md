@@ -14,6 +14,10 @@
 
 手机扫码网页按照浏览器 `Accept-Language` 首选项显示中英文，无该请求头时沿用电脑端语言。页面右上角的语言切换仅影响当前网页，目录浏览和上传请求保留所选语言，不修改电脑设置或其他访问者的语言。
 
+## 外观主题
+
+设置支持 System / Dark / Light。标题栏设置按钮旁的太阳 / 月亮图标通过主题资源字典绑定实际外观和切换目标，点击后立即选择相反的亮暗主题；跟随系统时也按照实际外观选择。快捷按钮和设置页复用同一个 MVVM 命令，异步保存到 `Data/config.xml`，保存失败时恢复原主题；主题偏好不触发局域网资料广播。设置中可以恢复 System，继续跟随系统的后续变化。图标使用内置 Lucide SVG，主题切换不创建定时探测任务或额外事件订阅。
+
 ## 二维码分享
 
 标题栏设置图标旁的二维码按钮会启动独立的局域网 HTTP 服务，显示访问二维码和完整地址。手机与电脑在同一局域网时，扫码即可在浏览器多选文件上传、浏览共享目录及子目录、下载文件；无需安装客户端。多网卡电脑可选择二维码使用的本机 IP，也可复制地址或直接在浏览器打开。
@@ -108,7 +112,7 @@ git diff
 
 ```powershell
 .\scripts\publish.ps1 -Runtime win-x64
-# artifacts/feilv-v1.4.8-win-x64-setup.exe
+# artifacts/feilv-v1.4.9-win-x64-setup.exe
 ```
 
 版本号由 Directory.Build.props 统一维护，设置页、发行包和程序版本一致。Native AOT 依赖目标系统的原生链接器：Windows 为 MSVC C++ 与 Windows SDK，macOS 为 Xcode 命令行工具，Linux 为 clang、zlib 开发包。Windows 安装包使用 Inno Setup 6.7.1 或更新版本，其 BrowseForFolder 脚本接口通过 IFileDialog 打开现代系统目录选择器；GitHub Windows 构建机已包含编译器。本地已有原生发行目录时，也可用 scripts/build-installer.ps1 -SourceDirectory 目录直接封装。发布必须在目标系统和架构的机器上执行，不会回退到托管发布。

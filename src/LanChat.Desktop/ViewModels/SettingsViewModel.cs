@@ -104,11 +104,17 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     [RelayCommand]
     private async Task SetThemeAsync(string theme)
     {
+        var previous = _lan.Profile.Theme;
         Theme = theme;
         _lan.Profile.Theme = theme;
         _ui.SetTheme(theme);
-        try { await _lan.UpdateProfileAsync(); }
-        catch (Exception ex) { _status("主题保存失败：" + ex.Message); }
+        try { await _store.SaveProfileAsync(_lan.Profile); }
+        catch (Exception ex)
+        {
+            Theme = _lan.Profile.Theme = previous;
+            _ui.SetTheme(previous);
+            _status("主题保存失败：" + ex.Message);
+        }
     }
 
     [RelayCommand] private void OpenDownloads() { Directory.CreateDirectory(DownloadDirectory); _ui.OpenFile(DownloadDirectory); }
