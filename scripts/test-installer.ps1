@@ -86,7 +86,10 @@ $setupName = [IO.Path]::GetFileName($InstallerPath)
 Copy-Item -LiteralPath $InstallerPath -Destination (Join-Path $nativePayload $setupName)
 $setupInfo = Get-Item -LiteralPath $InstallerPath
 $setupHash = (Get-FileHash -LiteralPath $InstallerPath -Algorithm SHA256).Hash.ToLowerInvariant()
-$parentReady = Join-Path $nativeStage 'parent-ready'
+$parentProbe = Join-Path $nativeStage 'parent-probe'
+New-Item -ItemType Directory -Path $parentProbe -Force | Out-Null
+[IO.File]::WriteAllText((Join-Path $parentProbe 'install.json'), '{}')
+$parentReady = Join-Path $parentProbe 'app-ready'
 $nativeParent = Start-Process -FilePath $executable -ArgumentList @('--no-discovery', '--port', '0', '--update-ready', ('"' + $parentReady + '"')) -PassThru -WindowStyle Hidden
 $nativeWorker = $null
 try {
