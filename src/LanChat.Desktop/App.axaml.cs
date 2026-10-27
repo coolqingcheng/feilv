@@ -73,6 +73,13 @@ public partial class App : Application
                 window.Opened -= InitializeOnceAsync;
                 await model.InitializeAsync();
                 UpdateInstaller.SignalReady(Program.UpdateReadyPath);
+                if (Program.IsSmokeTest)
+                {
+                    if (model.Status.StartsWith("启动失败", StringComparison.Ordinal)) Environment.ExitCode = 1;
+                    await Task.Delay(500);
+                    await ShutdownAsync();
+                    return;
+                }
                 _ = model.Updates.RunBackgroundAsync();
             }
         }

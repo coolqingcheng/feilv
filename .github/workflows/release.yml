@@ -56,7 +56,7 @@ jobs:
         if: runner.os == 'Windows'
       - name: Linux native dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev libx11-dev libice-dev libsm-dev libfontconfig1 libgl1 libicu-dev
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev libx11-dev libice-dev libsm-dev libfontconfig1 libgl1 libicu-dev xvfb xauth
       - name: Publish genuine Native AOT package
         shell: pwsh
         run: ./scripts/publish-release.ps1 -Runtime '${{ matrix.rid }}'

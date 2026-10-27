@@ -47,8 +47,19 @@ $manifest = @{ version = $version; runtime = $Runtime; executable = $executable;
 # Execute the actual native binary: validates manifest, hashes and source-generated JSON without a .NET runtime.
 $verify = Start-Process -FilePath (Join-Path $stage $executable) -ArgumentList '--verify-package' -WorkingDirectory $stage -PassThru -Wait
 if ($verify.ExitCode -ne 0) { throw "Native package verification failed: $($verify.ExitCode)" }
+$smokeDirectory = Join-Path $repoRoot ('.build/smoke/' + $Runtime + '/' + [Guid]::NewGuid().ToString('N'))
+$smokeArguments = @('--smoke-test', '--no-discovery', '--port', '0', '--data-dir', ('"' + $smokeDirectory + '"'))
+if ($Runtime.StartsWith('linux-') -and !$env:DISPLAY) {
+    $smoke = Start-Process -FilePath 'xvfb-run' -ArgumentList (@('-a', (Join-Path $stage $executable)) + $smokeArguments) -PassThru
+} else {
+    $startOptions = @{ FilePath = (Join-Path $stage $executable); ArgumentList = $smokeArguments; WorkingDirectory = $stage; PassThru = $true }
+    if ($isWindowsRuntime) { $startOptions.WindowStyle = 'Hidden' }
+    $smoke = Start-Process @startOptions
+}
+if (!$smoke.WaitForExit(60000)) { throw 'Native GUI smoke test did not finish.' }
+if ($smoke.ExitCode -ne 0) { throw "Native GUI smoke test failed: $($smoke.ExitCode)" }
 $extension = if ($isWindowsRuntime) { '.zip' } else { '.tar.gz' }
 $package = Join-Path $OutputDirectory "feilv-v$version-$Runtime$extension"
 if ($isWindowsRuntime) { [IO.Compression.ZipFile]::CreateFromDirectory($stage, $package) }
-else { & tar -czf $package -C $stage .; if ($LASTEXITCODE -ne 0) { throw 'Archive creation failed.' } }
+else { & tar --format=ustar -czf $package -C $stage .; if ($LASTEXITCODE -ne 0) { throw 'Archive creation failed.' } }
 Write-Host "Native AOT package: $package"

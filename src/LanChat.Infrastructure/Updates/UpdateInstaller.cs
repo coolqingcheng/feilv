@@ -121,8 +121,13 @@ public static class UpdateInstaller
             var manifest = Path.Combine(root, "app-manifest.json");
             var manifestBackup = File.Exists(manifest) ? Path.Combine(backupDirectory, "app-manifest.json") : null;
             if (manifestBackup is not null) File.Copy(manifest, manifestBackup, true);
-            File.Copy(Path.Combine(package.PayloadDirectory, "app-manifest.json"), manifest, true);
             replaced.Add(new ReplacedFile(manifest, manifestBackup));
+            try
+            {
+                File.Copy(Path.Combine(package.PayloadDirectory, "app-manifest.json"), manifest + ".feilu-update", true);
+                File.Move(manifest + ".feilu-update", manifest, true);
+            }
+            finally { File.Delete(manifest + ".feilu-update"); }
             return replaced;
         }
         catch { Rollback(replaced); throw; }

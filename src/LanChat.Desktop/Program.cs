@@ -11,6 +11,7 @@ internal static class Program
     internal static NodeOptions Options { get; private set; } = new();
     internal static SingleInstanceService? Instance { get; private set; }
     internal static string? UpdateReadyPath { get; private set; }
+    internal static bool IsSmokeTest { get; private set; }
 
     [STAThread]
     public static void Main(string[] args)
@@ -29,6 +30,7 @@ internal static class Program
         }
         Instance = instance;
         string? Value(string key) => Array.IndexOf(args, key) is var index && index >= 0 && index + 1 < args.Length ? args[index + 1] : null;
+        IsSmokeTest = args.Contains("--smoke-test");
         var baseDirectory = Value("--data-dir") ?? AppPaths.DefaultBaseDirectory;
         UpdateReadyPath = Value("--update-ready");
         var config = XmlConfiguration.Load(baseDirectory);
@@ -37,7 +39,7 @@ internal static class Program
             DataDirectory = baseDirectory,
             ListenPort = int.TryParse(Value("--port"), out var port) ? port : config.ListenPort,
             DiscoveryPort = int.TryParse(Value("--discovery-port"), out var discoveryPort) ? discoveryPort : config.DiscoveryPort,
-            EnableDiscovery = config.EnableDiscovery && !args.Contains("--no-discovery")
+            EnableDiscovery = config.EnableDiscovery && !args.Contains("--no-discovery") && !IsSmokeTest
         };
         try { BuildAvaloniaApp().StartWithClassicDesktopLifetime(args); }
         finally { Instance = null; }

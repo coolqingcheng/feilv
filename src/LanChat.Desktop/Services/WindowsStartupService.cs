@@ -22,7 +22,7 @@ public static class WindowsStartupService
 
     public static void Apply(bool enabled)
     {
-        if (!OperatingSystem.IsWindows()) return;
+        if (!OperatingSystem.IsWindows() || Program.IsSmokeTest) return;
         var command = BuildCommand(Environment.ProcessPath, AppContext.BaseDirectory);
         if (command is null) return;
         using var key = Registry.CurrentUser.CreateSubKey(RunKey, writable: true)
