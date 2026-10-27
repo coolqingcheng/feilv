@@ -86,7 +86,7 @@ git diff
 
 ## 软件更新
 
-只从代码中固定的 `coolqingcheng/feilv` 仓库读取 GitHub 最新正式版，不接受局域网设备提供的版本或程序。启动 10 秒后异步检查，之后每 6 小时检查一次；设置中可关闭自动检查下载，也可手动“检查更新”。客户端界面使用普通更新文案。未联网或 GitHub 受限不影响局域网传输。
+只从代码中固定的 `coolqingcheng/feilv` 仓库读取 GitHub 最新正式版，不接受局域网设备提供的版本或程序。启动 10 秒后异步检查，之后每 30 分钟检查一次；设置中可关闭自动检查下载，也可手动“检查更新”。客户端界面使用普通更新文案。未联网或 GitHub 受限不影响局域网传输。
 
 发现适合当前系统和 CPU 架构的新版后，先在后台流式下载到 `Data/Updates`，使用 GitHub API 返回的 SHA-256 和大小校验。Windows 优先获取唯一的 setup.exe 安装包，此时只下载和校验，不运行安装程序；其他平台解压并校验清单中的每个文件，也兼容早期 Windows ZIP 更新。缺少校验信息、包损坏、路径越界、链接或平台不匹配均拒绝。64 KiB 池化缓冲下载、解压和哈希，已校验的缓存再次使用前重新校验。
 
@@ -98,7 +98,7 @@ git diff
 
 ```powershell
 .\scripts\publish.ps1 -Runtime win-x64
-# artifacts/feilv-v1.4.6-win-x64-setup.exe
+# artifacts/feilv-v1.4.7-win-x64-setup.exe
 ```
 
 版本号由 Directory.Build.props 统一维护，设置页、发行包和程序版本一致。Native AOT 依赖目标系统的原生链接器：Windows 为 MSVC C++ 与 Windows SDK，macOS 为 Xcode 命令行工具，Linux 为 clang、zlib 开发包。Windows 安装包使用 Inno Setup 6.7.1 或更新版本，其 BrowseForFolder 脚本接口通过 IFileDialog 打开现代系统目录选择器；GitHub Windows 构建机已包含编译器。本地已有原生发行目录时，也可用 scripts/build-installer.ps1 -SourceDirectory 目录直接封装。发布必须在目标系统和架构的机器上执行，不会回退到托管发布。

@@ -34,7 +34,7 @@ public partial class AppUpdatesViewModel(IAppUpdateService service, UserProfile 
             while (!_stop.IsCancellationRequested)
             {
                 if (profile.AutoDownloadUpdates && CanCheck) await CheckAsync();
-                await Task.Delay(TimeSpan.FromHours(6), _stop.Token);
+                await Task.Delay(TimeSpan.FromMinutes(30), _stop.Token);
             }
         }
         catch (OperationCanceledException) when (_stop.IsCancellationRequested) { }
