@@ -146,6 +146,7 @@ public sealed class QrHttpServer : IQrHttpServer
                         throw new UnauthorizedAccessException();
                     var name = Query(request.Target, "name");
                     ValidateFileName(name);
+                    var senderAddress = (client.Client.RemoteEndPoint as IPEndPoint)?.Address.ToString() ?? "";
                     var root = SharedFileAccess.Resolve(new SharedFolder("qr", "", _uploadRoot), "");
                     var id = Guid.NewGuid().ToString("N");
                     var temporary = Path.Combine(root, ".feilu-upload-" + id + ".partial");
@@ -165,8 +166,7 @@ public sealed class QrHttpServer : IQrHttpServer
                         }
                         var saved = CommitUpload(temporary, root, name);
                         var elapsed = Stopwatch.GetElapsedTime(started).TotalSeconds;
-                        var upload = new QrUpload(id, Path.Combine(root, saved), saved, size,
-                            (client.Client.RemoteEndPoint as IPEndPoint)?.Address.ToString() ?? "", DateTimeOffset.UtcNow,
+                        var upload = new QrUpload(id, Path.Combine(root, saved), saved, size, senderAddress, DateTimeOffset.UtcNow,
                             elapsed > 0 ? size / elapsed : 0);
                         await NotifyUploadAsync(upload).ConfigureAwait(false);
                         await TextAsync(201, "已上传：" + saved);
