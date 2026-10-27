@@ -234,7 +234,7 @@ internal static partial class Program
         RunBackgroundReceivePromptTests(window, model, node, remote, ui);
         RunHistoryDeletionTests(window, model, node, store, remote);
         RunQrShareUiTests(window, model, store, ui);
-        RunGitHubUpdateUiTests(window, ui);
+        RunGitHubUpdateUiTests(window);
         model.Dispose();
         window.AllowClose = true; window.Close();
         Pump(node.DisposeAsync().AsTask()); Pump(remote.DisposeAsync().AsTask());

@@ -6,7 +6,7 @@ using LanChat.Desktop.Services;
 
 namespace LanChat.Desktop.ViewModels;
 
-public partial class AppUpdatesViewModel(IAppUpdateService service, UserProfile profile, IUiServices ui, Func<bool> hasActiveTransfers) : ViewModelBase, IDisposable
+public partial class AppUpdatesViewModel(IAppUpdateService service, UserProfile profile, Func<bool> hasActiveTransfers) : ViewModelBase, IDisposable
 {
     private readonly CancellationTokenSource _stop = new();
     private PreparedAppUpdate? _prepared;
@@ -76,6 +76,5 @@ public partial class AppUpdatesViewModel(IAppUpdateService service, UserProfile 
         finally { IsInstalling = false; }
     }
 
-    [RelayCommand] private void OpenReleases() { try { ui.OpenFile(AppReleases.HomeUrl + "/releases"); } catch (Exception ex) { Status = "打开失败：" + ex.Message; } }
     public void Dispose() { _stop.Cancel(); service.Dispose(); }
 }

@@ -10,11 +10,11 @@ namespace LanChat.IntegrationTests;
 
 internal static partial class Program
 {
-    private static void RunGitHubUpdateUiTests(MainWindow main, TestUiServices ui)
+    private static void RunGitHubUpdateUiTests(MainWindow main)
     {
         var service = new DeferredUpdateService();
         var transferring = true; var installed = false;
-        using var model = new AppUpdatesViewModel(service, new UserProfile(), ui, () => transferring);
+        using var model = new AppUpdatesViewModel(service, new UserProfile(), () => transferring);
         var notifications = 0;
         var popup = new UpdateReadyWindow { DataContext = model };
         model.UpdateReady += () => { notifications++; popup.Show(); };
@@ -37,13 +37,11 @@ internal static partial class Program
         }
         popup.Close();
         var failedService = new DeferredUpdateService();
-        using var failed = new AppUpdatesViewModel(failedService, new UserProfile(), ui, () => false);
+        using var failed = new AppUpdatesViewModel(failedService, new UserProfile(), () => false);
         failed.UpdateReady += () => notifications++;
         var failure = failed.CheckCommand.ExecuteAsync(null);
         failedService.FailDownload(); Pump(failure);
         Check(!failed.IsReady && notifications == 1 && !failed.InstallCommand.CanExecute(null), "a failed digest check never prompts or enables application replacement");
-        model.OpenReleasesCommand.Execute(null);
-        Check(ui.LastOpened == AppReleases.HomeUrl + "/releases", "manual release browsing uses the same fixed GitHub repository");
         main.Restore();
     }
 

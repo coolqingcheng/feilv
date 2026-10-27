@@ -41,7 +41,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         Incoming = new ReceiveOffersViewModel(Inbox, ui);
         Inbox.HistoryDeleted += Incoming.Remove;
         Shares = new SharesViewModel(lan, ui, SetStatus);
-        Updates = new AppUpdatesViewModel(new GitHubUpdateService(store.DataDirectory), lan.Profile, ui,
+        Updates = new AppUpdatesViewModel(new GitHubUpdateService(store.DataDirectory), lan.Profile,
             () => Inbox.HasActiveTransfers || _peers.Values.Any(x => x.IsTransferring));
         Settings = new SettingsViewModel(lan, store, ui, SetStatus, Updates);
         QrShare = new QrShareViewModel(new QrHttpServer(), lan.Profile, store, ui);
