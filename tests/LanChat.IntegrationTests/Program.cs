@@ -80,9 +80,11 @@ internal static partial class Program
         await alice.StartAsync(); await bob.StartAsync();
         await discovered.Task.WaitAsync(TimeSpan.FromSeconds(12));
         Check(alice.Peers.Any(x => x.Id == profileB.Id), "real UDP multicast/broadcast discovery");
+        Check(alice.Peers.Single(x => x.Id == profileB.Id).AppVersion == AppReleases.CurrentVersion, "real UDP discovery reports the remote binary version");
         var peerB = await alice.ConnectAsync("127.0.0.1", bob.Port);
         var peerA = await bob.ConnectAsync("127.0.0.1", alice.Port);
         Check(peerB.Nickname == profileB.Nickname && peerB.Address == "127.0.0.1", "TLS handshake, nickname and IP");
+        Check(peerA.AppVersion == AppReleases.CurrentVersion && peerB.AppVersion == AppReleases.CurrentVersion, "both directions of a TLS handshake report the application version");
         Check(!await storeA.TrustIdentityAsync(profileB.Id, new string('F', 64)), "reject changed identity certificate");
         var incoming = new List<ChatMessage>();
         bob.MessageReceived += message => { lock (incoming) incoming.Add(message); };
@@ -234,7 +236,7 @@ internal static partial class Program
         RunBackgroundReceivePromptTests(window, model, node, remote, ui);
         RunHistoryDeletionTests(window, model, node, store, remote);
         RunQrShareUiTests(window, model, store, ui);
-        RunGitHubUpdateUiTests(window);
+        RunGitHubUpdateUiTests(window, node, store, ui);
         model.Dispose();
         window.AllowClose = true; window.Close();
         Pump(node.DisposeAsync().AsTask()); Pump(remote.DisposeAsync().AsTask());

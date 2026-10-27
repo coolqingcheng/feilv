@@ -32,6 +32,7 @@ internal static class PresenceTests
     public static async Task RunAsync(string root, Action<bool, string> check)
     {
         await DiscoveryReplyAsync(check);
+        await VersionAnnouncementsAsync(root, check);
         await LifecycleAsync(root, check);
         await ParallelExpiryAsync(root, check);
         await StaleSuccessAsync(root, check);
@@ -59,7 +60,7 @@ internal static class PresenceTests
     private static async Task DiscoveryReplyAsync(Action<bool, string> check)
     {
         var port = FreePort();
-        var self = Fake(45832);
+        var self = Fake(45832) with { AppVersion = AppReleases.CurrentVersion };
         var requester = Fake(45833) with { RequestReply = true };
         await using var discovery = new DiscoveryService(port, () => self, (_, _) => Task.CompletedTask);
         discovery.Start();
@@ -73,6 +74,7 @@ internal static class PresenceTests
         var response = JsonSerializer.Deserialize(reply.Buffer, AppJsonContext.Default.Announcement)!;
         check(response.Id == self.Id && !response.RequestReply && timer.ElapsedMilliseconds < 900,
             "discovery query receives immediate unicast reply without a reply loop");
+        check(response.AppVersion == AppReleases.CurrentVersion, "unicast discovery replies advertise the local application version separately from protocol version");
         await SendAsync(port, requester, IPAddress.Parse("127.0.0.2"));
         await SendAsync(port, requester with { RequestReply = false }, IPAddress.Parse("127.0.0.2"));
         using var quiet = new CancellationTokenSource(TimeSpan.FromMilliseconds(250));
@@ -80,6 +82,37 @@ internal static class PresenceTests
         try { await receiver.ReceiveAsync(quiet.Token); duplicateReply = true; }
         catch (OperationCanceledException) { }
         check(!duplicateReply, "duplicate broadcasts are rate limited and response packets never trigger responses");
+    }
+
+    private static async Task VersionAnnouncementsAsync(string root, Action<bool, string> check)
+    {
+        var port = FreePort();
+        var store = new IndexedFileStore(Path.Combine(root, "peer-versions"));
+        var peer = Fake(9);
+        var changes = new ConcurrentQueue<Peer>();
+        await using (var observer = new LanService(store, await store.LoadProfileAsync(), new NodeOptions { DiscoveryPort = port }))
+        {
+            observer.PeerChanged += changes.Enqueue;
+            await observer.StartAsync();
+            // Simulate an older binary whose announcement has no appVersion property at all.
+            var legacy = JsonSerializer.Serialize(peer, AppJsonContext.Default.Announcement).Replace("\"appVersion\":\"\",", "", StringComparison.Ordinal);
+            using (var sender = new UdpClient())
+                await sender.SendAsync(System.Text.Encoding.UTF8.GetBytes(legacy), new IPEndPoint(IPAddress.Loopback, port));
+            await UntilAsync(() => changes.Any(x => x.Id == peer.Id), 1500);
+            check(observer.Peers.Single().IsOnline && observer.Peers.Single().AppVersion == "", "legacy announcements without application versions remain discoverable");
+            await SendAsync(port, peer with { AppVersion = "1.4.5" });
+            await UntilAsync(() => changes.Any(x => x.AppVersion == "1.4.5"), 1500);
+            check(observer.Peers.Single().AppVersion == "1.4.5", "a version-only heartbeat change refreshes an already online device immediately");
+            foreach (var invalid in new string?[] { "bad\nversion", new('9', 100), null })
+            {
+                await SendAsync(port, peer with { AppVersion = invalid! });
+                await UntilAsync(() => observer.Peers.Single().AppVersion == "", 1000);
+                check(observer.Peers.Single().IsOnline, "invalid or missing optional versions never reject an otherwise compatible device");
+            }
+            await SendAsync(port, peer with { AppVersion = "2.0.0" });
+            await UntilAsync(() => changes.Any(x => x.AppVersion == "2.0.0"), 1500);
+        }
+        check((await new IndexedFileStore(store.DataDirectory).LoadPeersAsync()).Single().AppVersion == "2.0.0", "application versions survive a file-store restart");
     }
 
     private static async Task LifecycleAsync(string root, Action<bool, string> check)

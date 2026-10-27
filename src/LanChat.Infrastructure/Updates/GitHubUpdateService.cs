@@ -60,7 +60,10 @@ public sealed class GitHubUpdateService : IAppUpdateService
                 throw new InvalidDataException("更新包缺少校验信息，已停止更新。");
             var size = asset.GetProperty("size").GetInt64();
             if (size <= 0 || size > MaximumArchiveSize) throw new InvalidDataException("发行包大小无效。");
-            return new AppRelease(version.ToString(3), _runtime, assetName, digest[7..].ToLowerInvariant(), size);
+            var notes = root.TryGetProperty("body", out var body) && body.ValueKind == JsonValueKind.String ? body.GetString() ?? "" : "";
+            // Release descriptions are display-only; cap retained text and never interpret HTML or scripts.
+            if (notes.Length > 16384) notes = notes[..16384] + "\n…";
+            return new AppRelease(version.ToString(3), _runtime, assetName, digest[7..].ToLowerInvariant(), size) { ReleaseNotes = notes.Trim() };
         }
         return null;
     }
@@ -78,11 +81,11 @@ public sealed class GitHubUpdateService : IAppUpdateService
             {
                 await using var stream = File.OpenRead(cached);
                 var ready = await JsonSerializer.DeserializeAsync(stream, UpdateJsonContext.Default.PreparedAppUpdate, cancellationToken).ConfigureAwait(false);
-                if (ready?.Release == release && Path.GetDirectoryName(ready.PayloadDirectory) is { } parent
+                if (ready is not null && AppReleases.SamePackage(ready.Release, release) && Path.GetDirectoryName(ready.PayloadDirectory) is { } parent
                     && Path.GetDirectoryName(parent) == _updatesDirectory)
                 {
                     await UpdatePackage.ValidateAsync(ready, cancellationToken).ConfigureAwait(false);
-                    return ready;
+                    return ready with { Release = release };
                 }
             }
             catch (Exception ex) when (ex is IOException or InvalidDataException or JsonException or UnauthorizedAccessException) { }

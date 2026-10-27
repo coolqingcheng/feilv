@@ -36,6 +36,12 @@ internal static partial class Program
         using var service = new GitHubUpdateService(root, new HttpClient(handler), "win-x64");
         var discovered = await service.CheckAsync(new Version(1, 4, 0));
         Check(discovered == release && handler.LastApi == $"https://api.github.com/repos/{AppReleases.Repository}/releases/latest", "updater reads only the fixed GitHub repository and matching platform asset");
+        handler.ReleaseNotes = "新增设备版本号\n- 优化更新提示\n<script>literal text</script>";
+        Check((await service.CheckAsync(new Version(1, 4, 0)))!.ReleaseNotes == handler.ReleaseNotes, "release descriptions preserve Unicode, newlines and literal markup for display");
+        handler.ReleaseNotes = new string('文', 20000);
+        Check((await service.CheckAsync(new Version(1, 4, 0)))!.ReleaseNotes.Length < 16400, "retained release descriptions have a bounded size");
+        handler.ReleaseNotes = null;
+        Check((await service.CheckAsync(new Version(1, 4, 0)))!.ReleaseNotes == "", "null release descriptions remain compatible with updates");
         Check(await service.CheckAsync(new Version(9, 8, 7)) is null && await service.CheckAsync(new Version(10, 0, 0)) is null, "equal and older GitHub releases cannot downgrade the client");
         handler.Prerelease = true;
         Check(await service.CheckAsync(new Version(1, 0, 0)) is null, "prereleases never enter the stable update channel");
@@ -50,6 +56,8 @@ internal static partial class Program
         Check(handler.Downloads == 1 && !Directory.EnumerateFiles(Path.GetDirectoryName(prepared.PayloadDirectory)!, "*.download").Any(), "only a fully checked payload is cached and its downloaded archive is removed");
         var again = await service.DownloadAsync(release);
         Check(again.PayloadDirectory == prepared.PayloadDirectory && handler.Downloads == 1, "an already verified download is revalidated and reused without another download");
+        var editedNotes = await service.DownloadAsync(release with { ReleaseNotes = "补充更新说明" });
+        Check(editedNotes.Release.ReleaseNotes == "补充更新说明" && handler.Downloads == 1, "editing release notes refreshes the cached description without downloading the same package again");
         await File.AppendAllTextAsync(Path.Combine(prepared.PayloadDirectory, "飞驴.exe"), "tampered");
         await MustFailAsync(() => UpdatePackage.ValidateAsync(prepared), "changing the staged executable after download invalidates installation");
         prepared = await service.DownloadAsync(release);
@@ -112,13 +120,15 @@ internal static partial class Program
         public string? LastApi { get; private set; }
         public int Downloads { get; private set; }
         public bool IncludeLegacyArchive { get; set; }
+        public string? ReleaseNotes { get; set; }
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {
             if (request.RequestUri!.Host == "api.github.com")
             {
                 LastApi = request.RequestUri.ToString();
                 var legacy = IncludeLegacyArchive ? $$"""{"name":"{{AppReleases.ArchiveAssetName(release.Version, release.Runtime)}}","size":{{release.Size}},"digest":"sha256:{{release.Sha256}}"},""" : "";
-                var json = $$"""{"tag_name":"v{{release.Version}}","draft":false,"prerelease":{{Prerelease.ToString().ToLowerInvariant()}},"assets":[{{legacy}}{"name":"{{release.AssetName}}","size":{{release.Size}},"digest":{{(MissingDigest ? "null" : "\"sha256:" + release.Sha256 + "\"")}}}]}""";
+                var notes = ReleaseNotes is null ? "null" : "\"" + JsonEncodedText.Encode(ReleaseNotes) + "\"";
+                var json = $$"""{"tag_name":"v{{release.Version}}","body":{{notes}},"draft":false,"prerelease":{{Prerelease.ToString().ToLowerInvariant()}},"assets":[{{legacy}}{"name":"{{release.AssetName}}","size":{{release.Size}},"digest":{{(MissingDigest ? "null" : "\"sha256:" + release.Sha256 + "\"")}}}]}""";
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") });
             }
             Downloads++;

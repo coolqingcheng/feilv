@@ -15,8 +15,12 @@ public partial class AppUpdatesViewModel(IAppUpdateService service, UserProfile 
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(InstallCommand)), NotifyCanExecuteChangedFor(nameof(CheckCommand))] private bool _isInstalling;
     [ObservableProperty] private string _status = "检查新版本，下载并校验后提示更新。";
     [ObservableProperty] private string _readyVersion = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(ReleaseNotesTitle))] private string _availableVersion = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(HasReleaseNotes))] private string _releaseNotes = "";
     [ObservableProperty] private double _progress;
     public string ReadyMessage => $"飞驴 {ReadyVersion} 已下载并通过校验";
+    public string ReleaseNotesTitle => $"v{AvailableVersion} 更新内容";
+    public bool HasReleaseNotes => ReleaseNotes.Length > 0;
     public event Action? UpdateReady;
     public event Func<PreparedAppUpdate, Task>? InstallRequested;
     private bool CanCheck => !IsBusy && !IsInstalling;
@@ -46,7 +50,15 @@ public partial class AppUpdatesViewModel(IAppUpdateService service, UserProfile 
             Status = "正在检查更新…";
             var release = await service.CheckAsync(typeof(AppUpdatesViewModel).Assembly.GetName().Version!, _stop.Token);
             if (release is null) { Status = "当前已是最新正式版。"; return; }
-            if (_prepared?.Release == release) { Status = ReadyMessage; return; }
+            AvailableVersion = release.Version;
+            ReleaseNotes = string.IsNullOrWhiteSpace(release.ReleaseNotes) ? "此版本未提供更新说明。" : release.ReleaseNotes;
+            if (_prepared is not null && AppReleases.SamePackage(_prepared.Release, release))
+            {
+                _prepared = _prepared with { Release = release };
+                Status = ReadyMessage; return;
+            }
+            _prepared = null; IsReady = false; ReadyVersion = "";
+            OnPropertyChanged(nameof(ReadyMessage));
             Status = "发现新版本，正在后台下载并校验…";
             var progress = new Progress<UpdateDownloadProgress>(value =>
             {

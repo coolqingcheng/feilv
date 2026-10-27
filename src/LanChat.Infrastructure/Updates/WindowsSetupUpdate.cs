@@ -34,7 +34,7 @@ internal static class WindowsSetupUpdate
         return UpdatePackage.ResolvePath(helper, manifest.Executable);
     }
 
-    internal static async Task<List<UpdateInstaller.ReplacedFile>> InstallAsync(UpdateInstallPlan plan, string backupDirectory)
+    internal static async Task<List<UpdateInstaller.ReplacedFile>> InstallAsync(UpdateInstallPlan plan, string backupDirectory, UpdateTiming timing)
     {
         if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException();
         var root = Path.GetDirectoryName(plan.TargetExecutable)!;
@@ -53,12 +53,16 @@ internal static class WindowsSetupUpdate
         }
         try
         {
+            await timing.RecordAsync("backup-completed").ConfigureAwait(false);
             var setup = new ProcessStartInfo(UpdatePackage.ResolvePath(plan.Package.PayloadDirectory, plan.Package.Manifest.Executable))
             { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = plan.Package.PayloadDirectory };
             foreach (var argument in new[] { "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/NOICONS", "/DIR=" + root,
                 "/LOG=" + Path.Combine(Path.GetDirectoryName(plan.Package.PayloadDirectory)!, "setup.log") }) setup.ArgumentList.Add(argument);
+            await timing.RecordAsync("starting-installer").ConfigureAwait(false);
             using var process = Process.Start(setup) ?? throw new IOException("无法启动已校验的安装程序。");
+            await timing.RecordAsync("installer-process-started").ConfigureAwait(false);
             await process.WaitForExitAsync().ConfigureAwait(false);
+            await timing.RecordAsync("installer-exited").ConfigureAwait(false);
             if (process.ExitCode != 0) throw new IOException("安装程序未完成，退出代码：" + process.ExitCode);
             var installed = await ReadManifestAsync(root, CancellationToken.None).ConfigureAwait(false);
             if (installed.Version != plan.Package.Release.Version || installed.Runtime != plan.Package.Release.Runtime)

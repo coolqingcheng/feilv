@@ -72,7 +72,13 @@
                     <Border CornerRadius="19" ClipToBounds="True"><Image Source="{Binding Avatar}" Stretch="UniformToFill" /></Border>
                     <Ellipse Width="8" Height="8" Fill="{DynamicResource OnlineBrush}" Stroke="{DynamicResource PanelBrush}" StrokeThickness="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
                   </Grid>
-                  <StackPanel Grid.Column="1" Spacing="5" Margin="5,0,6,0" VerticalAlignment="Center"><TextBlock Text="{Binding Nickname}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{Binding Address}" Classes="muted" FontSize="12" /></StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="5" Margin="5,0,6,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Nickname}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <WrapPanel>
+                      <TextBlock Text="{Binding Address}" Classes="muted" FontSize="12" Margin="0,0,10,0" />
+                      <TextBlock Text="{Binding VersionLabel}" Classes="muted" FontSize="12" />
+                    </WrapPanel>
+                  </StackPanel>
                   <Button Classes="deviceSend" Grid.Column="2" Content="发送" IsEnabled="{Binding IsOnline}" Background="Transparent" FontSize="12" Padding="8,9" VerticalAlignment="Center">
                     <Button.Flyout><MenuFlyout>
                       <MenuItem Header="选择文件" Command="{Binding SendFilesCommand}" CommandParameter="{Binding}" />

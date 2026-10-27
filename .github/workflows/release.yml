@@ -89,5 +89,10 @@ jobs:
           RELEASE_COMMIT: ${{ github.sha }}
         run: |
           RELEASE_TAG="v$(python3 -c "import xml.etree.ElementTree as E; print(E.parse('Directory.Build.props').find('.//Version').text)")"
-          gh release create "$RELEASE_TAG" packages/* --target "$RELEASE_COMMIT" --title "飞驴 $RELEASE_TAG" --generate-notes --draft
+          NOTES_FILE="docs/releases/$RELEASE_TAG.md"
+          if [ -f "$NOTES_FILE" ]; then
+            gh release create "$RELEASE_TAG" packages/* --target "$RELEASE_COMMIT" --title "飞驴 $RELEASE_TAG" --notes-file "$NOTES_FILE" --draft
+          else
+            gh release create "$RELEASE_TAG" packages/* --target "$RELEASE_COMMIT" --title "飞驴 $RELEASE_TAG" --generate-notes --draft
+          fi
           gh release edit "$RELEASE_TAG" --draft=false --latest

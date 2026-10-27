@@ -51,6 +51,7 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
     {
         Id = Profile.Id,
         Nickname = Profile.Nickname,
+        AppVersion = AppReleases.CurrentVersion,
         Port = Port,
         Fingerprint = _fingerprint
     };
@@ -187,6 +188,7 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
         Nickname = sender.Nickname,
         Address = address,
         Port = sender.Port,
+        AppVersion = sender.AppVersion is { Length: > 0 and <= 32 } && Version.TryParse(sender.AppVersion, out var version) ? version.ToString() : "",
         Fingerprint = sender.Fingerprint
     };
 
@@ -199,7 +201,8 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
                 return previous ?? peer with { IsOnline = false };
             if (preserveAvatar && peer.AvatarPath is null) peer = peer with { AvatarPath = previous?.AvatarPath };
             var changed = previous is null || previous.Nickname != peer.Nickname
-                || previous.Address != peer.Address || previous.Port != peer.Port || previous.AvatarPath != peer.AvatarPath;
+                || previous.Address != peer.Address || previous.Port != peer.Port || previous.AvatarPath != peer.AvatarPath
+                || previous.AppVersion != peer.AppVersion;
             _peers[peer.Id] = peer;
             if (changed || previous!.IsOnline != peer.IsOnline) PeerChanged?.Invoke(peer);
             if (changed) Track(PersistPeersAsync());

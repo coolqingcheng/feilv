@@ -12,6 +12,7 @@ internal static class Program
     internal static SingleInstanceService? Instance { get; private set; }
     internal static string? UpdateReadyPath { get; private set; }
     internal static bool IsSmokeTest { get; private set; }
+    internal static string? UpdatePlanPath { get; private set; }
 
     [STAThread]
     public static void Main(string[] args)
@@ -27,7 +28,12 @@ internal static class Program
             }
             return;
         }
-        if (args is ["--apply-update", var plan]) { Environment.ExitCode = UpdateInstaller.RunHelperAsync(plan).GetAwaiter().GetResult(); return; }
+        if (args is ["--apply-update", var plan])
+        {
+            UpdatePlanPath = plan;
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+            return;
+        }
         using var instance = new SingleInstanceService();
         if (!instance.TryStart())
         {

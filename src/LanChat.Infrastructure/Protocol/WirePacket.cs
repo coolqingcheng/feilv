@@ -7,6 +7,7 @@ internal sealed record Announcement
 {
     public int Version { get; init; } = 1;
     public string App { get; init; } = "LanChat";
+    public string AppVersion { get; init; } = "";
     public required string Id { get; init; }
     public required string Nickname { get; init; }
     public required int Port { get; init; }

@@ -27,6 +27,7 @@ public partial class PeerViewModel : ViewModelBase, IDisposable
     public bool HasTransfer => TransferStatus.Length > 0;
     public string Initial => string.IsNullOrEmpty(Nickname) ? "?" : Nickname[..1].ToUpperInvariant();
     public string Presence => IsOnline ? "在线" : "离线";
+    public string VersionLabel => string.IsNullOrEmpty(Model.AppVersion) ? "版本未知" : "v" + Model.AppVersion;
 
     public PeerViewModel(Peer model) { Model = model; Update(model); }
 
@@ -45,6 +46,7 @@ public partial class PeerViewModel : ViewModelBase, IDisposable
         }
         OnPropertyChanged(nameof(Initial));
         OnPropertyChanged(nameof(Presence));
+        OnPropertyChanged(nameof(VersionLabel));
     }
 
     public void PrepareTransfer(string name)

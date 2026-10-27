@@ -1,8 +1,8 @@
 #ifndef AppVersion
   #error AppVersion must be supplied
 #endif
-#ifndef SourceDirectory
-  #error SourceDirectory must be supplied
+#ifndef FilesInclude
+  #error FilesInclude must be supplied
 #endif
 #ifndef OutputDirectory
   #error OutputDirectory must be supplied
@@ -58,7 +58,7 @@ FinishedLabelNoIcons=飞驴已经安装完成。点击“完成”退出安装�
 Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: "快捷方式："; Flags: unchecked
 
 [Files]
-Source: "{#SourceDirectory}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+#include FilesInclude
 
 [Icons]
 Name: "{group}\飞驴"; Filename: "{app}\飞驴.exe"; WorkingDir: "{app}"
@@ -68,6 +68,24 @@ Name: "{autodesktop}\飞驴"; Filename: "{app}\飞驴.exe"; WorkingDir: "{app}";
 Filename: "{app}\飞驴.exe"; Description: "启动飞驴"; WorkingDir: "{app}"; Flags: nowait postinstall skipifsilent
 
 [Code]
+function NeedsFileUpdate(RelativePath, ExpectedHash: String): Boolean;
+var
+  Target: String;
+begin
+  Result := True;
+  Target := AddBackslash(ExpandConstant('{app}')) + RelativePath;
+  if FileExists(Target) then
+    try
+      if CompareText(GetSHA256OfFile(Target), ExpectedHash) = 0 then
+      begin
+        Log('Reusing unchanged file: ' + RelativePath);
+        Result := False;
+      end;
+    except
+      Log('Cannot verify existing file, replacing: ' + RelativePath);
+    end;
+end;
+
 procedure SelectInstallDirectory(Sender: TObject);
 var
   Directory, ParentDirectory: String;

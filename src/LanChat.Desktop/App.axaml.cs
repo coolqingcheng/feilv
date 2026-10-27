@@ -26,6 +26,19 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            if (Program.UpdatePlanPath is { } plan)
+            {
+                var progress = new UpdateProgressViewModel();
+                var progressWindow = new UpdateProgressWindow { DataContext = progress };
+                desktop.MainWindow = progressWindow;
+                progressWindow.Opened += async (_, _) =>
+                {
+                    Environment.ExitCode = await UpdateInstaller.RunHelperAsync(plan, new Progress<string>(value => progress.Status = value));
+                    desktop.Shutdown(Environment.ExitCode);
+                };
+                base.OnFrameworkInitializationCompleted();
+                return;
+            }
             var store = new IndexedFileStore(Program.Options.DataDirectory);
             var profile = store.InitialProfile;
             RequestedThemeVariant = profile.Theme switch { "Light" => ThemeVariant.Light, "Dark" => ThemeVariant.Dark, _ => ThemeVariant.Default };

@@ -25,8 +25,25 @@ if (!$CompilerPath) {
 }
 if (!$CompilerPath -or !(Test-Path -LiteralPath $CompilerPath)) { throw 'Inno Setup compiler was not found. Use the GitHub Actions Windows runner or supply -CompilerPath.' }
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
-& $CompilerPath ('/DAppVersion=' + $manifest.version) ('/DSourceDirectory=' + $SourceDirectory) ('/DOutputDirectory=' + $OutputDirectory) (Join-Path $PSScriptRoot 'installer/feilv.iss')
-if ($LASTEXITCODE -ne 0) { throw 'Windows installer compilation failed.' }
+$includeDirectory = Join-Path $repoRoot '.build/installer-inputs'
+New-Item -ItemType Directory -Path $includeDirectory -Force | Out-Null
+$includePath = Join-Path $includeDirectory ([Guid]::NewGuid().ToString('N') + '.iss')
+$entries = foreach ($file in @($manifest.files) + @(@{ path = 'app-manifest.json'; sha256 = (Get-FileHash -LiteralPath (Join-Path $SourceDirectory 'app-manifest.json') -Algorithm SHA256).Hash })) {
+    $relative = $file.path.Replace('/', '\')
+    $destination = '{app}'
+    $parent = [IO.Path]::GetDirectoryName($relative)
+    if ($parent) { $destination += '\' + $parent }
+    $source = (Join-Path $SourceDirectory $relative).Replace('"', '""')
+    $destination = $destination.Replace('"', '""')
+    $name = [IO.Path]::GetFileName($relative).Replace('"', '""')
+    $checkPath = $relative.Replace("'", "''")
+    'Source: "' + $source + '"; DestDir: "' + $destination + '"; DestName: "' + $name + '"; Flags: ignoreversion solidbreak; Check: NeedsFileUpdate(''' + $checkPath + ''', ''' + $file.sha256 + ''')'
+}
+[IO.File]::WriteAllLines($includePath, $entries, [Text.UTF8Encoding]::new($true))
+try {
+    & $CompilerPath ('/DAppVersion=' + $manifest.version) ('/DFilesInclude=' + $includePath) ('/DOutputDirectory=' + $OutputDirectory) (Join-Path $PSScriptRoot 'installer/feilv.iss')
+    if ($LASTEXITCODE -ne 0) { throw 'Windows installer compilation failed.' }
+} finally { Remove-Item -LiteralPath $includePath -Force }
 $installer = Join-Path $OutputDirectory ('feilv-v' + $manifest.version + '-win-x64-setup.exe')
 if (!(Test-Path -LiteralPath $installer)) { throw 'Installer output was not found.' }
 Write-Host "Wizard installer: $installer"

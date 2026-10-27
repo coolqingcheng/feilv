@@ -27,6 +27,12 @@ internal static partial class Program
         var devices = view.FindControl<ItemsControl>("OnlineDeviceList")!;
         var peer = model.Inbox.Recipients.Single(x => x.Id == remote.Profile.Id);
         Layout();
+        Check(peer.VersionLabel == "v" + AppReleases.CurrentVersion && devices.GetVisualDescendants().OfType<TextBlock>().Any(x => x.DataContext == peer && x.Text == peer.VersionLabel),
+            "online device rows visibly show the version learned from the remote client");
+        var currentPeer = peer.Model;
+        peer.Update(currentPeer with { AppVersion = "" }); Layout();
+        Check(devices.GetVisualDescendants().OfType<TextBlock>().Any(x => x.DataContext == peer && x.Text == "版本未知"), "legacy version fallback refreshes in an existing device row");
+        peer.Update(currentPeer); Layout();
         Check(tabs.Items.OfType<TabItem>().Select(x => x.Header).SequenceEqual(new object[] { "在线设备", "收发记录" })
             && devices.IsEffectivelyVisible && view.FindControl<TextBox>("FileSearch")!.GetVisualRoot() is null,
             "home separates online devices from transfer history in two native tabs");

@@ -53,6 +53,9 @@ internal static partial class Program
         Check(helper.ExitCode == 0 && File.Exists(Path.Combine(staging, "app-ready")) && await File.ReadAllTextAsync(Path.Combine(root, "new-library.txt")) == "new version",
             "the real helper replaces a stopped application, restarts with preserved Unicode arguments and receives the new process readiness signal");
         Check(File.Exists(Path.Combine(staging, "backup", executable)) && await File.ReadAllTextAsync(Path.Combine(staging, "result.txt")) == "更新成功", "a successful installation retains its previous executable and writes a completion result");
+        var timing = await File.ReadAllTextAsync(Path.Combine(staging, "update-timing.log"));
+        Check(timing.Contains("parent-exited", StringComparison.Ordinal) && timing.Contains("files-installed-and-verified", StringComparison.Ordinal)
+            && timing.Contains("application-ready", StringComparison.Ordinal), "update timing logs distinguish parent exit, installation and application readiness");
     }
 
     private static async Task WaitForFileAsync(string path)

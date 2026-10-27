@@ -1,0 +1,13 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:LanChat.Desktop.ViewModels" x:Class="LanChat.Desktop.Views.UpdateProgressWindow" x:DataType="vm:UpdateProgressViewModel"
+        Width="360" Height="166" CanResize="False" SystemDecorations="None" Background="Transparent"
+        TransparencyLevelHint="Transparent" ShowInTaskbar="False" ShowActivated="False" Topmost="True" Title="飞驴 · 正在更新">
+  <Border Margin="16" Padding="18" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource WindowBorderBrush}"
+          BorderThickness="1" CornerRadius="14" BoxShadow="{DynamicResource WindowShadow}">
+    <StackPanel Spacing="14">
+      <TextBlock Text="飞驴正在更新" FontWeight="SemiBold" FontSize="15" />
+      <TextBlock x:Name="UpdateProgressStatus" Text="{Binding Status}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
+      <ProgressBar IsIndeterminate="True" Height="4" />
+    </StackPanel>
+  </Border>
+</Window>

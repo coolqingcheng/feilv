@@ -10,7 +10,10 @@ public static class UpdateInstaller
 {
     public static async Task StartAsync(PreparedAppUpdate package, CancellationToken ct = default)
     {
+        var timing = new UpdateTiming(Path.GetDirectoryName(package.PayloadDirectory)!, "prepare-timing.log");
+        await timing.RecordAsync("confirmation-received").ConfigureAwait(false);
         await UpdatePackage.ValidateAsync(package, ct).ConfigureAwait(false);
+        await timing.RecordAsync("package-revalidated").ConfigureAwait(false);
         var target = Environment.ProcessPath ?? throw new IOException("无法定位当前程序。");
         if (Path.GetFileNameWithoutExtension(target) is "dotnet" or "LanChat.IntegrationTests" || File.Exists(Path.Combine(Path.GetDirectoryName(target)!, "LanChat.Desktop.dll")))
             throw new IOException("开发环境不能替换程序，请使用正式发行版。");
@@ -22,6 +25,7 @@ public static class UpdateInstaller
         var helperExecutable = AppReleases.IsInstaller(package.Release)
             ? await WindowsSetupUpdate.PrepareHelperAsync(package, target, ct).ConfigureAwait(false)
             : UpdatePackage.ResolvePath(package.PayloadDirectory, package.Manifest.Executable);
+        await timing.RecordAsync("helper-prepared").ConfigureAwait(false);
         var start = new ProcessStartInfo(helperExecutable)
         { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Path.GetDirectoryName(helperExecutable)! };
         start.ArgumentList.Add("--apply-update"); start.ArgumentList.Add(planPath);
@@ -36,9 +40,10 @@ public static class UpdateInstaller
             await Task.Delay(100, ct).ConfigureAwait(false);
         }
         await File.WriteAllTextAsync(Path.Combine(Path.GetDirectoryName(planPath)!, "apply-approved"), "approved", ct).ConfigureAwait(false);
+        await timing.RecordAsync("helper-ready-parent-can-exit").ConfigureAwait(false);
     }
 
-    public static async Task<int> RunHelperAsync(string planPath)
+    public static async Task<int> RunHelperAsync(string planPath, IProgress<string>? progress = null)
     {
         string? directory = null;
         try
@@ -46,6 +51,9 @@ public static class UpdateInstaller
             planPath = Path.GetFullPath(planPath);
             if (Path.GetFileName(planPath) != "install.json" || new FileInfo(planPath).Length > 1024 * 1024) throw new InvalidDataException("更新指令无效。");
             directory = Path.GetDirectoryName(planPath)!;
+            var timing = new UpdateTiming(directory);
+            await timing.RecordAsync("helper-started").ConfigureAwait(false);
+            progress?.Report("正在准备更新…");
             await using var stream = File.OpenRead(planPath);
             var plan = await JsonSerializer.DeserializeAsync(stream, UpdateJsonContext.Default.UpdateInstallPlan).ConfigureAwait(false) ?? throw new InvalidDataException("更新指令为空。");
             var package = plan.Package;
@@ -58,6 +66,7 @@ public static class UpdateInstaller
                 throw new InvalidDataException("更新助手目录无效。");
             UpdatePackage.EnsureNoLinks(Path.GetDirectoryName(Path.GetDirectoryName(directory))!, package.PayloadDirectory);
             await UpdatePackage.ValidateAsync(package).ConfigureAwait(false);
+            await timing.RecordAsync("package-revalidated").ConfigureAwait(false);
             using (var parent = Process.GetProcessById(plan.ParentProcessId))
             {
                 if (parent.StartTime.ToUniversalTime().Ticks != plan.ParentStartTime || !Path.GetFullPath(parent.MainModule!.FileName).Equals(Path.GetFullPath(plan.TargetExecutable), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
@@ -66,19 +75,25 @@ public static class UpdateInstaller
                 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
                 await parent.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
             }
+            await timing.RecordAsync("parent-exited").ConfigureAwait(false);
             if (!File.Exists(Path.Combine(directory, "apply-approved"))) throw new IOException("更新请求未确认，保留当前版本。");
             var backup = Path.Combine(directory, "backup");
             List<ReplacedFile> transaction;
-            try { transaction = isSetup ? await WindowsSetupUpdate.InstallAsync(plan, backup).ConfigureAwait(false) : ApplyFiles(package, plan.TargetExecutable, backup); }
+            progress?.Report("正在安装更新，请稍候…");
+            try { transaction = isSetup ? await WindowsSetupUpdate.InstallAsync(plan, backup, timing).ConfigureAwait(false) : ApplyFiles(package, plan.TargetExecutable, backup); }
             catch { using var restored = Restart(plan, null); throw; }
+            await timing.RecordAsync("files-installed-and-verified").ConfigureAwait(false);
             var ready = Path.Combine(directory, "app-ready");
             File.Delete(ready);
             try
             {
+                progress?.Report("正在重新启动飞驴…");
                 using var child = Restart(plan, ready);
+                await timing.RecordAsync("application-process-started").ConfigureAwait(false);
                 var clock = Stopwatch.StartNew();
                 while (!File.Exists(ready) && !child.HasExited && clock.Elapsed < TimeSpan.FromSeconds(30)) await Task.Delay(150).ConfigureAwait(false);
                 if (!File.Exists(ready) && child.HasExited) throw new IOException("新版启动失败，已恢复原程序。");
+                await timing.RecordAsync(File.Exists(ready) ? "application-ready" : "application-readiness-timeout").ConfigureAwait(false);
                 await File.WriteAllTextAsync(Path.Combine(directory, "result.txt"), File.Exists(ready) ? "更新成功" : "新版已启动，保留备份等待确认").ConfigureAwait(false);
             }
             catch

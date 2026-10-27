@@ -35,6 +35,12 @@
         <TextBlock Text="软件更新" FontSize="15" FontWeight="SemiBold" />
         <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
         <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress}" IsVisible="{Binding IsBusy}" Height="4" />
+        <StackPanel Spacing="8" IsVisible="{Binding HasReleaseNotes}">
+          <TextBlock Text="{Binding ReleaseNotesTitle}" FontWeight="SemiBold" FontSize="12" />
+          <ScrollViewer MaxHeight="180" HorizontalScrollBarVisibility="Disabled">
+            <TextBlock x:Name="SettingsReleaseNotes" Text="{Binding ReleaseNotes}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
+          </ScrollViewer>
+        </StackPanel>
         <Button Content="检查更新" Command="{Binding CheckCommand}" HorizontalAlignment="Stretch" />
         <Button Content="立即更新并重启" Command="{Binding InstallCommand}" IsVisible="{Binding IsReady}" Classes="primary" HorizontalAlignment="Stretch" />
       </StackPanel></Border>

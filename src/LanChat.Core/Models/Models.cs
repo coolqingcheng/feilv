@@ -23,6 +23,7 @@ public sealed record Peer
     public required string Address { get; init; }
     public required int Port { get; init; }
     public required string Fingerprint { get; init; }
+    public string AppVersion { get; init; } = "";
     public string? AvatarPath { get; init; }
     public bool IsOnline { get; init; } = true;
     public DateTimeOffset LastSeen { get; init; } = DateTimeOffset.UtcNow;
