@@ -86,7 +86,6 @@ public sealed class GitHubUpdateService : IAppUpdateService
                 {
                     await UpdatePackage.ValidateAsync(ready, cancellationToken).ConfigureAwait(false);
                     if (AppReleases.IsDiskImage(ready.Release)) await MacBundleUpdate.ValidateAsync(ready, cancellationToken).ConfigureAwait(false);
-                    MakeAppImageExecutable(ready);
                     return ready with { Release = release };
                 }
             }
@@ -151,7 +150,6 @@ public sealed class GitHubUpdateService : IAppUpdateService
             var prepared = new PreparedAppUpdate(release, payload, manifest);
             await UpdatePackage.ValidateAsync(prepared, cancellationToken).ConfigureAwait(false);
             if (AppReleases.IsDiskImage(release)) await MacBundleUpdate.ValidateAsync(prepared, cancellationToken).ConfigureAwait(false);
-            MakeAppImageExecutable(prepared);
             if (!AppReleases.IsDiskImage(release)) File.Delete(archive);
             await using (var stream = new FileStream(cached + ".tmp", FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous))
                 await JsonSerializer.SerializeAsync(stream, prepared, UpdateJsonContext.Default.PreparedAppUpdate, cancellationToken).ConfigureAwait(false);
@@ -160,13 +158,6 @@ public sealed class GitHubUpdateService : IAppUpdateService
             return prepared;
         }
         finally { if (!succeeded && Directory.Exists(staging)) Directory.Delete(staging, true); }
-    }
-
-    private static void MakeAppImageExecutable(PreparedAppUpdate package)
-    {
-        if (!OperatingSystem.IsLinux() || !AppReleases.IsAppImage(package.Release)) return;
-        var path = UpdatePackage.ResolvePath(package.PayloadDirectory, package.Manifest.Executable);
-        File.SetUnixFileMode(path, File.GetUnixFileMode(path) | UnixFileMode.UserRead | UnixFileMode.UserExecute);
     }
 
     private async Task<HttpResponseMessage> GetDownloadAsync(AppRelease release, CancellationToken ct)

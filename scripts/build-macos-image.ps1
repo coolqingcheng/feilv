@@ -15,6 +15,7 @@ $native = Join-Path $bundle 'Contents/MacOS'
 $resources = Join-Path $bundle 'Contents/Resources'
 New-Item -ItemType Directory -Path $native,$resources,$output -Force | Out-Null
 Copy-Item -Path (Join-Path $source '*') -Destination $native -Recurse -Force
+Remove-Item -LiteralPath (Join-Path $native 'app-manifest.json') -Force
 & chmod +x (Join-Path $native 'feilv')
 if ($LASTEXITCODE -ne 0) { throw 'Cannot set macOS executable permissions.' }
 # The existing ICO contains PNG frames; extract its 256px frame without introducing a new icon source.
@@ -52,6 +53,11 @@ $plist = @"
 [IO.File]::WriteAllText((Join-Path $bundle 'Contents/Info.plist'), $plist, [Text.UTF8Encoding]::new($false))
 & codesign --force --deep --sign - $bundle
 if ($LASTEXITCODE -ne 0) { throw 'Cannot ad-hoc sign the macOS application bundle.' }
+$files = @(Get-ChildItem -LiteralPath $native -Recurse -File | Sort-Object FullName | ForEach-Object {
+    @{ path = [IO.Path]::GetRelativePath($native, $_.FullName).Replace('\','/'); size = $_.Length; sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() }
+})
+$manifest = @{ version = $Version; runtime = 'osx-arm64'; executable = 'feilv'; files = $files }
+[IO.File]::WriteAllText((Join-Path $content '.app-manifest.json'), ($manifest | ConvertTo-Json -Depth 6), [Text.UTF8Encoding]::new($false))
 & ln -s /Applications (Join-Path $content 'Applications')
 if ($LASTEXITCODE -ne 0) { throw 'Cannot add the Applications shortcut.' }
 $package = Join-Path $output "feilv-v$Version-osx-arm64.dmg"

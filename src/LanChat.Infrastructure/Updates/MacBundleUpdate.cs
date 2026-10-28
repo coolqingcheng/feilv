@@ -26,6 +26,7 @@ internal static class MacBundleUpdate
             var bundle = BundlePath(payload);
             await RunAsync("/usr/bin/ditto", [source, bundle], ct);
             await RunAsync("/usr/bin/ditto", [Path.Combine(bundle, "Contents", "MacOS"), payload], ct);
+            File.Copy(Path.Combine(mount, ".app-manifest.json"), Path.Combine(payload, "app-manifest.json"));
             await VerifyBundleAsync(bundle, payload, release, ct);
         }
         finally { await RunAsync("/usr/bin/hdiutil", ["detach", mount, "-quiet"], CancellationToken.None); }
@@ -56,12 +57,11 @@ internal static class MacBundleUpdate
         if (Value("CFBundleIdentifier") != "com.github.coolqingcheng.feilv" || Value("CFBundleExecutable") != "feilv" || Value("CFBundleShortVersionString") != release.Version)
             throw new InvalidDataException("更新应用程序信息不匹配。");
         var native = Path.Combine(bundle, "Contents", "MacOS");
-        if (new FileInfo(Path.Combine(native, "app-manifest.json")).Length > 512 * 1024
-            || new FileInfo(Path.Combine(payload, "app-manifest.json")).Length > 512 * 1024) throw new InvalidDataException("更新清单无效。");
-        await using var manifestStream = File.OpenRead(Path.Combine(native, "app-manifest.json"));
+        if (new FileInfo(Path.Combine(payload, "app-manifest.json")).Length > 512 * 1024) throw new InvalidDataException("更新清单无效。");
+        await using var manifestStream = File.OpenRead(Path.Combine(payload, "app-manifest.json"));
         var manifest = await JsonSerializer.DeserializeAsync(manifestStream, UpdateJsonContext.Default.PackageManifest, ct)
             ?? throw new InvalidDataException("更新清单为空。");
-        if (manifest.Executable != "feilv" || !File.ReadAllBytes(Path.Combine(native, "app-manifest.json")).AsSpan().SequenceEqual(File.ReadAllBytes(Path.Combine(payload, "app-manifest.json"))))
+        if (manifest.Executable != "feilv")
             throw new InvalidDataException("更新应用清单不匹配。");
         await UpdatePackage.ValidateAsync(new PreparedAppUpdate(release, native, manifest), ct);
     }

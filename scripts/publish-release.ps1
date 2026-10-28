@@ -80,16 +80,20 @@ if ($isWindowsRuntime) {
         & ditto $app $installed
         if ($LASTEXITCODE -ne 0) { throw 'Cannot copy the application out of the disk image.' }
         $binary = Join-Path $installed 'Contents/MacOS/feilv'
-        $verify = Start-Process -FilePath $binary -ArgumentList '--verify-package' -WorkingDirectory (Split-Path -Parent $binary) -PassThru -Wait
+        $verifyRoot = Join-Path $repoRoot ('.build/macos-verify/' + [Guid]::NewGuid().ToString('N'))
+        & ditto (Split-Path -Parent $binary) $verifyRoot
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot stage macOS manifest verification.' }
+        Copy-Item -LiteralPath (Join-Path $mount '.app-manifest.json') -Destination (Join-Path $verifyRoot 'app-manifest.json')
+        $verify = Start-Process -FilePath (Join-Path $verifyRoot 'feilv') -ArgumentList '--verify-package' -WorkingDirectory $verifyRoot -PassThru -Wait
         if ($verify.ExitCode -ne 0) {
-            $diagnostic = Join-Path (Split-Path -Parent $binary) 'verify-error.txt'
+            $diagnostic = Join-Path $verifyRoot 'verify-error.txt'
             if (Test-Path -LiteralPath $diagnostic) { Get-Content -LiteralPath $diagnostic | Write-Host }
             throw 'Installed macOS bundle verification failed.'
         }
         $smoke = Start-Process -FilePath $binary -ArgumentList $smokeArguments -WorkingDirectory (Split-Path -Parent $binary) -PassThru
         if (!$smoke.WaitForExit(60000) -or $smoke.ExitCode -ne 0) { throw 'Installed macOS application failed its GUI smoke test.' }
         Write-Host 'PASS: DMG contains a verified native application, icon and Applications shortcut; copied application starts.'
-        if ($env:GITHUB_ACTIONS -eq 'true') { & (Join-Path $PSScriptRoot 'test-native-image-update.ps1') -Package $package -Runtime $Runtime -Version $version -MacBundle $installed }
+        if ($env:GITHUB_ACTIONS -eq 'true') { & (Join-Path $PSScriptRoot 'test-native-image-update.ps1') -Package $package -Runtime $Runtime -Version $version -MacBundle $installed -MacManifest (Join-Path $mount '.app-manifest.json') }
     } finally { & hdiutil detach $mount -quiet }
 } else {
     & (Join-Path $PSScriptRoot 'build-linux-appimage.ps1') -SourceDirectory $stage -OutputDirectory $OutputDirectory -Version $version -Runtime $Runtime

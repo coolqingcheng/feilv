@@ -2,7 +2,8 @@ param(
     [Parameter(Mandatory = $true)][string]$Package,
     [Parameter(Mandatory = $true)][string]$Runtime,
     [Parameter(Mandatory = $true)][string]$Version,
-    [string]$MacBundle = ''
+    [string]$MacBundle = '',
+    [string]$MacManifest = ''
 )
 $ErrorActionPreference = 'Stop'
 if ($env:GITHUB_ACTIONS -ne 'true' -or (!$IsLinux -and !$IsMacOS)) { throw 'Native update lifecycle checks require a disposable GitHub Linux or macOS runner.' }
@@ -54,6 +55,7 @@ try {
         & ditto $MacBundle $bundle
         & ditto (Join-Path $bundle 'Contents/MacOS') $payload
         if ($LASTEXITCODE -ne 0) { throw 'Cannot stage the macOS update bundle.' }
+        Copy-Item -LiteralPath $MacManifest -Destination (Join-Path $payload 'app-manifest.json')
         Copy-Item -LiteralPath $packagePath -Destination (Join-Path $staging 'package.download')
         $manifest = Get-Content -LiteralPath (Join-Path $payload 'app-manifest.json') -Raw | ConvertFrom-Json
         $helperPath = Join-Path $payload 'feilv'
@@ -66,7 +68,17 @@ try {
         parentProcessId=$parent.Id; parentStartTime=$parent.StartTime.ToUniversalTime().Ticks; arguments=@('--smoke-test','--no-discovery','--port','0','--data-dir',$data); appImageExtractAndRun=$(if ($IsLinux) { '1' } else { $null }) }
     [IO.File]::WriteAllText($planPath, ($plan | ConvertTo-Json -Depth 20), [Text.UTF8Encoding]::new($false))
     $helper = Start-Process -FilePath $helperPath -ArgumentList @('--apply-update', ('"' + $planPath + '"')) -PassThru
-    Wait-Path (Join-Path $staging 'helper-ready')
+    $timer = [Diagnostics.Stopwatch]::StartNew()
+    while (!(Test-Path -LiteralPath (Join-Path $staging 'helper-ready'))) {
+        if ($helper.HasExited -or $timer.Elapsed.TotalSeconds -gt 90) {
+            $result = Join-Path $staging 'result.txt'
+            if (Test-Path -LiteralPath $result) { Get-Content -LiteralPath $result | Write-Host }
+            $timing = Join-Path $staging 'update-timing.log'
+            if (Test-Path -LiteralPath $timing) { Get-Content -LiteralPath $timing | Write-Host }
+            throw "Native image update helper did not become ready (exited: $($helper.HasExited))."
+        }
+        Start-Sleep -Milliseconds 100
+    }
     [IO.File]::WriteAllText((Join-Path $staging 'apply-approved'), 'approved')
     # Only the app process started above on this disposable runner is stopped.
     $parent.Kill(); $parent.WaitForExit()
