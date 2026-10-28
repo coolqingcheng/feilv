@@ -31,6 +31,14 @@ internal static class McpNativeCheck
             var body = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode || !body.Contains("list_devices", StringComparison.Ordinal) || !body.Contains("send_file", StringComparison.Ordinal))
                 throw new InvalidDataException("Native MCP self-test failed: " + response.StatusCode + " " + body);
+            using var call = new HttpRequestMessage(HttpMethod.Post, server.Url);
+            call.Headers.Add("Authorization", "Bearer " + key);
+            call.Headers.Add("Accept", "application/json, text/event-stream");
+            call.Content = new StringContent("{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"list_devices\",\"arguments\":{}}}", Encoding.UTF8, "application/json");
+            using var callResponse = await http.SendAsync(call);
+            var result = await callResponse.Content.ReadAsStringAsync();
+            if (!callResponse.IsSuccessStatusCode || !result.Contains("No online devices.", StringComparison.Ordinal))
+                throw new InvalidDataException("Native MCP tool invocation failed: " + callResponse.StatusCode + " " + result);
         }
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
     }

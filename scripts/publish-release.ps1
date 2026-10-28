@@ -53,7 +53,7 @@ if ($verify.ExitCode -ne 0) {
 }
 $mcpVerify = Start-Process -FilePath (Join-Path $stage $executable) -ArgumentList '--verify-mcp' -WorkingDirectory $stage -PassThru -Wait
 if ($mcpVerify.ExitCode -ne 0) { throw "Native MCP verification failed: $($mcpVerify.ExitCode)" }
-Write-Host 'PASS: Native MCP server authenticates and lists its tools over HTTP.'
+Write-Host 'PASS: Native MCP server authenticates, lists and calls tools over HTTP.'
 $smokeDirectory = Join-Path $repoRoot ('.build/smoke/' + $Runtime + '/' + [Guid]::NewGuid().ToString('N'))
 $smokeArguments = @('--smoke-test', '--no-discovery', '--port', '0', '--data-dir', ('"' + $smokeDirectory + '"'))
 if ($Runtime.StartsWith('linux-') -and !$env:DISPLAY) {
