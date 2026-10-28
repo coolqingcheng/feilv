@@ -89,8 +89,13 @@ public static class UpdateInstaller
             await timing.RecordAsync("package-revalidated").ConfigureAwait(false);
             using (var parent = Process.GetProcessById(plan.ParentProcessId))
             {
-                if (parent.StartTime.ToUniversalTime().Ticks != plan.ParentStartTime || !Path.GetFullPath(parent.MainModule!.FileName).Equals(Path.GetFullPath(plan.ParentExecutable ?? plan.TargetExecutable), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-                    throw new InvalidDataException("等待退出的程序身份不匹配。");
+                // Linux derives process start time from boot time, which can vary slightly between reads.
+                var tolerance = OperatingSystem.IsLinux() ? TimeSpan.FromSeconds(2).Ticks : 0;
+                var startDifference = Math.Abs((decimal)parent.StartTime.ToUniversalTime().Ticks - plan.ParentStartTime);
+                if (plan.ParentStartTime <= 0 || startDifference > tolerance)
+                    throw new InvalidDataException($"等待退出的程序启动时间不匹配（差 {startDifference} ticks）。");
+                if (!Path.GetFullPath(parent.MainModule!.FileName).Equals(Path.GetFullPath(plan.ParentExecutable ?? plan.TargetExecutable), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+                    throw new InvalidDataException("等待退出的程序路径不匹配。");
                 await File.WriteAllTextAsync(Path.Combine(directory, "helper-ready"), "ready").ConfigureAwait(false);
                 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
                 await parent.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
