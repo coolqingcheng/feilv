@@ -101,7 +101,7 @@ try {
             manifest = @{ version = $version; runtime = 'win-x64'; executable = $setupName; files = @(@{ path = $setupName; size = $setupInfo.Length; sha256 = $setupHash }) }
         }
         targetExecutable = $executable; parentProcessId = $nativeParent.Id; parentStartTime = $nativeParent.StartTime.ToUniversalTime().Ticks
-        arguments = @('--smoke-test', '--no-discovery', '--port', '0')
+        arguments = @('--smoke-test', '--no-discovery', '--port', '0', '--update-hidden')
     }
     $nativePlanPath = Join-Path $nativeStage 'install.json'
     [IO.File]::WriteAllText($nativePlanPath, ($nativePlan | ConvertTo-Json -Depth 10), [Text.UTF8Encoding]::new($false))
@@ -113,7 +113,7 @@ try {
     if (!$nativeWorker.WaitForExit(90000) -or $nativeWorker.ExitCode -ne 0) { throw 'Native progress helper did not complete.' }
     if ((Get-Content -LiteralPath (Join-Path $nativeStage 'result.txt') -Raw) -ne '更新成功') { throw 'Native progress helper did not receive restart readiness.' }
     Get-Content -LiteralPath (Join-Path $nativeStage 'update-timing.log') | Write-Host
-    Write-Host 'PASS: the actual Native AOT helper opens its progress window, installs and restarts the client.'
+    Write-Host 'PASS: the actual Native AOT helper installs and restarts the client hidden, with readiness confirmation.'
 } finally {
     if (!$nativeParent.HasExited) { $nativeParent.Kill(); $nativeParent.WaitForExit() }
     if ($nativeWorker -and !$nativeWorker.HasExited) { $nativeWorker.Kill(); $nativeWorker.WaitForExit() }

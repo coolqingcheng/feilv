@@ -12,6 +12,7 @@ public partial class PeerViewModel : ViewModelBase, IDisposable
     public Peer Model { get; private set; }
     public string Id => Model.Id;
     [ObservableProperty] private string _nickname = "";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(DisplayName))] private string _remark = "";
     [ObservableProperty] private string _address = "";
     [ObservableProperty] private bool _isOnline;
     [ObservableProperty] private Bitmap? _avatar;
@@ -19,6 +20,8 @@ public partial class PeerViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private ICommand? _sendFilesCommand;
     [ObservableProperty] private ICommand? _sendFolderCommand;
     [ObservableProperty] private ICommand? _cancelTransferCommand;
+    [ObservableProperty] private ICommand? _editRemarkCommand;
+    [ObservableProperty] private ICommand? _browseSharesCommand;
     public string? TransferId { get; private set; }
     [ObservableProperty, NotifyPropertyChangedFor(nameof(HasTransfer))] private string _transferStatus = "";
     [ObservableProperty] private string _transferName = "";
@@ -31,10 +34,13 @@ public partial class PeerViewModel : ViewModelBase, IDisposable
     public bool HasTransfer => TransferStatus.Length > 0;
     public bool CanCancelTransfer => IsTransferring && IsUploadTransfer;
     public string Initial => string.IsNullOrEmpty(Nickname) ? "?" : Nickname[..1].ToUpperInvariant();
+    public string DisplayName => Remark.Length == 0 ? Nickname : Nickname + "(" + Remark + ")";
     public string Presence => IsOnline ? "在线" : "离线";
     public string VersionLabel => string.IsNullOrEmpty(Model.AppVersion) ? "版本未知" : "v" + Model.AppVersion;
 
     public PeerViewModel(Peer model) { Model = model; Update(model); }
+
+    partial void OnNicknameChanged(string value) => OnPropertyChanged(nameof(DisplayName));
 
     public void Update(Peer model)
     {

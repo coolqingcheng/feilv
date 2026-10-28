@@ -1,0 +1,13 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="LanChat.Desktop.Views.PeerRemarkWindow" Title="{DynamicResource Loc.EditRemark}" Width="360" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" CanResize="False" ShowInTaskbar="False" SystemDecorations="None" Background="Transparent" TransparencyLevelHint="Transparent">
+  <Border Margin="16" Padding="20" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource WindowBorderBrush}" BorderThickness="1" CornerRadius="14" BoxShadow="{DynamicResource WindowShadow}">
+    <StackPanel Spacing="14">
+      <TextBlock x:Name="PromptTitle" Text="{DynamicResource Loc.EditRemark}" FontSize="16" FontWeight="SemiBold" />
+      <TextBlock x:Name="PeerName" Classes="muted" TextWrapping="Wrap" MaxHeight="48" TextTrimming="CharacterEllipsis" />
+      <TextBox x:Name="RemarkInput" MaxLength="40" Watermark="{DynamicResource Loc.RemarkOptional}" AutomationProperties.Name="{DynamicResource Loc.EditRemark}" />
+      <TextBlock x:Name="PromptHint" Text="{DynamicResource Loc.RemarkPrivate}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="10"><Button Content="{DynamicResource Loc.Cancel}" Click="CancelClicked" IsCancel="True" HorizontalAlignment="Stretch" /><Button Grid.Column="1" Content="{DynamicResource Loc.Confirm}" Click="ConfirmClicked" IsDefault="True" Classes="primary" HorizontalAlignment="Stretch" /></Grid>
+    </StackPanel>
+  </Border>
+</Window>

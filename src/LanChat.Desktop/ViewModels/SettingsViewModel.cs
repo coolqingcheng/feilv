@@ -7,6 +7,7 @@ using LanChat.Core.Localization;
 using LanChat.Desktop.Services;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 
 namespace LanChat.Desktop.ViewModels;
 
@@ -34,6 +35,10 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     public string DeviceId => _lan.Profile.Id[..12];
     public string VersionLabel => $"飞驴  /  {typeof(SettingsViewModel).Assembly.GetName().Version?.ToString(3)}";
     public string DataDirectory => _store.DataDirectory;
+    public string ProjectName => "飞驴 / Feilv";
+    public string SourceAddress => AppReleases.HomeUrl;
+    public string BuildFramework => (AppContext.TargetFrameworkName ?? "").Replace(".NETCoreApp,Version=v", ".NET ", StringComparison.Ordinal);
+    public string RuntimeVersion => RuntimeInformation.FrameworkDescription;
     public bool SupportsWindowsStartup => OperatingSystem.IsWindows();
     public string ThemeDescription => Theme switch { "Dark" => "当前主题：Dark", "Light" => "当前主题：Light", _ => "当前主题：跟随系统" };
     public string LanguageDescription => Language switch { "zh-CN" => "当前语言：简体中文", "en-US" => "当前语言：English", _ => "当前语言：跟随系统" };
@@ -43,6 +48,12 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         .SelectMany(x => x.GetIPProperties().UnicastAddresses)
         .FirstOrDefault(x => x.Address.AddressFamily == AddressFamily.InterNetwork)?.Address.ToString() ?? "127.0.0.1";
     public void RefreshEndpoint() => OnPropertyChanged(nameof(LocalEndpoint));
+
+    public void RefreshProfile()
+    {
+        Nickname = _lan.Profile.Nickname;
+        Avatar?.Dispose(); Avatar = ImageLoader.Load(_lan.Profile.AvatarPath, 192);
+    }
 
     public SettingsViewModel(ILanService lan, ILocalStore store, IUiServices ui, Action<string> status, AppUpdatesViewModel? updates = null)
     {
@@ -59,6 +70,13 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
 
     partial void OnNicknameChanged(string value) => OnPropertyChanged(nameof(Initial));
     partial void OnThemeChanged(string value) => OnPropertyChanged(nameof(ThemeDescription));
+
+    [RelayCommand]
+    private void OpenSource()
+    {
+        try { _ui.OpenFile(AppReleases.HomeUrl); }
+        catch (Exception ex) { _status("打开源码地址失败：" + ex.Message); }
+    }
 
     [RelayCommand]
     private async Task SaveAsync()

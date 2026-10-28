@@ -62,8 +62,9 @@ internal static partial class Program
         var root = model.Shares.RemoteEntries.Single(x => x.Name == Path.GetFileName(shared));
         Pump(model.Shares.OpenEntryCommand.ExecuteAsync(root)); Layout();
         var entry = model.Shares.RemoteEntries.Single(x => x.Name == "共享文件.txt");
+        var destination = Path.Combine(TestRoot, "file-only-save"); Directory.CreateDirectory(destination); ui.NextFolder = destination;
         Pump(model.Shares.OpenEntryCommand.ExecuteAsync(entry)); Layout();
-        Check(model.Inbox.Files.Any(x => x.FileName == "共享文件.txt" && x.HasLocalFile) && model.IsShares,
+        Check(model.Inbox.Files.Any(x => x.FileName == "共享文件.txt" && x.HasLocalFile && x.Model.LocalPath == Path.Combine(destination, "共享文件.txt")) && model.IsShares,
             "downloading from standalone shares adds the file to history and stays on the shares page");
         ui.NextFolder = shared; Pump(model.Shares.AddFolderCommand.ExecuteAsync(null));
         Check(model.Shares.LocalFolders.Single().Name == Path.GetFileName(shared), "standalone shares can add a local folder");

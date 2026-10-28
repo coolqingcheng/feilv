@@ -16,6 +16,8 @@ public interface ILocalStore
     string DataDirectory { get; }
     Task<UserProfile> LoadProfileAsync(CancellationToken cancellationToken = default);
     Task SaveProfileAsync(UserProfile profile, CancellationToken cancellationToken = default);
+    Task<Dictionary<string, string>> LoadPeerRemarksAsync(CancellationToken cancellationToken = default);
+    Task SavePeerRemarkAsync(string peerId, string remark, CancellationToken cancellationToken = default);
     Task<List<Peer>> LoadPeersAsync(CancellationToken cancellationToken = default);
     Task SavePeersAsync(IReadOnlyList<Peer> peers, CancellationToken cancellationToken = default);
     Task<List<ChatMessage>> LoadMessagesAsync(CancellationToken cancellationToken = default);
@@ -54,9 +56,10 @@ public interface ILanService : IAsyncDisposable
     Task<string> DownloadAttachmentAsync(Peer peer, ChatMessage message, CancellationToken cancellationToken = default);
     Task RejectAttachmentAsync(Peer peer, ChatMessage message, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SharedEntry>> BrowseAsync(Peer peer, string? rootId = null, string relativePath = "", CancellationToken cancellationToken = default);
-    Task<string> DownloadSharedFileAsync(Peer peer, SharedEntry entry, CancellationToken cancellationToken = default);
+    Task<string> DownloadSharedFileAsync(Peer peer, SharedEntry entry, CancellationToken cancellationToken = default, string? destinationDirectory = null);
     bool CancelOutgoingTransfer(string peerId, string transferId);
-    Task AddSharedFolderAsync(string path, CancellationToken cancellationToken = default);
+    Task AddSharedFolderAsync(string path, CancellationToken cancellationToken = default, string? displayName = null);
+    Task RenameSharedFolderAsync(string id, string displayName, CancellationToken cancellationToken = default);
     Task RemoveSharedFolderAsync(string id, CancellationToken cancellationToken = default);
     Task UpdateProfileAsync(CancellationToken cancellationToken = default);
 }

@@ -20,6 +20,8 @@ public sealed class SharedEntryViewModel(SharedEntry model) : ViewModelBase
 public partial class SharesViewModel(ILanService lan, IUiServices ui, Action<string> status) : ViewModelBase, IDisposable
 {
     private CancellationTokenSource? _downloadCancellation;
+    private readonly CancellationTokenSource _stop = new();
+    private bool _disposed;
     private readonly Stack<(string? RootId, string Path, string Label)> _navigation = new();
     private string? _rootId;
     private string _path = "";
@@ -28,6 +30,7 @@ public partial class SharesViewModel(ILanService lan, IUiServices ui, Action<str
     [ObservableProperty] private string _location = "所有共享文件夹";
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private bool _isDownloading;
+    [ObservableProperty] private string _feedback = "";
     public ObservableCollection<SharedFolder> LocalFolders { get; } = [];
     public ObservableCollection<PeerViewModel> Devices { get; } = [];
     public ObservableCollection<SharedEntryViewModel> RemoteEntries { get; } = [];
@@ -36,6 +39,7 @@ public partial class SharesViewModel(ILanService lan, IUiServices ui, Action<str
     public bool HasPeer => Peer is not null;
     public string LocationLabel => _rootId is null ? Localizer.Text("所有共享文件夹") : Location;
     partial void OnLocationChanged(string value) => OnPropertyChanged(nameof(LocationLabel));
+    private void Report(string text) { Feedback = text; status(text); }
 
     public void UpdatePeer(PeerViewModel peer)
     {
@@ -67,15 +71,32 @@ public partial class SharesViewModel(ILanService lan, IUiServices ui, Action<str
     {
         var path = await ui.PickFolderAsync();
         if (path is null) return;
-        try { await lan.AddSharedFolderAsync(path); RefreshLocal(); status("文件夹已共享，局域网客户端可浏览和下载"); }
-        catch (Exception ex) { status("共享失败：" + ex.Message); }
+        try
+        {
+            var name = await ui.EditShareNameAsync(path, new DirectoryInfo(path).Name);
+            if (name is null) return;
+            await lan.AddSharedFolderAsync(path, displayName: name); RefreshLocal(); Report("文件夹已共享，局域网客户端可浏览和下载");
+        }
+        catch (Exception ex) { Report("共享失败：" + ex.Message); }
+    }
+
+    [RelayCommand]
+    private async Task RenameFolderAsync(SharedFolder folder)
+    {
+        try
+        {
+            var name = await ui.EditShareNameAsync(folder.LocalPath, folder.Name);
+            if (name is null) return;
+            await lan.RenameSharedFolderAsync(folder.Id, name); RefreshLocal(); Report("共享名称已更新");
+        }
+        catch (Exception ex) { Report("共享名称更新失败：" + ex.Message); }
     }
 
     [RelayCommand]
     private async Task RemoveFolderAsync(SharedFolder folder)
     {
-        try { await lan.RemoveSharedFolderAsync(folder.Id); RefreshLocal(); status("已停止共享"); }
-        catch (Exception ex) { status("移除失败：" + ex.Message); }
+        try { await lan.RemoveSharedFolderAsync(folder.Id); RefreshLocal(); Report("已停止共享"); }
+        catch (Exception ex) { Report("移除失败：" + ex.Message); }
     }
 
     [RelayCommand]
@@ -89,13 +110,14 @@ public partial class SharesViewModel(ILanService lan, IUiServices ui, Action<str
         IsBusy = true;
         try
         {
-            var entries = await lan.BrowseAsync(peer.Model, _rootId, _path);
-            if (Peer != peer || version != _requestVersion) return;
+            var entries = await lan.BrowseAsync(peer.Model, _rootId, _path, _stop.Token);
+            if (_disposed || Peer != peer || version != _requestVersion) return;
             RemoteEntries.Clear();
             foreach (var entry in entries) RemoteEntries.Add(new SharedEntryViewModel(entry));
             OnPropertyChanged(nameof(IsEmpty));
         }
-        catch (Exception ex) { if (version == _requestVersion) status("读取共享目录失败：" + ex.Message); }
+        catch (OperationCanceledException) when (_stop.IsCancellationRequested) { }
+        catch (Exception ex) { if (!_disposed && version == _requestVersion) Report("读取共享目录失败：" + ex.Message); }
         finally { if (version == _requestVersion) IsBusy = false; }
     }
 
@@ -114,17 +136,25 @@ public partial class SharesViewModel(ILanService lan, IUiServices ui, Action<str
         else
         {
             IsBusy = true;
-            using var cancellation = new CancellationTokenSource();
-            _downloadCancellation = cancellation; IsDownloading = true;
-            try { var path = await lan.DownloadSharedFileAsync(Peer.Model, entry.Model, cancellation.Token); status("下载完成：" + path); }
-            catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { status("下载已取消。"); }
-            catch (Exception ex) { status("下载失败：" + ex.Message); }
+            using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
+            _downloadCancellation = cancellation;
+            try
+            {
+                var peer = Peer;
+                var directory = await ui.PickDownloadFolderAsync();
+                if (directory is null || _disposed || cancellation.IsCancellationRequested || Peer != peer) return;
+                IsDownloading = true;
+                var path = await lan.DownloadSharedFileAsync(peer.Model, entry.Model, cancellation.Token, directory);
+                Report("下载完成：" + path);
+            }
+            catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { if (!_disposed) Report("下载已取消。"); }
+            catch (Exception ex) { Report("下载失败：" + ex.Message); }
             finally { _downloadCancellation = null; IsDownloading = false; IsBusy = false; }
         }
     }
 
     [RelayCommand] private void CancelDownload() => _downloadCancellation?.Cancel();
-    public void Dispose() => _downloadCancellation?.Cancel();
+    public void Dispose() { if (_disposed) return; _disposed = true; _requestVersion++; _stop.Cancel(); _downloadCancellation?.Cancel(); _stop.Dispose(); }
 
     [RelayCommand]
     private async Task GoUpAsync()

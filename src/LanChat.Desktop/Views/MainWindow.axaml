@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:icons="using:LanChat.Desktop.Controls"
         xmlns:vm="using:LanChat.Desktop.ViewModels" xmlns:views="using:LanChat.Desktop.Views"
         x:Class="LanChat.Desktop.Views.MainWindow" x:DataType="vm:MainWindowViewModel"
-        Title="{DynamicResource Loc.FeilvLANFileTransfer}" Width="420" Height="760" MinWidth="360" MinHeight="540"
+        Title="{Binding WindowTitle}" Width="420" Height="760" MinWidth="360" MinHeight="540"
         WindowStartupLocation="CenterScreen" SystemDecorations="None" Background="Transparent" TransparencyLevelHint="Transparent">
   <Window.Styles>
     <Style Selector="Border.windowFrame"><Setter Property="Margin" Value="16" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="16" /><Setter Property="BoxShadow" Value="{DynamicResource WindowShadow}" /></Style>

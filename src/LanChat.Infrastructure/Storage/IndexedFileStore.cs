@@ -70,6 +70,12 @@ public sealed class IndexedFileStore : ILocalStore
 
     public Task<UserProfile> LoadProfileAsync(CancellationToken cancellationToken = default) => ConfigAsync(c => c.Profile, false, cancellationToken);
     public Task SaveProfileAsync(UserProfile profile, CancellationToken cancellationToken = default) => ConfigAsync(c => c.Profile = profile, true, cancellationToken);
+    public Task<Dictionary<string, string>> LoadPeerRemarksAsync(CancellationToken cancellationToken = default) => ConfigAsync(c => c.PeerRemarks, false, cancellationToken);
+    public Task SavePeerRemarkAsync(string peerId, string remark, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParseExact(peerId, "N", out _) || remark.Length > 40) throw new ArgumentException("设备备注无效。");
+        return ConfigAsync(c => { if (remark.Length == 0) c.PeerRemarks.Remove(peerId); else c.PeerRemarks[peerId] = remark; return true; }, true, cancellationToken);
+    }
     public Task<List<SharedFolder>> LoadSharesAsync(CancellationToken cancellationToken = default) => ConfigAsync(c => c.Shares, false, cancellationToken);
     public Task SaveSharesAsync(IReadOnlyList<SharedFolder> shares, CancellationToken cancellationToken = default) => ConfigAsync(c => c.Shares = shares.ToList(), true, cancellationToken);
 

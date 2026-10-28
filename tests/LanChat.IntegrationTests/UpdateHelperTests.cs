@@ -10,7 +10,7 @@ internal static partial class Program
 {
     private static async Task RunUpdateHelperTestsAsync()
     {
-        Check(UpdateInstaller.RestartArguments(["--data-dir", "有空格的目录", "--update-ready", "previous-marker", "--port", "45832"])
+        Check(UpdateInstaller.RestartArguments(["--data-dir", "有空格的目录", "--update-ready", "previous-marker", "--update-hidden", "--update-maximized", "--port", "45832"])
             .SequenceEqual(new[] { "--data-dir", "有空格的目录", "--port", "45832" }), "a later update preserves user arguments while removing the previous update readiness marker");
         var root = Path.Combine(TestRoot, "helper transaction 有空格"); Directory.CreateDirectory(root);
         var fixture = Path.Combine(AppContext.BaseDirectory, "UpdateFixture");

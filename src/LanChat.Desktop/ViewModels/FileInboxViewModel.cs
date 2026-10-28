@@ -9,7 +9,7 @@ using LanChat.Desktop.Services;
 namespace LanChat.Desktop.ViewModels;
 
 /// <summary>File history, paged search and transfer actions. The view owns only scrolling and native drag/drop.</summary>
-public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiServices ui, Action<string> status) : ViewModelBase, IDisposable
+public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiServices ui, Action<string> status, Func<string, string, string>? formatPeer = null) : ViewModelBase, IDisposable
 {
     private readonly Dictionary<string, FileHistoryItemViewModel> _loaded = [];
     private readonly Dictionary<string, Task> _downloads = [];
@@ -28,6 +28,8 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
     public ObservableCollection<FileHistoryItemViewModel> Files { get; } = [];
     public ObservableCollection<PeerViewModel> Recipients { get; } = [];
     public ObservableCollection<PeerViewModel> VisibleDevices { get; } = [];
+    public string FormatPeerName(string id, string name) => formatPeer?.Invoke(id, name) ?? name;
+    public void RefreshRemarks(string peerId) { foreach (var item in Files.Where(x => x.Model.PeerId == peerId)) item.RefreshLanguage(); }
     [ObservableProperty, NotifyPropertyChangedFor(nameof(IsDevices)), NotifyPropertyChangedFor(nameof(IsHistory)), NotifyPropertyChangedFor(nameof(ShowTransferSummary))] private int _selectedTab;
     [ObservableProperty] private string _search = "";
     [ObservableProperty] private string _deviceSearch = "";
@@ -80,7 +82,7 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
     private bool MatchesDevice(PeerViewModel peer)
     {
         var search = DeviceSearch.Trim();
-        return peer.IsOnline && (search.Length == 0 || peer.Nickname.Contains(search, StringComparison.OrdinalIgnoreCase)
+        return peer.IsOnline && (search.Length == 0 || peer.DisplayName.Contains(search, StringComparison.OrdinalIgnoreCase)
             || peer.Address.Contains(search, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -228,7 +230,7 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
 
     private void RecipientChanged(object? sender, PropertyChangedEventArgs args)
     {
-        if (sender is PeerViewModel peer && args.PropertyName is nameof(PeerViewModel.Nickname) or nameof(PeerViewModel.Address) or nameof(PeerViewModel.IsOnline))
+        if (sender is PeerViewModel peer && args.PropertyName is nameof(PeerViewModel.Nickname) or nameof(PeerViewModel.Remark) or nameof(PeerViewModel.Address) or nameof(PeerViewModel.IsOnline))
             UpdateVisibleDevice(peer);
         if (args.PropertyName == nameof(PeerViewModel.IsRecipientSelected))
         { OnPropertyChanged(nameof(CanConfirm)); OnPropertyChanged(nameof(PickerSelectionHint)); }

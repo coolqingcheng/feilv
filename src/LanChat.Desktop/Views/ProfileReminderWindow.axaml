@@ -1,0 +1,19 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:LanChat.Desktop.ViewModels" x:Class="LanChat.Desktop.Views.ProfileReminderWindow" x:DataType="vm:ProfileReminderViewModel"
+        Title="{DynamicResource Loc.ProfileReminderTitle}" Width="390" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" SystemDecorations="None" Background="Transparent" TransparencyLevelHint="Transparent">
+  <Border Margin="16" Padding="20" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource WindowBorderBrush}"
+          BorderThickness="1" CornerRadius="14" BoxShadow="{DynamicResource WindowShadow}">
+    <StackPanel Spacing="16">
+      <TextBlock Text="{DynamicResource Loc.ProfileReminderTitle}" FontSize="17" FontWeight="SemiBold" />
+      <TextBlock Text="{DynamicResource Loc.ProfileReminderDescription}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+      <Grid ColumnDefinitions="64,*" ColumnSpacing="14">
+        <Grid Width="60" Height="60"><Border CornerRadius="30" Background="{DynamicResource SelectedBrush}"><TextBlock Text="{Binding Initial}" FontSize="24" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border><Border CornerRadius="30" ClipToBounds="True"><Image Source="{Binding Avatar}" Stretch="UniformToFill" /></Border></Grid>
+        <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center"><TextBlock Text="{DynamicResource Loc.DeviceAvatar}" FontWeight="SemiBold" /><Button Content="{DynamicResource Loc.ChangeAvatar}" Command="{Binding ChooseAvatarCommand}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Left" Padding="10,5" /></StackPanel>
+      </Grid>
+      <StackPanel Spacing="7"><TextBlock Text="{DynamicResource Loc.DeviceName}" Classes="section" /><TextBox x:Name="NicknameBox" Text="{Binding Nickname}" MaxLength="40" AutomationProperties.Name="{DynamicResource Loc.DeviceName}" /></StackPanel>
+      <TextBlock Text="{Binding Error, Converter={StaticResource Translate}}" IsVisible="{Binding HasError}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" FontSize="12" />
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="10"><Button x:Name="LaterButton" Content="{DynamicResource Loc.ProfileLater}" Click="LaterClicked" IsEnabled="{Binding !IsBusy}" IsCancel="True" HorizontalAlignment="Stretch" /><Button x:Name="ConfirmButton" Grid.Column="1" Content="{DynamicResource Loc.Confirm}" Command="{Binding SaveCommand}" IsEnabled="{Binding !IsBusy}" IsDefault="True" Classes="primary" HorizontalAlignment="Stretch" /></Grid>
+    </StackPanel>
+  </Border>
+</Window>

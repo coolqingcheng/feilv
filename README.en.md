@@ -59,9 +59,11 @@ Feilv is a LAN file transfer app built with **C# / Avalonia UI**. It discovers d
 | Long transfers | No fixed total transfer duration for files or folders. Cancel from the device row, receive prompt or history, and retry later. |
 | Searchable history | Records filename, size, source, IP and time. Scroll for older entries, search by filename, or delete records. |
 | Automatic reception | Enabled by default. A corner popup shows progress, speed and completion. Turn it off to receive or decline manually; declines are reported to the sender. |
-| Shared folders | Other clients can browse and download files from directories you choose. |
+| Shared folders | Give shares a custom name; other clients can browse and download them from a device row. |
+| Device remarks | Add private local remarks shown alongside device names and transfer sources. |
 | QR sharing | Upload and download from a phone's browser without installing an app. Upload and download directories can be configured separately. |
 | Themes and tray | System, Dark and Light themes; custom device name and avatar; startup option; single-instance operation. |
+| Profile reminder | Set a name and avatar when using the default device name, or postpone the reminder for seven days. |
 | Chinese and English | Follows the system language by default. Switch instantly in Settings. The QR webpage has its own language switch. |
 | In-app updates | Downloads and verifies updates, shows release notes, then installs and restarts after your confirmation. Local data is kept. |
 
@@ -90,7 +92,7 @@ Windows keeps data in the installation directory. The new macOS and Linux packag
 
 Use the search box above the device list to filter by name or IP. Click the cross to clear it. Filtering only changes the visible list; the send dialog still offers all online recipients.
 
-**Shared folders:** Open **Shared folders** from the title-bar menu. Add a local directory, or choose an online computer to browse its shares.
+**Shared folders:** Open **Shared folders** from the title-bar menu to add a local directory with a display name, or use the folder icon beside an online device to browse its shares. Choose a destination folder for each download. Existing files are not overwritten; conflicting names are numbered.
 
 **Phone transfers:** Click the QR button in the title bar to start sharing. Connect your phone to the same LAN and scan the code to upload and download. Configure upload and download directories separately, or leave them blank to use `qr-http` in the data directory. **Stop sharing** invalidates the link.
 
