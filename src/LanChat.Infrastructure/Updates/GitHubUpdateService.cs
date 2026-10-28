@@ -85,6 +85,7 @@ public sealed class GitHubUpdateService : IAppUpdateService
                     && Path.GetDirectoryName(parent) == _updatesDirectory)
                 {
                     await UpdatePackage.ValidateAsync(ready, cancellationToken).ConfigureAwait(false);
+                    if (AppReleases.IsDiskImage(ready.Release)) await MacBundleUpdate.ValidateAsync(ready, cancellationToken).ConfigureAwait(false);
                     return ready with { Release = release };
                 }
             }
@@ -130,7 +131,7 @@ public sealed class GitHubUpdateService : IAppUpdateService
                 }
                 finally { ArrayPool<byte>.Shared.Return(buffer); }
             }
-            if (AppReleases.IsInstaller(release))
+            if (AppReleases.IsSingleFilePackage(release))
             {
                 File.Move(archive, Path.Combine(payload, release.AssetName));
                 var installerManifest = new PackageManifest(release.Version, release.Runtime, release.AssetName,
@@ -138,6 +139,7 @@ public sealed class GitHubUpdateService : IAppUpdateService
                 await using var output = new FileStream(Path.Combine(payload, "app-manifest.json"), FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
                 await JsonSerializer.SerializeAsync(output, installerManifest, UpdateJsonContext.Default.PackageManifest, cancellationToken).ConfigureAwait(false);
             }
+            else if (AppReleases.IsDiskImage(release)) await MacBundleUpdate.ExtractAsync(archive, payload, release, cancellationToken).ConfigureAwait(false);
             else await ExtractAsync(archive, payload, release.Runtime.StartsWith("win-", StringComparison.Ordinal), cancellationToken).ConfigureAwait(false);
             var manifestPath = Path.Combine(payload, "app-manifest.json");
             if (!File.Exists(manifestPath) || new FileInfo(manifestPath).Length > 512 * 1024) throw new InvalidDataException("更新包缺少有效清单。");
@@ -147,7 +149,8 @@ public sealed class GitHubUpdateService : IAppUpdateService
                     ?? throw new InvalidDataException("更新清单为空。");
             var prepared = new PreparedAppUpdate(release, payload, manifest);
             await UpdatePackage.ValidateAsync(prepared, cancellationToken).ConfigureAwait(false);
-            File.Delete(archive);
+            if (AppReleases.IsDiskImage(release)) await MacBundleUpdate.ValidateAsync(prepared, cancellationToken).ConfigureAwait(false);
+            if (!AppReleases.IsDiskImage(release)) File.Delete(archive);
             await using (var stream = new FileStream(cached + ".tmp", FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous))
                 await JsonSerializer.SerializeAsync(stream, prepared, UpdateJsonContext.Default.PreparedAppUpdate, cancellationToken).ConfigureAwait(false);
             File.Move(cached + ".tmp", cached, true);

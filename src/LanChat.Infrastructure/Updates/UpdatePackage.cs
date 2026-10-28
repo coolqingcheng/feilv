@@ -21,7 +21,7 @@ public static class UpdatePackage
         var manifest = package.Manifest;
         if (manifest.Version != package.Release.Version || manifest.Runtime != package.Release.Runtime || manifest.Files.Count is < 1 or > 256)
             throw new InvalidDataException("更新包的版本、平台或文件清单不匹配。");
-        if (AppReleases.IsInstaller(package.Release) && (manifest.Files.Count != 1 || manifest.Executable != package.Release.AssetName
+        if (AppReleases.IsSingleFilePackage(package.Release) && (manifest.Files.Count != 1 || manifest.Executable != package.Release.AssetName
             || manifest.Files[0].Path != package.Release.AssetName || manifest.Files[0].Size != package.Release.Size
             || !manifest.Files[0].Sha256.Equals(package.Release.Sha256, StringComparison.OrdinalIgnoreCase)))
             throw new InvalidDataException("安装程序的校验信息与发行信息不一致。");

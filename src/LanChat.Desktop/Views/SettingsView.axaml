@@ -40,6 +40,7 @@
         <TextBlock Text="{DynamicResource Loc.FilesAndStorage}" FontSize="15" FontWeight="SemiBold" /><TextBlock Text="{DynamicResource Loc.ReceivedFilesAreSavedByDate}" Classes="section" />
         <TextBlock Text="{Binding DownloadDirectory}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
         <Button Content="{DynamicResource Loc.OpenDownloadsFolder}" Command="{Binding OpenDownloadsCommand}" HorizontalAlignment="Stretch" />
+        <TextBlock Text="{DynamicResource Loc.DataDirectory}" Classes="section" /><TextBlock Text="{Binding DataDirectory}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
         <TextBlock Text="{DynamicResource Loc.DeviceID}" Classes="section" /><TextBlock Text="{Binding DeviceId}" FontSize="12" Classes="muted" />
       </StackPanel></Border>
       <Border Classes="card" Padding="16" DataContext="{Binding Updates}" x:DataType="vm:AppUpdatesViewModel"><StackPanel Spacing="12">

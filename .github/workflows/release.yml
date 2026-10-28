@@ -38,8 +38,6 @@ jobs:
         include:
           - os: windows-2025
             rid: win-x64
-          - os: macos-15-intel
-            rid: osx-x64
           - os: macos-15
             rid: osx-arm64
           - os: ubuntu-24.04
@@ -56,7 +54,7 @@ jobs:
         if: runner.os == 'Windows'
       - name: Linux native dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev libx11-dev libice-dev libsm-dev libfontconfig1 libgl1 libicu-dev xvfb xauth
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev libx11-dev libice-dev libsm-dev libfontconfig1 libgl1 libicu-dev librsvg2-bin xvfb xauth
       - name: Publish genuine Native AOT package
         shell: pwsh
         run: ./scripts/publish-release.ps1 -Runtime '${{ matrix.rid }}'
@@ -65,7 +63,8 @@ jobs:
           name: feilv-${{ matrix.rid }}
           path: |
             artifacts/feilv-*-setup.exe
-            artifacts/feilv-*.tar.gz
+            artifacts/feilv-*.dmg
+            artifacts/feilv-*.AppImage
           if-no-files-found: error
           retention-days: 14
 

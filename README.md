@@ -73,14 +73,15 @@
 | 系统 | 处理器 | 选择的发行包 |
 | --- | --- | --- |
 | Windows | x64 | `win-x64-setup.exe`：单个中英文向导安装包 |
-| macOS | Apple Silicon | `osx-arm64.tar.gz` |
-| macOS | Intel | `osx-x64.tar.gz` |
-| Linux | x64 | `linux-x64.tar.gz` |
-| Linux | ARM64 | `linux-arm64.tar.gz` |
+| macOS | Apple Silicon | `osx-arm64.dmg` |
+| Linux | x64 | `linux-x64.AppImage` |
+| Linux | ARM64 | `linux-arm64.AppImage` |
 
 文件名均以 `feilv-v版本号-` 开头。Windows 双击安装包，按向导选择目录即可，默认安装到当前用户目录，无需管理员权限；目录选择器支持搜索、地址栏和新建文件夹。
 
-macOS / Linux 完整解压后运行 `./feilv`。macOS 当前尚未进行 Apple 公证，首次打开可能需要在系统安全设置中允许；Linux 需要 X11、fontconfig、OpenGL 等桌面系统库，详见[技术文档](docs/technical-guide.md#发布)。
+macOS 打开 DMG，将飞驴拖入 Applications。当前应用未进行 Apple 公证，首次打开可能需要在系统安全设置中允许。Linux 为 AppImage 添加执行权限（`chmod +x 文件名.AppImage`）后运行；需要 X11、fontconfig、OpenGL 等桌面库，部分发行版需要 FUSE 2，也可用 `APPIMAGE_EXTRACT_AND_RUN=1 ./文件名.AppImage` 运行。详见[技术文档](docs/technical-guide.md#发布)。
+
+Windows 数据保存在安装目录；macOS 和 Linux 新包保存在当前用户的数据目录，完整路径可在设置中查看。从旧 macOS/Linux 压缩包升级时，请手动安装新包，并将旧目录中的 `Data`、`Files`、`Images` 和 `qr-http` 按需迁移到新数据目录。
 
 ## 快速上手
 
@@ -92,7 +93,7 @@ macOS / Linux 完整解压后运行 `./feilv`。macOS 当前尚未进行 Apple �
 
 **共享目录**：从标题栏菜单进入“共享文件夹”，添加本地目录，或选择在线电脑浏览对方共享。
 
-**手机传文件**：点击标题栏二维码按钮启动分享，手机连接同一局域网后扫码，即可上传、下载。上传与下载目录可以分别设置，留空时使用程序目录下的 `qr-http`；点击“停止分享”后链接失效。
+**手机传文件**：点击标题栏二维码按钮启动分享，手机连接同一局域网后扫码，即可上传、下载。上传与下载目录可以分别设置，留空时使用数据目录下的 `qr-http`；点击“停止分享”后链接失效。
 
 手机上传完成后，右下角显示接收完成提示，可“打开所在文件夹”定位到实际保存的文件，也可关闭提示。上传文件同步加入收发记录，支持搜索、文件夹定位和删除记录；删除记录保留文件。多文件完成提示排队显示，关闭后台提示仍保留文件和记录。
 

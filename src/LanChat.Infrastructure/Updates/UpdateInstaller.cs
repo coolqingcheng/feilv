@@ -5,7 +5,11 @@ using LanChat.Core.Localization;
 
 namespace LanChat.Infrastructure.Updates;
 
-public sealed record UpdateInstallPlan(PreparedAppUpdate Package, string TargetExecutable, int ParentProcessId, long ParentStartTime, string[] Arguments);
+public sealed record UpdateInstallPlan(PreparedAppUpdate Package, string TargetExecutable, int ParentProcessId, long ParentStartTime, string[] Arguments)
+{
+    public string? ParentExecutable { get; init; }
+    public string? AppImageExtractAndRun { get; init; }
+}
 
 public static class UpdateInstaller
 {
@@ -14,23 +18,33 @@ public static class UpdateInstaller
         var timing = new UpdateTiming(Path.GetDirectoryName(package.PayloadDirectory)!, "prepare-timing.log");
         await timing.RecordAsync("confirmation-received").ConfigureAwait(false);
         await UpdatePackage.ValidateAsync(package, ct).ConfigureAwait(false);
+        if (AppReleases.IsDiskImage(package.Release)) await MacBundleUpdate.ValidateAsync(package, ct).ConfigureAwait(false);
         await timing.RecordAsync("package-revalidated").ConfigureAwait(false);
-        var target = Environment.ProcessPath ?? throw new IOException("无法定位当前程序。");
-        if (Path.GetFileNameWithoutExtension(target) is "dotnet" or "LanChat.IntegrationTests" || File.Exists(Path.Combine(Path.GetDirectoryName(target)!, "LanChat.Desktop.dll")))
+        var executable = Environment.ProcessPath ?? throw new IOException("无法定位当前程序。");
+        if (Path.GetFileNameWithoutExtension(executable) is "dotnet" or "LanChat.IntegrationTests" || File.Exists(Path.Combine(Path.GetDirectoryName(executable)!, "LanChat.Desktop.dll")))
             throw new IOException("开发环境不能替换程序，请使用正式发行版。");
+        var isAppImage = AppReleases.IsAppImage(package.Release);
+        var target = isAppImage ? Environment.GetEnvironmentVariable("APPIMAGE") : executable;
+        if (isAppImage && (string.IsNullOrWhiteSpace(target) || !Path.IsPathFullyQualified(target) || !target.EndsWith(".AppImage", StringComparison.OrdinalIgnoreCase)
+            || !File.Exists(target) || (File.GetAttributes(target) & FileAttributes.ReparsePoint) != 0))
+            throw new IOException("请先运行本地 AppImage 文件，再更新。");
+        if (isAppImage) CheckAppImageWritable(target!);
+        if (AppReleases.IsDiskImage(package.Release)) MacBundleUpdate.CheckWritable(executable);
         using var current = Process.GetCurrentProcess();
-        var plan = new UpdateInstallPlan(package, target, current.Id, current.StartTime.ToUniversalTime().Ticks, RestartArguments(Environment.GetCommandLineArgs()[1..]));
+        var plan = new UpdateInstallPlan(package, target!, current.Id, current.StartTime.ToUniversalTime().Ticks, RestartArguments(Environment.GetCommandLineArgs()[1..]))
+        { ParentExecutable = executable, AppImageExtractAndRun = Environment.GetEnvironmentVariable("APPIMAGE_EXTRACT_AND_RUN") };
         var planPath = Path.Combine(Path.GetDirectoryName(package.PayloadDirectory)!, "install.json");
         await using (var stream = new FileStream(planPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous))
             await JsonSerializer.SerializeAsync(stream, plan, UpdateJsonContext.Default.UpdateInstallPlan, ct).ConfigureAwait(false);
         var helperExecutable = AppReleases.IsInstaller(package.Release)
-            ? await WindowsSetupUpdate.PrepareHelperAsync(package, target, ct).ConfigureAwait(false)
+            ? await WindowsSetupUpdate.PrepareHelperAsync(package, target!, ct).ConfigureAwait(false)
             : UpdatePackage.ResolvePath(package.PayloadDirectory, package.Manifest.Executable);
         await timing.RecordAsync("helper-prepared").ConfigureAwait(false);
         var start = new ProcessStartInfo(helperExecutable)
         { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Path.GetDirectoryName(helperExecutable)! };
         start.ArgumentList.Add("--apply-update"); start.ArgumentList.Add(planPath);
         start.Environment["FEILV_UPDATE_LANGUAGE"] = Localizer.Language;
+        if (isAppImage) start.Environment["APPIMAGE_EXTRACT_AND_RUN"] = "1";
         var acknowledged = Path.Combine(Path.GetDirectoryName(planPath)!, "helper-ready");
         File.Delete(acknowledged);
         File.Delete(Path.Combine(Path.GetDirectoryName(planPath)!, "apply-approved"));
@@ -60,18 +74,22 @@ public static class UpdateInstaller
             var plan = await JsonSerializer.DeserializeAsync(stream, UpdateJsonContext.Default.UpdateInstallPlan).ConfigureAwait(false) ?? throw new InvalidDataException("更新指令为空。");
             var package = plan.Package;
             var isSetup = AppReleases.IsInstaller(package.Release);
+            var isAppImage = AppReleases.IsAppImage(package.Release);
+            var isDiskImage = AppReleases.IsDiskImage(package.Release);
             var expectedHelper = isSetup ? Path.Combine(directory, "helper", "飞驴.exe") : UpdatePackage.ResolvePath(package.PayloadDirectory, package.Manifest.Executable);
+            var runningHelper = isAppImage ? Environment.GetEnvironmentVariable("APPIMAGE") : Environment.ProcessPath;
             if (Path.GetDirectoryName(package.PayloadDirectory) != directory || Path.GetFileName(package.PayloadDirectory) != "payload"
                 || Path.GetFileName(Path.GetDirectoryName(directory)) != "Updates"
                 || Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(directory))) != "Data"
-                || Path.GetFullPath(Environment.ProcessPath!) != expectedHelper)
+                || string.IsNullOrEmpty(runningHelper) || Path.GetFullPath(runningHelper) != expectedHelper)
                 throw new InvalidDataException("更新助手目录无效。");
             UpdatePackage.EnsureNoLinks(Path.GetDirectoryName(Path.GetDirectoryName(directory))!, package.PayloadDirectory);
             await UpdatePackage.ValidateAsync(package).ConfigureAwait(false);
+            if (isDiskImage) await MacBundleUpdate.ValidateAsync(package).ConfigureAwait(false);
             await timing.RecordAsync("package-revalidated").ConfigureAwait(false);
             using (var parent = Process.GetProcessById(plan.ParentProcessId))
             {
-                if (parent.StartTime.ToUniversalTime().Ticks != plan.ParentStartTime || !Path.GetFullPath(parent.MainModule!.FileName).Equals(Path.GetFullPath(plan.TargetExecutable), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+                if (parent.StartTime.ToUniversalTime().Ticks != plan.ParentStartTime || !Path.GetFullPath(parent.MainModule!.FileName).Equals(Path.GetFullPath(plan.ParentExecutable ?? plan.TargetExecutable), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
                     throw new InvalidDataException("等待退出的程序身份不匹配。");
                 await File.WriteAllTextAsync(Path.Combine(directory, "helper-ready"), "ready").ConfigureAwait(false);
                 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
@@ -81,8 +99,14 @@ public static class UpdateInstaller
             if (!File.Exists(Path.Combine(directory, "apply-approved"))) throw new IOException("更新请求未确认，保留当前版本。");
             var backup = Path.Combine(directory, "backup");
             List<ReplacedFile> transaction;
+            MacBundleUpdate.Swap? macSwap = null;
             progress?.Report("正在安装更新，请稍候…");
-            try { transaction = isSetup ? await WindowsSetupUpdate.InstallAsync(plan, backup, timing).ConfigureAwait(false) : ApplyFiles(package, plan.TargetExecutable, backup); }
+            try
+            {
+                if (isDiskImage) { macSwap = await MacBundleUpdate.InstallAsync(package, plan.TargetExecutable).ConfigureAwait(false); transaction = []; }
+                else if (isAppImage) transaction = ApplyAppImage(package, plan.TargetExecutable, backup);
+                else transaction = isSetup ? await WindowsSetupUpdate.InstallAsync(plan, backup, timing).ConfigureAwait(false) : ApplyFiles(package, plan.TargetExecutable, backup);
+            }
             catch { using var restored = Restart(plan, null); throw; }
             await timing.RecordAsync("files-installed-and-verified").ConfigureAwait(false);
             var ready = Path.Combine(directory, "app-ready");
@@ -97,10 +121,12 @@ public static class UpdateInstaller
                 if (!File.Exists(ready) && child.HasExited) throw new IOException("新版启动失败，已恢复原程序。");
                 await timing.RecordAsync(File.Exists(ready) ? "application-ready" : "application-readiness-timeout").ConfigureAwait(false);
                 await File.WriteAllTextAsync(Path.Combine(directory, "result.txt"), File.Exists(ready) ? "更新成功" : "新版已启动，保留备份等待确认").ConfigureAwait(false);
+                if (File.Exists(ready) && macSwap is not null)
+                    try { Directory.Delete(macSwap.Backup, true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
             }
             catch
             {
-                Rollback(transaction);
+                if (macSwap is not null) MacBundleUpdate.Rollback(macSwap); else Rollback(transaction);
                 if (isSetup) WindowsSetupUpdate.RestoreRegistration();
                 using var restored = Restart(plan, null);
                 throw;
@@ -115,6 +141,34 @@ public static class UpdateInstaller
     }
 
     internal sealed record ReplacedFile(string Target, string? Backup);
+
+    internal static void CheckAppImageWritable(string target)
+    {
+        var directory = Path.GetDirectoryName(Path.GetFullPath(target))!;
+        var probe = Path.Combine(directory, ".feilv-write-" + Guid.NewGuid().ToString("N"));
+        try { using var stream = new FileStream(probe, FileMode.CreateNew, FileAccess.Write, FileShare.None); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { throw new IOException("无权限更新应用，请手动更新。", ex); }
+        finally { if (File.Exists(probe)) File.Delete(probe); }
+    }
+
+    internal static List<ReplacedFile> ApplyAppImage(PreparedAppUpdate package, string targetExecutable, string backupDirectory)
+    {
+        var target = Path.GetFullPath(targetExecutable);
+        if (!target.EndsWith(".AppImage", StringComparison.OrdinalIgnoreCase) || !File.Exists(target)
+            || (File.GetAttributes(target) & FileAttributes.ReparsePoint) != 0) throw new IOException("AppImage 更新目标无效。");
+        Directory.CreateDirectory(backupDirectory);
+        var backup = Path.Combine(backupDirectory, "previous.AppImage");
+        File.Copy(target, backup, true);
+        var temporary = target + ".feilu-update";
+        try
+        {
+            File.Copy(UpdatePackage.ResolvePath(package.PayloadDirectory, package.Manifest.Executable), temporary, true);
+            if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(temporary, File.GetUnixFileMode(target));
+            File.Move(temporary, target, true);
+        }
+        finally { File.Delete(temporary); }
+        return [new ReplacedFile(target, backup)];
+    }
 
     internal static string[] RestartArguments(string[] arguments)
     {
@@ -179,6 +233,12 @@ public static class UpdateInstaller
     private static Process Restart(UpdateInstallPlan plan, string? ready)
     {
         var start = new ProcessStartInfo(plan.TargetExecutable) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(plan.TargetExecutable)! };
+        if (AppReleases.IsAppImage(plan.Package.Release))
+        {
+            start.Environment.Remove("APPIMAGE"); start.Environment.Remove("APPDIR"); start.Environment.Remove("ARGV0");
+            if (plan.AppImageExtractAndRun is null) start.Environment.Remove("APPIMAGE_EXTRACT_AND_RUN");
+            else start.Environment["APPIMAGE_EXTRACT_AND_RUN"] = plan.AppImageExtractAndRun;
+        }
         foreach (var argument in plan.Arguments) start.ArgumentList.Add(argument);
         if (ready is not null) { start.ArgumentList.Add("--update-ready"); start.ArgumentList.Add(ready); }
         return Process.Start(start) ?? throw new IOException("无法重新启动飞驴。");

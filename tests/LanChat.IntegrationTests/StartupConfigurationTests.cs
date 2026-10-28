@@ -11,6 +11,13 @@ internal static partial class Program
     {
         var directory = Path.Combine(TestRoot, "startup-config");
         var config = XmlConfiguration.Load(directory);
+        Check(AppPaths.ResolveBaseDirectory("/Applications/Feilv.app/Contents/MacOS/feilv", "/fallback", false, true, "/users/me/Library/Application Support")
+            == Path.Combine("/users/me/Library/Application Support", "Feilv")
+            && AppPaths.ResolveBaseDirectory("/tmp/.mount_feilv/usr/bin/feilv", "/fallback", false, false, "/users/me/.local/share", "/users/me/Feilv.AppImage")
+                == Path.Combine("/users/me/.local/share", "Feilv"), "macOS bundles and AppImage keep writable data in the user's directory");
+        Check(AppPaths.ResolveBaseDirectory("/portable/feilv", "/fallback", false, false, "/users/me/.local/share") == Path.GetDirectoryName("/portable/feilv")
+            && AppPaths.ResolveBaseDirectory(Path.Combine(directory, "飞驴.exe"), "/fallback", true, false, directory) == directory,
+            "Windows and existing portable builds keep their data alongside the executable");
         Check(config.Profile.StartWithWindows && config.Profile.Theme == "System", "new configuration defaults to Windows startup and the system theme");
         Check(config.Profile.AutoReceive, "new configuration enables automatic file and folder reception by default");
         config.Save(directory);

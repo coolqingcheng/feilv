@@ -72,14 +72,15 @@ Open the **[latest stable release](https://github.com/coolqingcheng/feilv/releas
 | System | Processor | Package |
 | --- | --- | --- |
 | Windows | x64 | `win-x64-setup.exe`: one installer with English and Chinese wizard languages |
-| macOS | Apple Silicon | `osx-arm64.tar.gz` |
-| macOS | Intel | `osx-x64.tar.gz` |
-| Linux | x64 | `linux-x64.tar.gz` |
-| Linux | ARM64 | `linux-arm64.tar.gz` |
+| macOS | Apple Silicon | `osx-arm64.dmg` |
+| Linux | x64 | `linux-x64.AppImage` |
+| Linux | ARM64 | `linux-arm64.AppImage` |
 
 All filenames start with `feilv-vVERSION-`. On Windows, run the installer and choose a directory. Installation defaults to the current user's app directory and requires no administrator privileges. The folder picker supports searching, the address bar and creating folders.
 
-On macOS / Linux, extract the **entire** archive and run `./feilv`. macOS builds are not Apple-notarized; you may need to allow the app in system security settings on first launch. Linux requires desktop libraries such as X11, fontconfig and OpenGL. See the [publishing guide (Chinese)](docs/technical-guide.md#发布).
+On macOS, open the DMG and drag Feilv into Applications. The app is not Apple-notarized; you may need to allow it in system security settings on first launch. On Linux, make the AppImage executable (`chmod +x filename.AppImage`) and run it. Linux requires desktop libraries such as X11, fontconfig and OpenGL; some distributions need FUSE 2, or you can run `APPIMAGE_EXTRACT_AND_RUN=1 ./filename.AppImage`. See the [publishing guide (Chinese)](docs/technical-guide.md#发布).
+
+Windows keeps data in the installation directory. The new macOS and Linux packages use the current user's data directory, shown in Settings. When switching from an older macOS/Linux archive, install the new package manually and move `Data`, `Files`, `Images` and `qr-http` from the old directory as needed.
 
 ## Getting started
 
@@ -91,7 +92,7 @@ Use the search box above the device list to filter by name or IP. Click the cros
 
 **Shared folders:** Open **Shared folders** from the title-bar menu. Add a local directory, or choose an online computer to browse its shares.
 
-**Phone transfers:** Click the QR button in the title bar to start sharing. Connect your phone to the same LAN and scan the code to upload and download. Configure upload and download directories separately, or leave them blank to use `qr-http` alongside the executable. **Stop sharing** invalidates the link.
+**Phone transfers:** Click the QR button in the title bar to start sharing. Connect your phone to the same LAN and scan the code to upload and download. Configure upload and download directories separately, or leave them blank to use `qr-http` in the data directory. **Stop sharing** invalidates the link.
 
 Completed uploads show a corner notification with **Show in folder** and **Close**. They also appear in searchable transfer history with folder actions and record deletion; deleting a record keeps its file. Multiple completion notices are queued. Turning off background notifications still saves uploads and history.
 

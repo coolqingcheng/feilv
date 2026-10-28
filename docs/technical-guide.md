@@ -52,11 +52,10 @@ TCP 使用双向 TLS，设备身份采用首次信任证书指纹，之后拒绝
 
 ## 本地文件
 
-所有数据默认放在 EXE 同级目录，新版直接使用新格式，不导入 SQLite 或根目录旧配置，也不删除旧文件。
+Windows 数据放在程序同级目录；macOS DMG 安装版使用 `~/Library/Application Support/Feilv`，Linux AppImage 使用 `$XDG_DATA_HOME/Feilv`（默认 `~/.local/share/Feilv`）。设置页显示完整数据目录。新版直接使用新格式，不导入 SQLite 或根目录旧配置，也不删除旧文件。
 
 ```text
-飞驴.exe                         Windows 主程序；macOS/Linux 为 feilv
-app-manifest.json                发行包文件及 SHA-256 清单
+                                 以下为数据目录中的内容
 Data/
   config.xml                    唯一配置：身份、昵称、头像、主题、语言、通知、启动项、端口、共享
   records.dat                   追加写入的记录元数据，含校验和
@@ -110,9 +109,11 @@ git diff
 
 只从代码中固定的 `coolqingcheng/feilv` 仓库读取 GitHub 最新正式版，不接受局域网设备提供的版本或程序。启动 10 秒后异步检查，之后每 30 分钟检查一次；设置中可关闭自动检查下载，也可手动“检查更新”。客户端界面使用普通更新文案。未联网或 GitHub 受限不影响局域网传输。
 
-发现适合当前系统和 CPU 架构的新版后，先在后台流式下载到 `Data/Updates`，使用 GitHub API 返回的 SHA-256 和大小校验。Windows 优先获取唯一的 setup.exe 安装包，此时只下载和校验，不运行安装程序；其他平台解压并校验清单中的每个文件，也兼容早期 Windows ZIP 更新。缺少校验信息、包损坏、路径越界、链接或平台不匹配均拒绝。64 KiB 池化缓冲下载、解压和哈希，已校验的缓存再次使用前重新校验。
+发现适合当前系统和 CPU 架构的新版后，先在后台流式下载到 `Data/Updates`，使用 GitHub API 返回的 SHA-256 和大小校验。Windows 下载 setup.exe，Linux 下载 AppImage，macOS 下载 DMG 并校验应用包及清单；也兼容早期 Windows ZIP 更新。缺少校验信息、包损坏或平台不匹配均拒绝。64 KiB 池化缓冲下载和哈希，已校验的缓存再次使用前重新校验。
 
-发现新版本后，设置页显示版本对应的更新内容；全部完成后才显示右下角“立即更新 / 稍后”，提示中也显示更新内容，长说明可以滚动查看，不会唤起主窗口。选择“稍后”后仍可从设置更新；选择立即更新时若有文件传输则等待用户稍后重试。Windows 确认后才复制当前程序与依赖作为独立更新助手，等待原进程正常退出，再静默调用已校验的安装包升级到原目录，并按原启动参数重启；其他平台继续使用文件替换。替换失败会还原已备份的文件；新版启动后退出且未确认就绪时恢复原版。新版仍运行但未及时确认就绪时保留备份，避免终止正在运行的客户端。本地 Data、Files、Images、qr-http 不参与替换。新版作为更新端时，独立的更新进度提示会持续显示准备、安装和重启状态；安装器按 SHA-256 跳过相同文件，每个文件独立压缩，减少未变化依赖的解压与写入。Data/Updates/对应更新目录中的 prepare-timing.log 和 update-timing.log 记录确认、准备、退出、安装器启动/退出和新版就绪的分段耗时。
+发现新版本后，设置页显示版本对应的更新内容；全部完成后才显示右下角“立即更新 / 稍后”。确认后更新助手等待原进程退出，Windows 调用安装包，Linux 替换 AppImage，macOS 替换整个应用包，然后重启。替换失败或新版退出且未确认就绪时恢复备份；目标目录不可写时提示手动更新。数据目录不参与替换。Data/Updates/对应更新目录中的日志记录更新耗时。
+
+旧 macOS/Linux 压缩包无法自动切换到新包格式，首次需手动安装，并按需将旧目录中的 Data、Files、Images、qr-http 迁移到设置中显示的新数据目录。
 
 旧 v1.3.0 没有 GitHub 更新入口，v1.4.0 仅支持 ZIP 更新；这两版第一次请手动运行新版安装包。可将安装目录选为原目录，或安装完成后将原 Data、Files、Images、qr-http 放到新版主程序同级目录继续使用。配置仍为同级 Data/config.xml；更新和卸载均保留配置、历史、证书及收发文件。卸载只移除程序、原生依赖、快捷方式和指向该安装目录的开机启动项。
 
@@ -120,11 +121,11 @@ git diff
 
 ```powershell
 .\scripts\publish.ps1 -Runtime win-x64
-# artifacts/feilv-v1.4.12-win-x64-setup.exe
+# artifacts/feilv-v1.4.13-win-x64-setup.exe
 ```
 
 版本号由 Directory.Build.props 统一维护，设置页、发行包和程序版本一致。Native AOT 依赖目标系统的原生链接器：Windows 为 MSVC C++ 与 Windows SDK，macOS 为 Xcode 命令行工具，Linux 为 clang、zlib 开发包。Windows 安装包使用 Inno Setup 6.7.1 或更新版本，其 BrowseForFolder 脚本接口通过 IFileDialog 打开现代系统目录选择器；GitHub Windows 构建机已包含编译器。本地已有原生发行目录时，也可用 scripts/build-installer.ps1 -SourceDirectory 目录直接封装。发布必须在目标系统和架构的机器上执行，不会回退到托管发布。
 
-GitHub Actions 在 Windows x64、macOS Intel/Apple Silicon、Linux x64/ARM64 五种原生运行器上构建。每个平台/架构只有一份带版本号的包：Windows 为单个带中英文向导的 EXE 安装包，macOS/Linux 为 tar.gz。均包含原生主程序、Avalonia 的必要原生库、许可证及 app-manifest.json，不包含托管主 DLL，目标电脑无需安装 .NET。macOS/Linux 完整解压后运行 `./feilv`；Linux 桌面需要 X11、fontconfig、OpenGL 等系统库。macOS 当前使用临时签名，没有 Apple 开发者公证，首次打开可能需要在系统安全设置中允许。
+GitHub Actions 在 Windows x64、macOS Apple Silicon、Linux x64/ARM64 四种原生运行器上构建。每个平台/架构只有一个带版本号的包：Windows 为中英文向导 EXE，macOS 为 DMG，Linux 为 AppImage；均不需要安装 .NET。macOS 将应用拖入 Applications，临时签名但没有 Apple 公证，首次打开可能需要在系统安全设置中允许。Linux 桌面需要 X11、fontconfig、OpenGL 等系统库；AppImage 可能需要 FUSE 2，也支持设置 `APPIMAGE_EXTRACT_AND_RUN=1` 提取运行。
 
-推送 main 时执行完整集成与 UI 检查。发布新版本时修改版本号，推送后在 Actions 手动运行工作流并勾选 publish；所有检查和五个平台构建、真实原生程序清单验证全部成功后，统一创建版本标签与 Release，再公开完整资产。Windows 还会验证首次安装、覆盖安装、真实更新助手调用安装包并重启 AOT 程序、卸载后保留数据。也支持推送与版本号一致的 `v*` 标签触发发布。构建中途不会公开不完整版本。
+推送 main 时执行完整集成与 UI 检查。发布新版本时修改版本号，推送后在 Actions 手动运行工作流并勾选 publish；所有检查和四个平台构建、真实原生程序清单验证全部成功后，统一创建版本标签与 Release，再公开完整资产。Windows 还会验证首次安装、覆盖安装、真实更新助手调用安装包并重启 AOT 程序、卸载后保留数据；macOS 和 Linux 验证包启动及更新重启。也支持推送与版本号一致的 `v*` 标签触发发布。

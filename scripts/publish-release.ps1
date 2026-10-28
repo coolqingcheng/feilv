@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('win-x64', 'osx-x64', 'osx-arm64', 'linux-x64', 'linux-arm64')]
+    [ValidateSet('win-x64', 'osx-arm64', 'linux-x64', 'linux-arm64')]
     [string]$Runtime,
     [string]$OutputDirectory = ''
 )
@@ -65,9 +65,40 @@ if ($smoke.ExitCode -ne 0) { throw "Native GUI smoke test failed: $($smoke.ExitC
 if ($isWindowsRuntime) {
     & (Join-Path $PSScriptRoot 'build-installer.ps1') -SourceDirectory $stage -OutputDirectory $OutputDirectory
     if ($env:GITHUB_ACTIONS -eq 'true') { & (Join-Path $PSScriptRoot 'test-installer.ps1') -InstallerPath (Join-Path $OutputDirectory "feilv-v$version-win-x64-setup.exe") }
+} elseif ($Runtime -eq 'osx-arm64') {
+    & (Join-Path $PSScriptRoot 'build-macos-image.ps1') -SourceDirectory $stage -OutputDirectory $OutputDirectory -Version $version
+    $package = Join-Path $OutputDirectory "feilv-v$version-$Runtime.dmg"
+    $mount = Join-Path $repoRoot ('.build/macos-mount/' + [Guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $mount -Force | Out-Null
+    & hdiutil attach -readonly -nobrowse -mountpoint $mount $package
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot mount the generated macOS disk image.' }
+    try {
+        $app = Join-Path $mount 'Feilv.app'
+        & codesign --verify --deep --strict $app
+        if ($LASTEXITCODE -ne 0 -or !(Test-Path -LiteralPath (Join-Path $mount 'Applications'))) { throw 'Invalid macOS application bundle or Applications shortcut.' }
+        $installed = Join-Path $repoRoot ('.build/macos-test/' + [Guid]::NewGuid().ToString('N') + '/Feilv.app')
+        & ditto $app $installed
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot copy the application out of the disk image.' }
+        $binary = Join-Path $installed 'Contents/MacOS/feilv'
+        $verify = Start-Process -FilePath $binary -ArgumentList '--verify-package' -WorkingDirectory (Split-Path -Parent $binary) -PassThru -Wait
+        if ($verify.ExitCode -ne 0) {
+            $diagnostic = Join-Path (Split-Path -Parent $binary) 'verify-error.txt'
+            if (Test-Path -LiteralPath $diagnostic) { Get-Content -LiteralPath $diagnostic | Write-Host }
+            throw 'Installed macOS bundle verification failed.'
+        }
+        $smoke = Start-Process -FilePath $binary -ArgumentList $smokeArguments -WorkingDirectory (Split-Path -Parent $binary) -PassThru
+        if (!$smoke.WaitForExit(60000) -or $smoke.ExitCode -ne 0) { throw 'Installed macOS application failed its GUI smoke test.' }
+        Write-Host 'PASS: DMG contains a verified native application, icon and Applications shortcut; copied application starts.'
+        if ($env:GITHUB_ACTIONS -eq 'true') { & (Join-Path $PSScriptRoot 'test-native-image-update.ps1') -Package $package -Runtime $Runtime -Version $version -MacBundle $installed }
+    } finally { & hdiutil detach $mount -quiet }
 } else {
-    $package = Join-Path $OutputDirectory "feilv-v$version-$Runtime.tar.gz"
-    & tar --format=ustar -czf $package -C $stage .
-    if ($LASTEXITCODE -ne 0) { throw 'Archive creation failed.' }
-    Write-Host "Native AOT package: $package"
+    & (Join-Path $PSScriptRoot 'build-linux-appimage.ps1') -SourceDirectory $stage -OutputDirectory $OutputDirectory -Version $version -Runtime $Runtime
+    $package = Join-Path $OutputDirectory "feilv-v$version-$Runtime.AppImage"
+    $verify = Start-Process -FilePath $package -ArgumentList @('--appimage-extract-and-run', '--verify-package') -PassThru -Wait
+    if ($verify.ExitCode -ne 0) { throw 'AppImage package verification failed.' }
+    $appImageArgs = @($package, '--appimage-extract-and-run') + $smokeArguments
+    $smoke = Start-Process -FilePath 'xvfb-run' -ArgumentList (@('-a') + $appImageArgs) -PassThru
+    if (!$smoke.WaitForExit(90000) -or $smoke.ExitCode -ne 0) { throw 'AppImage GUI smoke test failed.' }
+    Write-Host 'PASS: AppImage runs its verified native program without a .NET runtime or FUSE.'
+    if ($env:GITHUB_ACTIONS -eq 'true') { & (Join-Path $PSScriptRoot 'test-native-image-update.ps1') -Package $package -Runtime $Runtime -Version $version }
 }

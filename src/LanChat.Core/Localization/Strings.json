@@ -1659,6 +1659,58 @@
     "连接超时。",
     "Connection timed out."
   ],
+  "UpdateAppPermissionDenied": [
+    "无权限更新应用，请手动更新。",
+    "No permission to update the app. Update it manually."
+  ],
+  "UpdateManifestInvalid": [
+    "更新清单无效。",
+    "The update manifest is invalid."
+  ],
+  "UpdateImageMissingApp": [
+    "更新镜像缺少应用程序。",
+    "The update disk image does not contain the application."
+  ],
+  "UpdateImageSizeMismatch": [
+    "更新镜像大小不匹配。",
+    "The update disk image size does not match."
+  ],
+  "UpdateImageChecksumFailed": [
+    "更新镜像校验失败。",
+    "The update disk image failed verification."
+  ],
+  "UpdateBundleInfoMismatch": [
+    "更新应用程序信息不匹配。",
+    "The update application information does not match."
+  ],
+  "UpdateBundleManifestMismatch": [
+    "更新应用清单不匹配。",
+    "The update application manifest does not match."
+  ],
+  "MoveAppBeforeUpdating": [
+    "请先将飞驴拖入应用程序文件夹，再更新。",
+    "Move Feilv to Applications before updating."
+  ],
+  "RunLocalAppImageFirst": [
+    "请先运行本地 AppImage 文件，再更新。",
+    "Run the local AppImage file before updating."
+  ],
+  "InvalidAppImageTarget": [
+    "AppImage 更新目标无效。",
+    "The AppImage update target is invalid."
+  ],
+  "CannotRunSystemTool": [
+    "无法启动系统工具。",
+    "Cannot start the system tool."
+  ],
+  "SystemToolFailed": [
+    "系统工具执行失败：{error}",
+    "System tool failed: {error}"
+  ],
+  "DataDirectory": [
+    "数据目录",
+    "Data directory"
+  ],
   "SearchDeviceNameOrIP": [
     "搜索设备名称或 IP",
     "Search device name or IP"

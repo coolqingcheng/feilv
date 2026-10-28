@@ -100,6 +100,24 @@ internal static partial class Program
         await MustFailAsync(() => UpdatePackage.ValidateAsync(forged), "installer cache metadata cannot replace the digest received from GitHub");
         await File.AppendAllTextAsync(Path.Combine(setupPackage.PayloadDirectory, setupRelease.AssetName), "modified");
         await MustFailAsync(() => UpdatePackage.ValidateAsync(setupPackage), "the staged setup EXE is rechecked before confirmed execution");
+        Check(AppReleases.AssetName("9.8.7", "osx-arm64") == "feilv-v9.8.7-osx-arm64.dmg"
+            && AppReleases.AssetName("9.8.7", "linux-x64") == "feilv-v9.8.7-linux-x64.AppImage"
+            && AppReleases.AssetName("9.8.7", "linux-arm64") == "feilv-v9.8.7-linux-arm64.AppImage", "release asset names select macOS DMG and both Linux AppImages");
+        var imageRelease = release with { Runtime = "linux-x64", AssetName = AppReleases.AssetName(release.Version, "linux-x64") };
+        var imageHandler = new UpdateHttpHandler(archive, imageRelease);
+        using var imageService = new GitHubUpdateService(Path.Combine(root, "appimage-download"), new HttpClient(imageHandler), "linux-x64");
+        Check(await imageService.CheckAsync(new Version(1, 0, 0)) == imageRelease, "updater discovers the matching AppImage release and digest");
+        var imagePackage = await imageService.DownloadAsync(imageRelease);
+        Check(AppReleases.IsAppImage(imagePackage.Release) && imagePackage.Manifest.Files.Count == 1
+            && File.Exists(Path.Combine(imagePackage.PayloadDirectory, imageRelease.AssetName)), "AppImage is streamed and verified as a single file without extraction");
+        var imageTarget = Path.Combine(root, "current.AppImage");
+        await File.WriteAllTextAsync(imageTarget, "old image");
+        var imageSwap = UpdateInstaller.ApplyAppImage(imagePackage, imageTarget, Path.Combine(root, "image-backup"));
+        Check(new FileInfo(imageTarget).Length == imageRelease.Size, "AppImage update replaces the original file while retaining its path");
+        UpdateInstaller.Rollback(imageSwap);
+        Check(await File.ReadAllTextAsync(imageTarget) == "old image", "a failed AppImage restart restores the previous executable");
+        await File.AppendAllTextAsync(Path.Combine(imagePackage.PayloadDirectory, imageRelease.AssetName), "tampered");
+        await MustFailAsync(() => UpdatePackage.ValidateAsync(imagePackage), "a changed AppImage cannot be installed after verification");
         if (OperatingSystem.IsWindows())
         {
             Directory.CreateDirectory(Path.Combine(source, "Data"));
