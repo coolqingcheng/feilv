@@ -23,6 +23,8 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
     private readonly SemaphoreSlim _connectionSlots = new(16, 16);
     private readonly SemaphoreSlim _outgoingTransferGate = new(1, 1);
     private readonly SemaphoreSlim _messageStateGate = new(1, 1);
+    private readonly object _outgoingGate = new();
+    private readonly HashSet<(string PeerId, string TransferId, CancellationTokenSource Cancellation)> _outgoing = [];
     private readonly List<SharedFolder> _shares = [];
     private readonly ConcurrentDictionary<string, DateTimeOffset> _profileRefresh = new();
     private readonly ConcurrentDictionary<string, DateTimeOffset> _offlineProbes = new();
@@ -508,15 +510,20 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
                         var attachment = await store.FindAttachmentAsync(packet.AttachmentId ?? "", timeout.Token);
                         if (attachment is null || attachment.PeerId != peer.Id || attachment.IsRejected)
                             throw new UnauthorizedAccessException("附件不存在或不属于此会话。");
-                        timeout.CancelAfter(TimeSpan.FromMinutes(30));
-                        await SendAttachmentStreamAsync(stream, attachment, timeout.Token, peer);
+                        timeout.CancelAfter(Timeout.InfiniteTimeSpan);
+                        await WithOutgoingCancellationAsync(peer.Id, attachment.Id, stream, timeout.Token,
+                            token => SendAttachmentStreamAsync(stream, attachment, token, peer));
                         break;
                     case "shared-file":
                         var path = SharedFileAccess.Resolve(FindShare(packet.RootId ?? ""), packet.RelativePath);
-                        timeout.CancelAfter(TimeSpan.FromMinutes(30));
-                        await _outgoingTransferGate.WaitAsync(timeout.Token);
-                        try { await SendFileStreamAsync(stream, path, null, timeout.Token, peer); }
-                        finally { _outgoingTransferGate.Release(); }
+                        timeout.CancelAfter(Timeout.InfiniteTimeSpan);
+                        var transferId = Guid.NewGuid().ToString("N");
+                        await WithOutgoingCancellationAsync(peer.Id, transferId, stream, timeout.Token, async token =>
+                        {
+                            await _outgoingTransferGate.WaitAsync(token);
+                            try { await SendFileStreamAsync(stream, path, null, token, peer, transferId); }
+                            finally { _outgoingTransferGate.Release(); }
+                        });
                         break;
                     default: throw new InvalidDataException("不支持的请求。");
                 }
@@ -531,6 +538,48 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
                 }
             }
             finally { _connectionSlots.Release(); }
+        }
+    }
+
+    public bool CancelOutgoingTransfer(string peerId, string transferId)
+    {
+        lock (_outgoingGate)
+        {
+            var matches = _outgoing.Where(x => x.PeerId == peerId && x.TransferId == transferId).ToArray();
+            foreach (var item in matches) item.Cancellation.Cancel();
+            return matches.Length > 0;
+        }
+    }
+
+    private async Task WithOutgoingCancellationAsync(string peerId, string transferId, SslStream stream, CancellationToken ct, Func<CancellationToken, Task> transfer)
+    {
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        using var monitorStop = CancellationTokenSource.CreateLinkedTokenSource(cancellation.Token);
+        var entry = (peerId, transferId, cancellation);
+        lock (_outgoingGate) _outgoing.Add(entry);
+        var monitor = MonitorReceiverAsync();
+        try { await transfer(cancellation.Token); }
+        finally
+        {
+            await monitorStop.CancelAsync();
+            await monitor;
+            lock (_outgoingGate) _outgoing.Remove(entry);
+        }
+
+        async Task MonitorReceiverAsync()
+        {
+            try
+            {
+                // Transfer requests have no further client packets. One concurrent TLS read observes
+                // disconnects even while this transfer is hashing or waiting for the send gate.
+                var buffer = new byte[1];
+                _ = await stream.ReadAsync(buffer, monitorStop.Token);
+                if (!monitorStop.IsCancellationRequested) await cancellation.CancelAsync();
+            }
+            catch (Exception ex) when (ex is IOException or OperationCanceledException or ObjectDisposedException)
+            {
+                if (!monitorStop.IsCancellationRequested) await cancellation.CancelAsync();
+            }
         }
     }
 
@@ -648,11 +697,15 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
         var target = Path.Combine(folder, safeName);
         var partial = target + ".partial";
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct, _stop.Token);
-        timeout.CancelAfter(TimeSpan.FromMinutes(30));
         TransferChanged?.Invoke(new TransferUpdate(id, safeName, 0, expectedSize ?? 0, "连接中") { PeerId = peer.Id });
         try
         {
-            var connection = await OpenAsync(peer, timeout.Token);
+            using var connectTimeout = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token);
+            connectTimeout.CancelAfter(TimeSpan.FromSeconds(15));
+            (TcpClient Client, SslStream Stream) connection;
+            try { connection = await OpenAsync(peer, connectTimeout.Token); }
+            catch (OperationCanceledException ex) when (!timeout.IsCancellationRequested) { throw new IOException("连接超时。", ex); }
+            connectTimeout.CancelAfter(Timeout.InfiniteTimeSpan);
             using var client = connection.Client;
             using var stream = connection.Stream;
             await PacketIO.WriteAsync(stream, request with { Sender = Self }, timeout.Token);
@@ -697,6 +750,7 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
         {
             if (File.Exists(partial)) File.Delete(partial);
             if (Directory.Exists(partial)) Directory.Delete(partial, true);
+            if (Directory.Exists(folder) && !Directory.EnumerateFileSystemEntries(folder).Any()) Directory.Delete(folder);
             TransferChanged?.Invoke(new TransferUpdate(id, safeName, 0, expectedSize ?? 0, ex is OperationCanceledException ? "已取消" : "失败") { PeerId = peer.Id });
             throw;
         }

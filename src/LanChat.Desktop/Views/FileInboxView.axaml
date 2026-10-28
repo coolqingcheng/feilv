@@ -5,6 +5,8 @@
     <Style Selector="Button.fileAction"><Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
     <Style Selector="Button.deleteRecord"><Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /><Setter Property="Width" Value="24" /><Setter Property="Height" Value="24" /><Setter Property="MinWidth" Value="24" /><Setter Property="MinHeight" Value="24" /><Setter Property="Padding" Value="5" /><Setter Property="CornerRadius" Value="6" /></Style>
     <Style Selector="Button.deleteRecord:pointerover"><Setter Property="Foreground" Value="{DynamicResource TextBrush}" /></Style>
+    <Style Selector="Button.cancelTransfer"><Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /><Setter Property="Width" Value="24" /><Setter Property="Height" Value="24" /><Setter Property="MinWidth" Value="24" /><Setter Property="MinHeight" Value="24" /><Setter Property="Padding" Value="5" /><Setter Property="CornerRadius" Value="6" /></Style>
+    <Style Selector="Button.cancelTransfer:pointerover"><Setter Property="Foreground" Value="{DynamicResource TextBrush}" /></Style>
     <Style Selector="Button.fileAction.receiveAction"><Setter Property="Background" Value="{DynamicResource PrimaryActionBrush}" /><Setter Property="Foreground" Value="White" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
     <Style Selector="Button.fileAction.receiveAction:pointerover /template/ ContentPresenter, Button.fileAction.receiveAction:pressed /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource PrimaryActionBrush}" /><Setter Property="Foreground" Value="White" /></Style>
     <Style Selector="TabControl#HomeTabs">
@@ -87,7 +89,7 @@
                   </Button>
                   <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" IsVisible="{Binding HasTransfer}" Margin="5,10,0,0" Spacing="5">
                     <TextBlock Text="{Binding TransferName}" TextTrimming="CharacterEllipsis" Classes="muted" FontSize="11" />
-                    <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{Binding TransferStatus, Converter={StaticResource Translate}}" TextTrimming="CharacterEllipsis" FontSize="11" Foreground="{DynamicResource AccentBrush}" /><TextBlock Grid.Column="1" Text="{Binding TransferSpeed}" Margin="8,0,0,0" FontSize="11" Foreground="{DynamicResource AccentBrush}" /></Grid>
+                    <Grid ColumnDefinitions="*,Auto,Auto" MinHeight="24"><TextBlock Text="{Binding TransferStatus, Converter={StaticResource Translate}}" TextTrimming="CharacterEllipsis" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource AccentBrush}" /><TextBlock Grid.Column="1" Text="{Binding TransferSpeed}" Margin="8,0,0,0" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource AccentBrush}" /><Button Grid.Column="2" Classes="cancelTransfer" IsVisible="{Binding CanCancelTransfer}" Command="{Binding CancelTransferCommand}" CommandParameter="{Binding}" Margin="6,0,0,0" ToolTip.Tip="{DynamicResource Loc.CancelTransfer}" AutomationProperties.Name="{DynamicResource Loc.CancelTransfer}"><icons:SvgIcon Kind="x" Width="12" Height="12" /></Button></Grid>
                     <ProgressBar IsVisible="{Binding IsTransferring}" IsIndeterminate="{Binding IsPreparingTransfer}" Value="{Binding TransferProgress}" Maximum="100" Height="3" Foreground="{DynamicResource AccentBrush}" />
                   </StackPanel>
                 </Grid></Border>
@@ -114,9 +116,10 @@
               <DataTemplate x:DataType="vm:FileHistoryItemViewModel">
                 <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="14,13">
                   <Grid ColumnDefinitions="36,*,Auto" RowDefinitions="Auto,*">
-                    <Button Grid.Column="2" Classes="deleteRecord" Command="{Binding DeleteCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" ToolTip.Tip="{DynamicResource Loc.DeleteRecordKeepLocalFiles}" AutomationProperties.Name="{DynamicResource Loc.DeleteRecord}">
+                    <Button Grid.Column="2" Classes="deleteRecord" IsVisible="{Binding !IsBusy}" Command="{Binding DeleteCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" ToolTip.Tip="{DynamicResource Loc.DeleteRecordKeepLocalFiles}" AutomationProperties.Name="{DynamicResource Loc.DeleteRecord}">
                       <icons:SvgIcon Kind="x" Foreground="{Binding $parent[Button].Foreground}" Width="12" Height="12" />
                     </Button>
+                    <Button Grid.Column="2" Classes="cancelTransfer" IsVisible="{Binding CanCancelReceiving}" Command="{Binding CancelTransferCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" ToolTip.Tip="{DynamicResource Loc.CancelTransfer}" AutomationProperties.Name="{DynamicResource Loc.CancelTransfer}"><icons:SvgIcon Kind="x" Width="12" Height="12" /></Button>
                     <Border Grid.RowSpan="2" Width="32" Height="40" Background="{DynamicResource SelectedBrush}" CornerRadius="9" VerticalAlignment="Center">
                       <icons:SvgIcon Kind="{Binding Icon}" Foreground="{DynamicResource AccentBrush}" Width="21" Height="21" />
                     </Border>

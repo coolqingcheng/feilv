@@ -62,6 +62,40 @@ internal static partial class Program
             }
             finally { sender.TransferChanged -= Transfer; }
 
+            using var releaseFirst = new ManualResetEventSlim();
+            using var cancelQueued = new CancellationTokenSource();
+            var holding = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var queued = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var removed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            void ObserveQueue(TransferUpdate update)
+            {
+                if (update.AttachmentId == firstFile.AttachmentId && update.Status == "准备发送")
+                {
+                    holding.TrySetResult();
+                    if (!releaseFirst.Wait(TimeSpan.FromSeconds(15))) throw new TimeoutException("First transfer was not released.");
+                }
+                if (update.AttachmentId == secondFile.AttachmentId && update.Status == "排队等待") queued.TrySetResult();
+                if (update.AttachmentId == secondFile.AttachmentId && update.Status == "已取消") removed.TrySetResult();
+            }
+            sender.TransferChanged += ObserveQueue;
+            Task<string>? heldDownload = null;
+            try
+            {
+                heldDownload = receiver.DownloadAttachmentAsync(sendingPeer, firstFile with { PeerId = sender.Profile.Id, LocalPath = null });
+                await holding.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                var waitingDownload = third.DownloadAttachmentAsync(thirdSender, secondFile with { PeerId = sender.Profile.Id, LocalPath = null }, cancelQueued.Token);
+                await queued.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                cancelQueued.Cancel();
+                await MustFailAsync(() => waitingDownload, "receiver can cancel a queued folder transfer");
+                await removed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                Check(!heldDownload.IsCompleted, "receiver disconnect releases the queued sender without cancelling the unrelated active transfer");
+            }
+            finally
+            {
+                releaseFirst.Set(); sender.TransferChanged -= ObserveQueue;
+                if (heldDownload is not null) await heldDownload;
+            }
+
             var empty = Path.Combine(TestRoot, "空文件夹"); Directory.CreateDirectory(empty);
             var emptySent = await sender.SendFolderAsync(receivingPeer, empty);
             var emptyPath = await receiver.DownloadAttachmentAsync(sendingPeer, emptySent with { PeerId = sender.Profile.Id, LocalPath = null });

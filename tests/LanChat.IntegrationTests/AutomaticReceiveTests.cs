@@ -22,9 +22,10 @@ internal static partial class Program
         var senderStore = new IndexedFileStore(Path.Combine(TestRoot, "automatic-sender"));
         var sender = new LanService(senderStore, new UserProfile { Nickname = "文件工作站" }, new NodeOptions { EnableDiscovery = false });
         var controlled = new ControlledReceiver(node);
+        var controlledSender = new ControlledReceiver(sender);
         var ui = new TestUiServices();
         using var model = new MainWindowViewModel(controlled, store, ui);
-        using var senderModel = new MainWindowViewModel(sender, senderStore, ui);
+        using var senderModel = new MainWindowViewModel(controlledSender, senderStore, ui);
         Pump(model.InitializeAsync()); Pump(sender.StartAsync()); Pump(node.ConnectAsync("127.0.0.1", sender.Port));
         var receiver = sender.ConnectAsync("127.0.0.1", node.Port); Pump(receiver);
         var prompt = new ReceiveFileWindow { DataContext = model.Incoming };
@@ -119,6 +120,29 @@ internal static partial class Program
             model.Incoming.Defer();
 
             controlled.Pause();
+            var manualCancel = sender.SendFileAsync(receiver.Result, source, false); Pump(manualCancel); WaitBusy();
+            var cancelButton = prompt.FindControl<Button>("CancelReceiveButton")!;
+            Check(cancelButton.IsEffectivelyVisible && cancelButton.Command == model.Incoming.CancelTransferCommand,
+                "an active background receive exposes a manual cancellation action");
+            var cancelPoint = cancelButton.TranslatePoint(new Point(cancelButton.Bounds.Width / 2, cancelButton.Bounds.Height / 2), prompt)!.Value;
+            prompt.MouseDown(cancelPoint, Avalonia.Input.MouseButton.Left); prompt.MouseUp(cancelPoint, Avalonia.Input.MouseButton.Left);
+            Pump(model.Incoming.AutomaticReceiveTask); Layout();
+            Check(controlled.Active == 0 && model.Incoming.HasError && !model.Incoming.IsBusy && !model.Incoming.IsCompleted
+                && model.Incoming.Error.Contains("已取消", StringComparison.Ordinal)
+                && model.Inbox.Files.Single(x => x.Model.Id == manualCancel.Result.Id).CanAct,
+                "manual receive cancellation stops only that download and leaves its offer retryable");
+            controlled.Release(); Pump(model.Incoming.AcceptCommand.ExecuteAsync(null)); Layout();
+            Check(model.Incoming.IsCompleted && File.Exists(model.Incoming.CompletedPath), "a cancelled automatic receive can be explicitly retried");
+            model.Incoming.Defer();
+            controlledSender.PauseSending = true;
+            var senderDevice = senderModel.Inbox.Recipients.Single(x => x.Id == node.Profile.Id);
+            var preparation = senderModel.Inbox.SendDroppedFilesToDeviceAsync(senderDevice, [source]);
+            Pump(controlledSender.SendStarted.Task);
+            Check(senderDevice.CanCancelTransfer && senderDevice.CancelTransferCommand is not null, "sender device row exposes cancellation while preparing a file");
+            senderDevice.CancelTransferCommand!.Execute(senderDevice); Pump(preparation);
+            Check(!senderModel.Inbox.IsSending && senderDevice.TransferStatus == "已取消" && !senderDevice.IsTransferring,
+                "cancelling send preparation stops the batch and leaves the row in a cancelled state");
+            controlled.Pause();
             var cancelled = sender.SendFileAsync(receiver.Result, source, false); Pump(cancelled); WaitBusy();
             model.Dispose(); Pump(model.Incoming.AutomaticReceiveTask);
             Check(controlled.Active == 0 && !model.Incoming.IsBusy, "disposing the desktop cancels a waiting automatic download and releases its resources");
@@ -145,6 +169,8 @@ internal static partial class Program
         public int Active { get; private set; }
         public int MaximumActive { get; private set; }
         public bool RejectFailure { get; set; }
+        public bool PauseSending { get; set; }
+        public TaskCompletionSource SendStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public void Release() => _gate.TrySetResult();
         public void Pause() => _gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public UserProfile Profile => inner.Profile;
@@ -164,11 +190,16 @@ internal static partial class Program
         public Task StartAsync(CancellationToken ct = default) => inner.StartAsync(ct);
         public Task<Peer> ConnectAsync(string address, int port, CancellationToken ct = default) => inner.ConnectAsync(address, port, ct);
         public Task<ChatMessage> SendTextAsync(Peer peer, string text, CancellationToken ct = default) => inner.SendTextAsync(peer, text, ct);
-        public Task<ChatMessage> SendFileAsync(Peer peer, string path, bool isImage, CancellationToken ct = default) => inner.SendFileAsync(peer, path, isImage, ct);
+        public async Task<ChatMessage> SendFileAsync(Peer peer, string path, bool isImage, CancellationToken ct = default)
+        {
+            if (PauseSending) { SendStarted.TrySetResult(); await Task.Delay(Timeout.InfiniteTimeSpan, ct); }
+            return await inner.SendFileAsync(peer, path, isImage, ct);
+        }
         public Task<ChatMessage> SendFolderAsync(Peer peer, string path, CancellationToken ct = default) => inner.SendFolderAsync(peer, path, ct);
         public Task RetryMessageAsync(Peer peer, ChatMessage message, CancellationToken ct = default) => inner.RetryMessageAsync(peer, message, ct);
         public Task<IReadOnlyList<SharedEntry>> BrowseAsync(Peer peer, string? rootId = null, string relativePath = "", CancellationToken ct = default) => inner.BrowseAsync(peer, rootId, relativePath, ct);
         public Task<string> DownloadSharedFileAsync(Peer peer, SharedEntry entry, CancellationToken ct = default) => inner.DownloadSharedFileAsync(peer, entry, ct);
+        public bool CancelOutgoingTransfer(string peerId, string transferId) => inner.CancelOutgoingTransfer(peerId, transferId);
         public Task RejectAttachmentAsync(Peer peer, ChatMessage message, CancellationToken ct = default) => RejectFailure ? Task.FromException(new IOException("模拟网络断开")) : inner.RejectAttachmentAsync(peer, message, ct);
         public Task AddSharedFolderAsync(string path, CancellationToken ct = default) => inner.AddSharedFolderAsync(path, ct);
         public Task RemoveSharedFolderAsync(string id, CancellationToken ct = default) => inner.RemoveSharedFolderAsync(id, ct);

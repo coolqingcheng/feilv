@@ -13,6 +13,7 @@
       <ProgressBar x:Name="ReceiveProgressBar" IsVisible="{Binding ShowTransferProgress}" IsIndeterminate="{Binding IsIndeterminate}" Value="{Binding Progress}" Minimum="0" Maximum="100" Height="4" Foreground="{DynamicResource AccentBrush}" />
       <TextBlock IsVisible="{Binding ShowTransferProgress}" Text="{Binding SpeedText, Converter={StaticResource Translate}}" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
       <TextBlock IsVisible="{Binding HasError}" Text="{Binding Error, Converter={StaticResource Translate}}" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" FontSize="12" MaxHeight="60" />
+      <Button x:Name="CancelReceiveButton" Content="{DynamicResource Loc.CancelTransfer}" Command="{Binding CancelTransferCommand}" IsVisible="{Binding CanCancelTransfer}" HorizontalAlignment="Stretch" />
       <Grid ColumnDefinitions="*,*" IsVisible="{Binding ShowDecisionActions}">
         <Button x:Name="RejectReceiveButton" Content="{DynamicResource Loc.Decline}" Command="{Binding RejectCommand}" IsEnabled="{Binding CanRespond}" HorizontalAlignment="Stretch" Margin="0,0,6,0" Padding="12,10" />
         <Button x:Name="AcceptReceiveButton" Grid.Column="1" Content="{Binding AcceptLabel, Converter={StaticResource Translate}}" Command="{Binding AcceptCommand}" IsEnabled="{Binding CanRespond}" Classes="primary" HorizontalAlignment="Stretch" Margin="6,0,0,0" Padding="12,10" IsDefault="True" />

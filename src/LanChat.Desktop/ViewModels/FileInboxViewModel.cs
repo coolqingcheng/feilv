@@ -13,6 +13,9 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
 {
     private readonly Dictionary<string, FileHistoryItemViewModel> _loaded = [];
     private readonly Dictionary<string, Task> _downloads = [];
+    private readonly Dictionary<string, CancellationTokenSource> _downloadCancellations = [];
+    private CancellationTokenSource? _sendBatch;
+    private PeerViewModel? _sendingPeer;
     private readonly HashSet<string> _deletedWhileLoading = [];
     private readonly CancellationTokenSource _transfers = new();
     private CancellationTokenSource? _searchCancellation;
@@ -165,7 +168,7 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
         {
             if (!Recipients.Contains(peer))
             {
-                peer.SendFilesCommand = SendToDeviceCommand; peer.SendFolderCommand = SendFolderToDeviceCommand;
+                peer.SendFilesCommand = SendToDeviceCommand; peer.SendFolderCommand = SendFolderToDeviceCommand; peer.CancelTransferCommand = CancelDeviceTransferCommand;
                 peer.PropertyChanged += RecipientChanged; Recipients.Add(peer);
             }
         }
@@ -249,6 +252,8 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
         if (IsSending) { Report("上一批文件正在发送，请稍候。"); return; }
         // Snapshot all recipients before the native picker; later checkbox changes cannot redirect a batch.
         var targets = recipients.Select(x => (Row: x, Peer: x.Model)).ToArray();
+        using var batch = CancellationTokenSource.CreateLinkedTokenSource(_transfers.Token);
+        _sendBatch = batch;
         IsSending = true;
         try
         {
@@ -262,31 +267,43 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
             {
                 foreach (var path in items)
                 {
-                    _transfers.Token.ThrowIfCancellationRequested();
+                    batch.Token.ThrowIfCancellationRequested();
+                    _sendingPeer = target.Row;
                     try
                     {
                         if (!target.Row.IsOnline) throw new IOException("设备已离线");
                         var name = Path.GetFileName(Path.TrimEndingDirectorySeparator(path));
                         target.Row.PrepareTransfer(name);
                         Report("正在向 " + target.Peer.Nickname + " 发送：" + name);
-                        if (Directory.Exists(path)) await lan.SendFolderAsync(target.Peer, path, _transfers.Token);
+                        if (Directory.Exists(path)) await lan.SendFolderAsync(target.Peer, path, batch.Token);
                         else
                         {
                             var file = new FileInfo(path);
                             var image = file.Length <= 20 * 1024 * 1024 && Path.GetExtension(path).ToLowerInvariant() is ".png" or ".jpg" or ".jpeg" or ".webp" or ".bmp" or ".gif";
-                            await lan.SendFileAsync(target.Peer, path, image, _transfers.Token);
+                            await lan.SendFileAsync(target.Peer, path, image, batch.Token);
                         }
                         sent++;
                     }
-                    catch (OperationCanceledException) when (_transfers.IsCancellationRequested) { throw; }
+                    catch (OperationCanceledException) when (batch.IsCancellationRequested) { throw; }
                     catch (Exception ex) { failed++; lastError = ex.Message; target.Row.FailTransfer(ex.Message); }
                 }
             }
             Report($"已向 {targets.Length} 台电脑发送 {sent} 项接收请求。" + (failed > 0 ? $" {failed} 项失败：{lastError}" : ""));
         }
-        catch (OperationCanceledException) when (_transfers.IsCancellationRequested) { }
+        catch (OperationCanceledException) when (batch.IsCancellationRequested)
+        {
+            if (!_disposed) { _sendingPeer?.CancelPreparation(); Report("发送已取消，未发送的项目已停止。"); }
+        }
         catch (Exception ex) { Report("发送失败：" + ex.Message); }
-        finally { IsSending = false; }
+        finally { _sendingPeer = null; _sendBatch = null; IsSending = false; }
+    }
+
+    [RelayCommand]
+    private void CancelDeviceTransfer(PeerViewModel? peer)
+    {
+        if (peer is null) return;
+        if (peer.TransferId is { Length: > 0 } id && lan.CancelOutgoingTransfer(peer.Id, id)) return;
+        if (_sendingPeer == peer && _sendBatch is not null) _sendBatch.Cancel();
     }
 
     public async Task ActAsync(FileHistoryItemViewModel item)
@@ -309,7 +326,7 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
             else await ReceiveOfferedFileAsync(item.Model);
             item.Update(item.Model); Report(item.IsMine ? "文件已重新发送。" : "文件已接收，可打开文件夹定位。");
         }
-        catch (OperationCanceledException) when (_transfers.IsCancellationRequested) { }
+        catch (OperationCanceledException) { if (!_disposed) Report("接收已取消，可以稍后重试。"); }
         catch (Exception ex) { Report("传输失败：" + ex.Message); }
         finally { item.IsBusy = false; item.Update(item.Model); }
     }
@@ -322,14 +339,22 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
         var key = message.PeerId + ":" + message.Id;
         if (_loaded.TryGetValue(key, out var row) && row.IsDeleting) return Task.FromException(new InvalidOperationException("记录正在删除，请稍候。"));
         if (_downloads.TryGetValue(key, out var existing)) return existing;
-        var task = DownloadOfferedFileAsync(message, key);
+        var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_transfers.Token);
+        _downloadCancellations.Add(key, cancellation);
+        var task = DownloadOfferedFileAsync(message, key, cancellation.Token);
         _downloads.Add(key, task);
         _ = task.ContinueWith(_ => Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             _downloads.Remove(key);
+            if (_downloadCancellations.Remove(key, out var completed)) completed.Dispose();
             if (_loaded.TryGetValue(key, out var item)) item.Update(item.Model);
         }), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         return task;
+    }
+
+    public void CancelDownload(ChatMessage message)
+    {
+        if (_downloadCancellations.TryGetValue(message.PeerId + ":" + message.Id, out var cancellation)) cancellation.Cancel();
     }
 
     public async Task RejectOfferedFileAsync(ChatMessage message)
@@ -342,13 +367,13 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
         Report("已拒绝接收，已通知发送方。");
     }
 
-    private async Task DownloadOfferedFileAsync(ChatMessage message, string key)
+    private async Task DownloadOfferedFileAsync(ChatMessage message, string key, CancellationToken cancellationToken)
     {
         var peer = lan.Peers.FirstOrDefault(x => x.Id == message.PeerId) ?? throw new IOException("未找到来源电脑，请等待对方上线。");
         if (_loaded.TryGetValue(key, out var item)) item.IsBusy = true;
         try
         {
-            await lan.DownloadAttachmentAsync(peer, message, _transfers.Token);
+            await lan.DownloadAttachmentAsync(peer, message, cancellationToken);
             Report("文件已接收，可打开文件夹定位。");
         }
         finally

@@ -175,7 +175,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         _lan.TransferChanged -= OnTransferChanged; _lan.Error -= OnError;
         Inbox.HistoryDeleted -= Incoming.Remove;
         Settings.ReceivePreferencesSaved -= Incoming.ApplyReceivePreference;
-        Incoming.Dispose(); Inbox.Dispose(); Settings.Dispose(); QrShare.Dispose(); Updates.Dispose();
+        Incoming.Dispose(); Inbox.Dispose(); Shares.Dispose(); Settings.Dispose(); QrShare.Dispose(); Updates.Dispose();
         foreach (var peer in _peers.Values) peer.Dispose();
         _peers.Clear(); _notifiedOffers.Clear(); _recentOffers.Clear();
     }

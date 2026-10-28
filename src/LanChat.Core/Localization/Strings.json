@@ -1655,6 +1655,22 @@
     "打开接收目录失败：{error}",
     "Could not open downloads folder: {error}"
   ],
+  "ConnectionTimedOut": [
+    "连接超时。",
+    "Connection timed out."
+  ],
+  "CancelTransfer": [
+    "取消传输",
+    "Cancel transfer"
+  ],
+  "BatchSendCancelled": [
+    "发送已取消，未发送的项目已停止。",
+    "Sending cancelled. Remaining items were stopped."
+  ],
+  "DownloadCancelled": [
+    "下载已取消。",
+    "Download cancelled."
+  ],
   "ToggleLightDarkTheme": [
     "切换亮暗主题",
     "Toggle light/dark theme"

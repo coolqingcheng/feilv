@@ -27,8 +27,9 @@ public partial class FileHistoryItemViewModel : ViewModelBase
     public string RejectionLabel => IsMine ? "对方已拒绝" : "已拒绝";
     public bool CanAct => !IsDeleting && !IsBusy && Model.Delivery != DeliveryState.Sending && (HasLocalFile || (!IsRejected && (IsMine ? Model.Delivery == DeliveryState.Failed : Model.AttachmentId is not null)));
     public bool CanDelete => !IsDeleting && !IsBusy && Model.Delivery != DeliveryState.Sending && !_owner.IsDownloading(Key);
+    public bool CanCancelReceiving => IsBusy && !IsMine;
     public string ActionLabel => IsBusy ? IsMine ? "发送中" : "接收中" : Model.Delivery == DeliveryState.Sending ? "发送中" : IsMine && Model.Delivery == DeliveryState.Failed ? "重试" : HasLocalFile ? "打开文件夹" : IsRejected ? "已拒绝" : IsMine || Model.AttachmentId is null ? "不可用" : "接收";
-    [ObservableProperty, NotifyPropertyChangedFor(nameof(CanAct)), NotifyPropertyChangedFor(nameof(ActionLabel)), NotifyPropertyChangedFor(nameof(CanDelete)), NotifyCanExecuteChangedFor(nameof(DeleteCommand))] private bool _isBusy;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(CanAct)), NotifyPropertyChangedFor(nameof(ActionLabel)), NotifyPropertyChangedFor(nameof(CanDelete)), NotifyPropertyChangedFor(nameof(CanCancelReceiving)), NotifyCanExecuteChangedFor(nameof(DeleteCommand))] private bool _isBusy;
     [ObservableProperty, NotifyPropertyChangedFor(nameof(CanAct)), NotifyPropertyChangedFor(nameof(CanDelete)), NotifyCanExecuteChangedFor(nameof(DeleteCommand))] private bool _isDeleting;
     [ObservableProperty] private double _progress;
     [ObservableProperty] private string _transferText = "正在连接…";
@@ -53,5 +54,6 @@ public partial class FileHistoryItemViewModel : ViewModelBase
     }
 
     [RelayCommand] private Task ActAsync() => _owner.ActAsync(this);
+    [RelayCommand] private void CancelTransfer() => _owner.CancelDownload(Model);
     [RelayCommand(CanExecute = nameof(CanDelete))] private Task DeleteAsync() => _owner.DeleteAsync(this);
 }

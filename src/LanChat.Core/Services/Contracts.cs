@@ -55,6 +55,7 @@ public interface ILanService : IAsyncDisposable
     Task RejectAttachmentAsync(Peer peer, ChatMessage message, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SharedEntry>> BrowseAsync(Peer peer, string? rootId = null, string relativePath = "", CancellationToken cancellationToken = default);
     Task<string> DownloadSharedFileAsync(Peer peer, SharedEntry entry, CancellationToken cancellationToken = default);
+    bool CancelOutgoingTransfer(string peerId, string transferId);
     Task AddSharedFolderAsync(string path, CancellationToken cancellationToken = default);
     Task RemoveSharedFolderAsync(string id, CancellationToken cancellationToken = default);
     Task UpdateProfileAsync(CancellationToken cancellationToken = default);

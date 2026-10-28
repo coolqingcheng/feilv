@@ -56,6 +56,7 @@ Feilv is a LAN file transfer app built with **C# / Avalonia UI**. It discovers d
 | Drag and drop | Drop files or folders onto a device row, or select multiple files and recipients. Computers are served one at a time. |
 | Folder transfers | Sends files and subdirectories recursively, including empty folders, without creating a ZIP. |
 | Live progress | Shows progress and speed in the device row. Files are streamed with bounded buffers. |
+| Long transfers | No fixed total transfer duration for files or folders. Cancel from the device row, receive prompt or history, and retry later. |
 | Searchable history | Records filename, size, source, IP and time. Scroll for older entries, search by filename, or delete records. |
 | Automatic reception | Enabled by default. A corner popup shows progress, speed and completion. Turn it off to receive or decline manually; declines are reported to the sender. |
 | Shared folders | Other clients can browse and download files from directories you choose. |
@@ -95,6 +96,8 @@ Completed uploads show a corner notification with **Show in folder** and **Close
 **Downloads shortcut:** The folder icon beside QR sharing opens the ordinary `Files` reception directory. QR uploads continue to use `qr-http` or the configured upload directory; their completion notifications locate the actual saved file.
 
 **Background operation:** Minimizing or closing the main window hides it in the system tray. Incoming transfers display a separate progress and result popup. Choose **Quit** in the tray menu to exit fully. Launch at startup is enabled on first use and can be disabled in Settings.
+
+**Cancel a transfer:** Use **Cancel transfer** in the receive prompt, the cross on an active receiving history item or the device row, or the button while downloading a shared file. Cancelling during send preparation stops remaining items in the current batch. Cancelled transfers can be retried from the beginning; resuming is not yet supported. Both clients must be on v1.4.11 or later to remove the old 30-minute limit at both ends.
 
 **Language:** Choose **System / 简体中文 / English** under **Settings → Language**. Changes apply immediately and are saved to `Data/config.xml`. Chinese system locales default to Simplified Chinese; other locales default to English. Filenames, device names and authored release notes are preserved. The QR webpage follows the browser's language and has an independent switch in its upper-right corner.
 

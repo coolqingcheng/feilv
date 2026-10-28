@@ -38,6 +38,30 @@ internal static partial class Program
             var savedHash = await SHA256.HashDataAsync(saved);
             Check(saved.Length == size && sourceHash.SequenceEqual(savedHash),
                 "streaming transfer preserves the complete 64 MiB payload and checksum");
+
+            var offeredAgain = await sender.SendFileAsync(receivingPeer, sourcePath, false);
+            var retryOffer = offeredAgain with { PeerId = sender.Profile.Id, LocalPath = null };
+            var cancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var requested = false;
+            void CancelOnPrepare(TransferUpdate update)
+            {
+                if (update.AttachmentId != offeredAgain.AttachmentId) return;
+                if (update.Status == "准备发送") requested = sender.CancelOutgoingTransfer(receivingPeer.Id, update.AttachmentId!);
+                if (update.Status == "已取消") cancelled.TrySetResult();
+            }
+            sender.TransferChanged += CancelOnPrepare;
+            try
+            {
+                await MustFailAsync(() => receiver.DownloadAttachmentAsync(sendingPeer, retryOffer), "sender can cancel an active TLS file stream");
+                await cancelled.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                var deadline = DateTime.UtcNow.AddSeconds(10);
+                while (sender.CancelOutgoingTransfer(receivingPeer.Id, offeredAgain.AttachmentId!) && DateTime.UtcNow < deadline) await Task.Delay(10);
+                Check(requested && retryOffer.LocalPath is null && !sender.CancelOutgoingTransfer(receivingPeer.Id, offeredAgain.AttachmentId!),
+                    "sender cancellation is scoped to its active peer and releases the transfer registration");
+            }
+            finally { sender.TransferChanged -= CancelOnPrepare; }
+            var retriedPath = await receiver.DownloadAttachmentAsync(sendingPeer, retryOffer);
+            Check(new FileInfo(retriedPath).Length == size, "cancelled sender transfers can be retried from the existing offer");
         }
         finally { receiver.MessageReceived -= Received; sender.TransferChanged -= Upload; receiver.TransferChanged -= Download; }
     }

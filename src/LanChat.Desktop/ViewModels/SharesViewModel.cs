@@ -17,8 +17,9 @@ public sealed class SharedEntryViewModel(SharedEntry model) : ViewModelBase
     public string Action => Model.IsDirectory ? "打开" : "下载";
 }
 
-public partial class SharesViewModel(ILanService lan, IUiServices ui, Action<string> status) : ViewModelBase
+public partial class SharesViewModel(ILanService lan, IUiServices ui, Action<string> status) : ViewModelBase, IDisposable
 {
+    private CancellationTokenSource? _downloadCancellation;
     private readonly Stack<(string? RootId, string Path, string Label)> _navigation = new();
     private string? _rootId;
     private string _path = "";
@@ -26,6 +27,7 @@ public partial class SharesViewModel(ILanService lan, IUiServices ui, Action<str
     [ObservableProperty] private PeerViewModel? _peer;
     [ObservableProperty] private string _location = "所有共享文件夹";
     [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private bool _isDownloading;
     public ObservableCollection<SharedFolder> LocalFolders { get; } = [];
     public ObservableCollection<PeerViewModel> Devices { get; } = [];
     public ObservableCollection<SharedEntryViewModel> RemoteEntries { get; } = [];
@@ -112,11 +114,17 @@ public partial class SharesViewModel(ILanService lan, IUiServices ui, Action<str
         else
         {
             IsBusy = true;
-            try { var path = await lan.DownloadSharedFileAsync(Peer.Model, entry.Model); status("下载完成：" + path); }
+            using var cancellation = new CancellationTokenSource();
+            _downloadCancellation = cancellation; IsDownloading = true;
+            try { var path = await lan.DownloadSharedFileAsync(Peer.Model, entry.Model, cancellation.Token); status("下载完成：" + path); }
+            catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { status("下载已取消。"); }
             catch (Exception ex) { status("下载失败：" + ex.Message); }
-            finally { IsBusy = false; }
+            finally { _downloadCancellation = null; IsDownloading = false; IsBusy = false; }
         }
     }
+
+    [RelayCommand] private void CancelDownload() => _downloadCancellation?.Cancel();
+    public void Dispose() => _downloadCancellation?.Cancel();
 
     [RelayCommand]
     private async Task GoUpAsync()

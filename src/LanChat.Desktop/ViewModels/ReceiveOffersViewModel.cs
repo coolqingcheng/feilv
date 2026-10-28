@@ -33,6 +33,7 @@ public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiService
         : IsAutomatic && !HasError ? "正在准备接收…" : (Current?.IsFolder == true ? "是否接收这个文件夹？" : "是否接收这个文件？");
     public bool ShowDecisionActions => !IsCompleted && !IsBusy && (!IsAutomatic || HasError);
     public bool ShowTransferProgress => IsBusy && !IsRejecting || IsCompleted;
+    public bool CanCancelTransfer => IsBusy && !IsRejecting && Current is not null;
     public bool IsIndeterminate => IsBusy && Progress <= 0;
     public bool CanRespond => IsOpen && !IsBusy && !IsCompleted;
     public bool HasError => Error.Length > 0;
@@ -121,6 +122,12 @@ public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiService
         if (newValue?.PeerId == QrUpload.SourceId && newValue.LocalPath is not null) Complete(newValue);
         foreach (var name in new[] { nameof(IsOpen), nameof(CanRespond), nameof(Header), nameof(FileName), nameof(Size), nameof(Source), nameof(Address), nameof(QueueHint) }) OnPropertyChanged(name);
     }
+
+    partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanCancelTransfer));
+    partial void OnIsRejectingChanged(bool value) => OnPropertyChanged(nameof(CanCancelTransfer));
+
+    [RelayCommand]
+    private void CancelTransfer() { if (CanCancelTransfer && Current is { } message) inbox.CancelDownload(message); }
 
     private void Complete(ChatMessage message)
     {
