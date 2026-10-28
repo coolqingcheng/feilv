@@ -110,6 +110,14 @@ internal static partial class Program
         var imagePackage = await imageService.DownloadAsync(imageRelease);
         Check(AppReleases.IsAppImage(imagePackage.Release) && imagePackage.Manifest.Files.Count == 1
             && File.Exists(Path.Combine(imagePackage.PayloadDirectory, imageRelease.AssetName)), "AppImage is streamed and verified as a single file without extraction");
+        if (OperatingSystem.IsLinux())
+        {
+            var imagePath = Path.Combine(imagePackage.PayloadDirectory, imageRelease.AssetName);
+            Check((File.GetUnixFileMode(imagePath) & UnixFileMode.UserExecute) != 0, "downloaded AppImage can start its update helper");
+            File.SetUnixFileMode(imagePath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            await imageService.DownloadAsync(imageRelease);
+            Check((File.GetUnixFileMode(imagePath) & UnixFileMode.UserExecute) != 0, "cached AppImage restores helper execution permission");
+        }
         var imageTarget = Path.Combine(root, "current.AppImage");
         await File.WriteAllTextAsync(imageTarget, "old image");
         var imageSwap = UpdateInstaller.ApplyAppImage(imagePackage, imageTarget, Path.Combine(root, "image-backup"));
