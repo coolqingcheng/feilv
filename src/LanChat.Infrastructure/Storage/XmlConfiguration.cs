@@ -25,6 +25,7 @@ public sealed class XmlConfiguration
         var profile = root.Element("Profile");
         var network = root.Element("Network");
         var qr = root.Element("QrHttp");
+        var mcp = root.Element("Mcp");
         string Value(XElement? element, string name, string fallback) => element?.Element(name)?.Value ?? fallback;
         int Port(string name, int fallback, bool allowZero) => int.TryParse(Value(network, name, fallback.ToString(CultureInfo.InvariantCulture)), out var port) && port >= (allowZero ? 0 : 1) && port <= 65535 ? port : fallback;
         var result = new XmlConfiguration
@@ -41,7 +42,9 @@ public sealed class XmlConfiguration
                 StartWithWindows = Value(profile, "StartWithWindows", "true") != "false",
                 AutoDownloadUpdates = Value(profile, "AutoDownloadUpdates", "true") != "false",
                 QrUploadDirectory = ResolveOptionalPath(baseDirectory, Value(qr, "UploadDirectory", "")),
-                QrDownloadDirectory = ResolveOptionalPath(baseDirectory, Value(qr, "DownloadDirectory", ""))
+                QrDownloadDirectory = ResolveOptionalPath(baseDirectory, Value(qr, "DownloadDirectory", "")),
+                McpEnabled = Value(mcp, "Enabled", "false") == "true",
+                McpKey = Value(mcp, "Key", "")
             },
             ListenPort = Port("ListenPort", 45832, true),
             DiscoveryPort = Port("DiscoveryPort", 45831, false),
@@ -88,6 +91,7 @@ public sealed class XmlConfiguration
                     new XElement("StartWithWindows", Profile.StartWithWindows), new XElement("AutoDownloadUpdates", Profile.AutoDownloadUpdates)),
                 new XElement("Network", new XElement("ListenPort", ListenPort), new XElement("DiscoveryPort", DiscoveryPort), new XElement("EnableDiscovery", EnableDiscovery)),
                 new XElement("QrHttp", new XElement("UploadDirectory", StoreOptionalPath(baseDirectory, Profile.QrUploadDirectory)), new XElement("DownloadDirectory", StoreOptionalPath(baseDirectory, Profile.QrDownloadDirectory))),
+                new XElement("Mcp", new XElement("Enabled", Profile.McpEnabled), new XElement("Key", Profile.McpKey)),
                 new XElement("SharedFolders", Shares.Select(x => new XElement("Folder", new XAttribute("id", x.Id), new XElement("Name", x.Name), new XElement("Path", x.LocalPath))))));
 
     private static string ResolveOptionalPath(string root, string value) => string.IsNullOrWhiteSpace(value) ? "" : Path.GetFullPath(Path.Combine(root, value));

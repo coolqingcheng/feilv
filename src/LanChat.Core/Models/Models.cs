@@ -16,6 +16,8 @@ public sealed record UserProfile
     public bool AutoDownloadUpdates { get; set; } = true;
     public string QrUploadDirectory { get; set; } = "";
     public string QrDownloadDirectory { get; set; } = "";
+    public bool McpEnabled { get; set; }
+    public string McpKey { get; set; } = "";
 }
 
 public sealed record Peer

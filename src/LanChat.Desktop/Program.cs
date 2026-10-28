@@ -18,6 +18,12 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        if (args is ["--verify-mcp"])
+        {
+            try { McpNativeCheck.RunAsync().GetAwaiter().GetResult(); }
+            catch (Exception ex) { Console.Error.WriteLine(ex); Environment.ExitCode = 1; }
+            return;
+        }
         if (args is ["--verify-package"])
         {
             try { UpdatePackage.VerifyDistributionAsync(AppContext.BaseDirectory).GetAwaiter().GetResult(); }

@@ -61,6 +61,7 @@ Feilv is a LAN file transfer app built with **C# / Avalonia UI**. It discovers d
 | Automatic reception | Enabled by default. A corner popup shows progress, speed and completion. Turn it off to receive or decline manually; declines are reported to the sender. |
 | Shared folders | Other clients can browse and download files from directories you choose. |
 | QR sharing | Upload and download from a phone's browser without installing an app. Upload and download directories can be configured separately. |
+| MCP | Enable a local HTTP MCP server in Settings so AI clients can list devices and send local files or folders. |
 | Themes and tray | System, Dark and Light themes; custom device name and avatar; startup option; single-instance operation. |
 | Chinese and English | Follows the system language by default. Switch instantly in Settings. The QR webpage has its own language switch. |
 | In-app updates | Downloads and verifies updates, shows release notes, then installs and restarts after your confirmation. Local data is kept. |
@@ -97,6 +98,8 @@ Use the search box above the device list to filter by name or IP. Click the cros
 Completed uploads show a corner notification with **Show in folder** and **Close**. They also appear in searchable transfer history with folder actions and record deletion; deleting a record keeps its file. Multiple completion notices are queued. Turning off background notifications still saves uploads and history.
 
 **Downloads shortcut:** The folder icon beside QR sharing opens the ordinary `Files` reception directory. QR uploads continue to use `qr-http` or the configured upload directory; their completion notifications locate the actual saved file.
+
+**AI clients:** Enable MCP in Settings and copy the JSON configuration into an MCP client on the same computer that supports Streamable HTTP and custom headers. Use `list_devices` to find online devices and `send_file` with a device ID and absolute local path to send a file or recursively send a folder. A successful call means the offer was delivered; the recipient can still accept or decline it. MCP is disabled by default and listens only on `127.0.0.1:45833`. The JSON and `Data/config.xml` contain the access key; keep them private. Disabling MCP stops the listener.
 
 **Background operation:** Minimizing or closing the main window hides it in the system tray. Incoming transfers display a separate progress and result popup. Choose **Quit** in the tray menu to exit fully. Launch at startup is enabled on first use and can be disabled in Settings.
 

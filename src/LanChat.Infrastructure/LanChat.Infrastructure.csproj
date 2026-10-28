@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><IsAotCompatible>true</IsAotCompatible></PropertyGroup>
   <ItemGroup><ProjectReference Include="../LanChat.Core/LanChat.Core.csproj" /></ItemGroup>
+  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /><PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.3.0" /></ItemGroup>
   <ItemGroup><InternalsVisibleTo Include="LanChat.IntegrationTests" /></ItemGroup>
 </Project>

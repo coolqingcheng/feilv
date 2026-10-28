@@ -25,6 +25,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     [ObservableProperty] private bool _startWithWindows;
     [ObservableProperty] private bool _autoDownloadUpdates;
     public AppUpdatesViewModel? Updates { get; }
+    public McpSettingsViewModel? Mcp { get; }
     public event Action? ReceivePreferencesSaved;
     [ObservableProperty] private string _downloadDirectory;
     [ObservableProperty] private string _manualAddress = "";
@@ -44,7 +45,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         .FirstOrDefault(x => x.Address.AddressFamily == AddressFamily.InterNetwork)?.Address.ToString() ?? "127.0.0.1";
     public void RefreshEndpoint() => OnPropertyChanged(nameof(LocalEndpoint));
 
-    public SettingsViewModel(ILanService lan, ILocalStore store, IUiServices ui, Action<string> status, AppUpdatesViewModel? updates = null)
+    public SettingsViewModel(ILanService lan, ILocalStore store, IUiServices ui, Action<string> status, AppUpdatesViewModel? updates = null, McpSettingsViewModel? mcp = null)
     {
         _lan = lan; _store = store; _ui = ui; _status = status;
         _nickname = lan.Profile.Nickname; _theme = lan.Profile.Theme;
@@ -54,6 +55,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         _startWithWindows = lan.Profile.StartWithWindows;
         _autoDownloadUpdates = lan.Profile.AutoDownloadUpdates;
         Updates = updates;
+        Mcp = mcp;
         _avatar = ImageLoader.Load(lan.Profile.AvatarPath, 192);
     }
 

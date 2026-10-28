@@ -92,7 +92,7 @@ public partial class App : Application
                 updatePrompt.Close();
                 receiveNotifications.Dispose();
                 receivePrompt.AllowClose = true; receivePrompt.Close();
-                await model.QrShare.DisposeAsync(); model.Dispose();
+                await model.QrShare.DisposeAsync(); await model.Mcp.DisposeAsync(); model.Dispose();
                 _tray!.IsVisible = false;
                 if (_lan is not null) await _lan.DisposeAsync();
                 window.AllowClose = true; desktop.Shutdown();

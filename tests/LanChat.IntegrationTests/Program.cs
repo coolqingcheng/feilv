@@ -35,6 +35,11 @@ internal static partial class Program
         try
         {
             Directory.CreateDirectory(TestRoot);
+            if (args.Contains("--mcp-only"))
+            {
+                RunMcpTestsAsync().GetAwaiter().GetResult();
+                Console.WriteLine($"PASS: {_checks} checks"); return 0;
+            }
             if (args.Contains("--qr-upload-ui"))
             {
                 AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -46,6 +51,7 @@ internal static partial class Program
             RunStartupConfigurationTests();
             RunLocalizationTests();
             RunQrHttpTestsAsync().GetAwaiter().GetResult();
+            RunMcpTestsAsync().GetAwaiter().GetResult();
             RunGitHubUpdateTestsAsync().GetAwaiter().GetResult();
             RunUpdateHelperTestsAsync().GetAwaiter().GetResult();
             PresenceTests.RunAsync(TestRoot, Check).GetAwaiter().GetResult();

@@ -7,6 +7,7 @@ using LanChat.Core.Services;
 using LanChat.Desktop.Services;
 using LanChat.Infrastructure.QrSharing;
 using LanChat.Infrastructure.Updates;
+using LanChat.Infrastructure.Mcp;
 
 namespace LanChat.Desktop.ViewModels;
 
@@ -28,6 +29,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     public SettingsViewModel Settings { get; }
     public QrShareViewModel QrShare { get; }
     public AppUpdatesViewModel Updates { get; }
+    public McpSettingsViewModel Mcp { get; }
     public bool IsFiles => Page == "Files";
     public bool IsShares => Page == "Shares";
     public bool IsSettings => Page == "Settings";
@@ -47,7 +49,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         Shares = new SharesViewModel(lan, ui, SetStatus);
         Updates = new AppUpdatesViewModel(new GitHubUpdateService(store.DataDirectory), lan.Profile,
             () => Inbox.HasActiveTransfers || _peers.Values.Any(x => x.IsTransferring));
-        Settings = new SettingsViewModel(lan, store, ui, SetStatus, Updates);
+        Mcp = new McpSettingsViewModel(new FeilvMcpServer(lan), lan.Profile, store, ui);
+        Settings = new SettingsViewModel(lan, store, ui, SetStatus, Updates, Mcp);
         Settings.ReceivePreferencesSaved += Incoming.ApplyReceivePreference;
         _qrServer = new QrHttpServer();
         _qrServer.UploadCompleted += OnQrUploadCompletedAsync;
@@ -82,7 +85,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         if (_disposed) return;
         RefreshLanguage(); Inbox.RefreshLanguage(); Incoming.RefreshLanguage(); Shares.RefreshLanguage();
-        Settings.RefreshLanguage(); QrShare.RefreshLanguage(); Updates.RefreshLanguage();
+        Settings.RefreshLanguage(); Mcp.RefreshLanguage(); QrShare.RefreshLanguage(); Updates.RefreshLanguage();
         foreach (var peer in _peers.Values.Concat(Inbox.Recipients).Distinct()) peer.RefreshLanguage();
         foreach (var item in Inbox.Files) item.RefreshLanguage();
         foreach (var entry in Shares.RemoteEntries) entry.RefreshLanguage();
@@ -108,6 +111,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         {
             await Inbox.InitializeAsync();
             await _lan.StartAsync();
+            await Mcp.InitializeAsync();
             Shares.RefreshLocal();
             Settings.RefreshEndpoint();
             Status = startupError ?? "局域网服务已启动 · 自动发现附近设备";

@@ -1743,6 +1743,16 @@
     "切换亮暗主题",
     "Toggle light/dark theme"
   ],
+  "McpLocalDescription": ["仅本机访问，可让 AI 客户端查询设备并发送文件。配置包含密钥，请妥善保管。", "Local access only. AI clients can list devices and send files. Keep the configuration and key private."],
+  "CopyMcpConfiguration": ["复制 MCP 配置 JSON", "Copy MCP configuration JSON"],
+  "McpRunning": ["MCP 服务运行中", "MCP server is running"],
+  "McpStopped": ["MCP 服务已关闭", "MCP server is off"],
+  "McpEnable": ["启用 MCP", "Enable MCP"],
+  "McpDisable": ["关闭 MCP", "Disable MCP"],
+  "McpCopied": ["MCP 配置已复制", "MCP configuration copied"],
+  "McpStartFailed": ["MCP 启动失败：{error}", "MCP startup failed: {error}"],
+  "McpSettingFailed": ["MCP 设置失败：{error}", "MCP setting failed: {error}"],
+  "McpKeyInvalid": ["MCP 密钥无效，请重新启用。", "The MCP key is invalid. Enable MCP again."],
   "UploadChunkHeaderIsTooLong": [
     "上传分块头过长。",
     "Upload chunk header is too long."

@@ -43,6 +43,14 @@
         <TextBlock Text="{DynamicResource Loc.DataDirectory}" Classes="section" /><TextBlock Text="{Binding DataDirectory}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
         <TextBlock Text="{DynamicResource Loc.DeviceID}" Classes="section" /><TextBlock Text="{Binding DeviceId}" FontSize="12" Classes="muted" />
       </StackPanel></Border>
+      <Border x:Name="McpSettings" Classes="card" Padding="16" DataContext="{Binding Mcp}" x:DataType="vm:McpSettingsViewModel"><StackPanel Spacing="12">
+        <TextBlock Text="MCP" FontSize="15" FontWeight="SemiBold" />
+        <TextBlock Text="{DynamicResource Loc.McpLocalDescription}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
+        <TextBlock Text="{Binding Status, Converter={StaticResource Translate}}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
+        <SelectableTextBlock Text="{Binding Url}" TextWrapping="Wrap" FontSize="12" />
+        <Button Content="{Binding ToggleLabel, Converter={StaticResource Translate}}" Command="{Binding ToggleCommand}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" />
+        <Button Content="{DynamicResource Loc.CopyMcpConfiguration}" Command="{Binding CopyConfigurationCommand}" IsEnabled="{Binding CanCopy}" HorizontalAlignment="Stretch" />
+      </StackPanel></Border>
       <Border Classes="card" Padding="16" DataContext="{Binding Updates}" x:DataType="vm:AppUpdatesViewModel"><StackPanel Spacing="12">
         <TextBlock Text="{DynamicResource Loc.SoftwareUpdates}" FontSize="15" FontWeight="SemiBold" />
         <TextBlock Text="{Binding Status, Converter={StaticResource Translate}}" TextWrapping="Wrap" Classes="muted" FontSize="12" />
