@@ -17,6 +17,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private readonly IQrHttpServer _qrServer;
     private readonly IUiServices _ui;
     private readonly Dictionary<string, PeerViewModel> _peers = [];
+    private Dictionary<string, string> _remarks = new(StringComparer.Ordinal);
     private readonly HashSet<(string PeerId, string Id)> _notifiedOffers = [];
     private readonly Queue<(string PeerId, string Id)> _recentOffers = [];
     private bool _disposed;
@@ -33,15 +34,17 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     public bool IsSettings => Page == "Settings";
     public bool IsQr => Page == "Qr";
     public bool ShowPageStatus => IsShares || IsSettings;
-    public string PageTitle => IsQr ? "二维码分享" : IsSettings ? "设置" : IsShares ? "共享文件夹" : "飞驴";
+    public string PageTitle => IsQr ? "二维码分享" : IsSettings ? "设置" : IsShares ? "共享文件夹" : "飞驴  v" + AppReleases.CurrentVersion;
+    public string WindowTitle => Localizer.Text("飞驴 · 局域网文件传输") + " v" + AppReleases.CurrentVersion;
     public event Action<PeerViewModel, ChatMessage>? IncomingNotification;
+    public event Action<PeerViewModel>? BrowsePeerSharesRequested;
 
     public MainWindowViewModel(ILanService lan, ILocalStore store, IUiServices ui)
     {
         _lan = lan;
         _store = store;
         _ui = ui;
-        Inbox = new FileInboxViewModel(lan, store, ui, SetStatus);
+        Inbox = new FileInboxViewModel(lan, store, ui, SetStatus, FormatPeerName);
         Incoming = new ReceiveOffersViewModel(Inbox, ui, () => lan.Profile.AutoReceive);
         Inbox.HistoryDeleted += Incoming.Remove;
         Shares = new SharesViewModel(lan, ui, SetStatus);
@@ -106,6 +109,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         catch (Exception ex) { startupError = "开机启动设置未生效：" + ex.Message; }
         try
         {
+            _remarks = await _store.LoadPeerRemarksAsync();
             await Inbox.InitializeAsync();
             await _lan.StartAsync();
             Shares.RefreshLocal();
@@ -119,10 +123,34 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     private void UpdatePeer(Peer peer)
     {
         if (_peers.TryGetValue(peer.Id, out var item)) item.Update(peer);
-        else { item = new PeerViewModel(peer); _peers.Add(peer.Id, item); }
+        else { item = new PeerViewModel(peer) { EditRemarkCommand = EditRemarkCommand, BrowseSharesCommand = BrowsePeerSharesCommand }; _peers.Add(peer.Id, item); }
+        item.Remark = _remarks.GetValueOrDefault(peer.Id, "");
         Inbox.UpdatePeer(item);
         Shares.UpdatePeer(item);
     }
+
+    private string FormatPeerName(string id, string name) => _remarks.TryGetValue(id, out var remark) && remark.Length > 0 ? name + "(" + remark + ")" : name;
+
+    [RelayCommand]
+    private async Task EditRemarkAsync(PeerViewModel? peer)
+    {
+        if (peer is null) return;
+        try
+        {
+            var remark = await _ui.EditPeerRemarkAsync(peer.Nickname, peer.Remark);
+            if (remark is null) return;
+            remark = remark.Trim();
+            if (remark.Length > 40) throw new ArgumentException("设备备注不能超过 40 个字符。");
+            await _store.SavePeerRemarkAsync(peer.Id, remark);
+            if (remark.Length == 0) _remarks.Remove(peer.Id); else _remarks[peer.Id] = remark;
+            peer.Remark = remark; Inbox.RefreshRemarks(peer.Id); Incoming.RefreshLanguage();
+            Inbox.Feedback = Status = "备注已保存";
+        }
+        catch (Exception ex) { Inbox.Feedback = Status = "保存备注失败：" + ex.Message; }
+    }
+
+    [RelayCommand]
+    private void BrowsePeerShares(PeerViewModel? peer) { if (peer is { IsOnline: true }) BrowsePeerSharesRequested?.Invoke(peer); }
 
     private void ReceiveFile(ChatMessage message)
     {

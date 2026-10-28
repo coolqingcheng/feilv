@@ -72,7 +72,7 @@ internal static partial class Program
             Check(Localizer.Language == "en-US" && XmlConfiguration.Load(store.DataDirectory).Profile.Language == "en-US",
                 "language command applies immediately and saves the preference without restarting");
             var inbox = main.GetVisualDescendants().OfType<FileInboxView>().Single();
-            Check(main.Title == "Feilv · LAN file transfer" && inbox.FindControl<TabControl>("HomeTabs")!.Items.OfType<TabItem>().Select(x => x.Header?.ToString()).SequenceEqual(new[] { "Devices", "History" }),
+            Check(main.Title == "Feilv · LAN file transfer v" + AppReleases.CurrentVersion && inbox.FindControl<TabControl>("HomeTabs")!.Items.OfType<TabItem>().Select(x => x.Header?.ToString()).SequenceEqual(new[] { "Devices", "History" }),
                 "existing window titles and tab resources switch to English live");
             Check(inbox.GetVisualDescendants().OfType<TextBlock>().Any(x => x.Text == "Sending") && peer.TransferStatus == "发送中",
                 "device transfer status translates while the underlying protocol state stays invariant");
@@ -116,7 +116,7 @@ internal static partial class Program
                 "independent update helper uses the selected language from its first frame");
             progressWindow.Close();
             Pump(model.Settings.SetLanguageCommand.ExecuteAsync("zh-CN"));
-            Check(main.Title == "飞驴 · 局域网文件传输" && prompt.FindControl<Button>("AcceptReceiveButton")!.Content?.ToString() == "接收"
+            Check(main.Title == "飞驴 · 局域网文件传输 v" + AppReleases.CurrentVersion && prompt.FindControl<Button>("AcceptReceiveButton")!.Content?.ToString() == "接收"
                 && prompt.GetVisualDescendants().OfType<TextBlock>().Any(x => x.Text == "是否接收这个文件？"), "switching back restores Chinese static and computed labels in existing windows");
             Pump(model.Settings.SetLanguageCommand.ExecuteAsync("System"));
             Check(Localizer.Language == "zh-CN" && XmlConfiguration.Load(store.DataDirectory).Profile.Language == "System", "system option restores and persists the original OS language");

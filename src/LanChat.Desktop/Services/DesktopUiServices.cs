@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
+using LanChat.Desktop.Views;
 
 namespace LanChat.Desktop.Services;
 
@@ -41,6 +42,12 @@ public sealed class DesktopUiServices(Func<Window> window) : IUiServices
         return TakePaths(folders).FirstOrDefault();
     }
 
+    public async Task<string?> PickDownloadFolderAsync()
+    {
+        var folders = await window().StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = Localizer.Text("选择文件保存位置"), AllowMultiple = false });
+        return TakePaths(folders).FirstOrDefault();
+    }
+
     private static string[] TakePaths(IEnumerable<IStorageItem> items)
     {
         var paths = new List<string>();
@@ -51,6 +58,8 @@ public sealed class DesktopUiServices(Func<Window> window) : IUiServices
 
     public void OpenFile(string path) => Process.Start(new ProcessStartInfo(path) { UseShellExecute = true })?.Dispose();
     public Task CopyTextAsync(string text) => window().Clipboard?.SetTextAsync(text) ?? Task.FromException(new IOException("无法访问剪贴板。"));
+    public Task<string?> EditPeerRemarkAsync(string name, string current) => new PeerRemarkWindow(name, current).ShowDialog<string?>(window());
+    public Task<string?> EditShareNameAsync(string path, string current) => new PeerRemarkWindow(path, current, true).ShowDialog<string?>(window());
     public void RevealFile(string path)
     {
         path = Path.GetFullPath(path);

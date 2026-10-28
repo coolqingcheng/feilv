@@ -65,19 +65,59 @@ public partial class App : Application
             RequestedThemeVariant = profile.Theme switch { "Light" => ThemeVariant.Light, "Dark" => ThemeVariant.Dark, _ => ThemeVariant.Default };
             _lan = new LanService(store, profile, Program.Options);
             var window = new MainWindow();
+            if (Program.UpdateStartMaximized) window.WindowState = WindowState.Maximized;
             var ui = new DesktopUiServices(() => window);
             var model = new MainWindowViewModel(_lan, store, ui);
             window.DataContext = model;
             using (var icon = AssetLoader.Open(new Uri("avares://LanChat.Desktop/Assets/lanchat.ico"))) window.Icon = new WindowIcon(icon);
-            desktop.MainWindow = window;
+            if (!Program.UpdateStartHidden) desktop.MainWindow = window;
             var receivePrompt = new ReceiveFileWindow { DataContext = model.Incoming };
             var receiveNotifications = new ReceivePromptController(window, receivePrompt, model.Incoming, profile);
             var updatePrompt = new UpdateReadyWindow { DataContext = model.Updates };
+            var updateNotification = new NotificationService();
+            var peerShareWindows = new Dictionary<string, RemoteSharesWindow>();
+            model.BrowsePeerSharesRequested += peer =>
+            {
+                if (peerShareWindows.TryGetValue(peer.Id, out var existing)) { existing.Activate(); return; }
+                var shareWindow = new RemoteSharesWindow();
+                var shareModel = new SharesViewModel(_lan!, new DesktopUiServices(() => shareWindow), _ => { });
+                shareWindow.DataContext = shareModel;
+                peerShareWindows.Add(peer.Id, shareWindow);
+                shareWindow.Closed += (_, _) => { shareModel.Dispose(); peerShareWindows.Remove(peer.Id); };
+                shareWindow.Show(window);
+                shareModel.Peer = peer;
+            };
             var shuttingDown = false;
+            var initialized = false;
+            var reminderOpen = false;
+            ProfileReminderWindow? reminderWindow = null;
+            var reminderTimer = new DispatcherTimer { Interval = TimeSpan.FromHours(1) };
+            reminderTimer.Tick += (_, _) => _ = ShowProfileReminderAsync();
+            window.PropertyChanged += (_, e) => { if (e.Property == Window.IsVisibleProperty && window.IsVisible) _ = ShowProfileReminderAsync(); };
+            async Task ShowProfileReminderAsync()
+            {
+                if (!initialized || shuttingDown || reminderOpen || !window.IsVisible || Program.IsSmokeTest
+                    || !ProfileReminderViewModel.IsDue(profile, DateTimeOffset.UtcNow, Environment.UserName)) return;
+                reminderOpen = true;
+                try
+                {
+                    reminderWindow = new ProfileReminderWindow();
+                    using var reminder = new ProfileReminderViewModel(_lan!, store, new DesktopUiServices(() => reminderWindow));
+                    reminderWindow.DataContext = reminder;
+                    reminder.Saved += () => { model.Settings.RefreshProfile(); reminderWindow.Close(); };
+                    var dialog = reminderWindow.ShowDialog(window);
+                    try { await reminder.MarkShownAsync(DateTimeOffset.UtcNow); }
+                    catch { reminderWindow.Close(); throw; }
+                    await dialog;
+                }
+                catch (Exception ex) { model.Status = "设置提示失败：" + ex.Message; }
+                finally { reminderWindow = null; reminderOpen = false; }
+            }
             model.Updates.UpdateReady += () => updatePrompt.Show();
             model.Updates.InstallRequested += async package =>
             {
-                await UpdateInstaller.StartAsync(package);
+                await UpdateInstaller.StartAsync(package, startHidden: !window.IsVisible || window.WindowState == WindowState.Minimized,
+                    startMaximized: window.WindowState == WindowState.Maximized);
                 await ShutdownAsync();
             };
             Program.Instance?.SetActivationHandler(() => Dispatcher.UIThread.Post(window.Restore));
@@ -89,7 +129,11 @@ public partial class App : Application
             {
                 if (shuttingDown) return;
                 shuttingDown = true;
+                reminderTimer.Stop();
+                reminderWindow?.Close();
                 updatePrompt.Close();
+                updateNotification.Close();
+                foreach (var shareWindow in peerShareWindows.Values.ToArray()) shareWindow.Close();
                 receiveNotifications.Dispose();
                 receivePrompt.AllowClose = true; receivePrompt.Close();
                 await model.QrShare.DisposeAsync(); model.Dispose();
@@ -101,10 +145,15 @@ public partial class App : Application
             _tray = new TrayIcon { Icon = window.Icon, ToolTipText = Localizer.Text("飞驴 · 局域网文件传输"), Menu = menu, IsVisible = true };
             _tray.Clicked += (_, _) => window.Restore();
             TrayIcon.SetIcons(this, new TrayIcons { _tray });
-            window.Opened += InitializeOnceAsync;
-            async void InitializeOnceAsync(object? sender, EventArgs args)
+            if (Program.UpdateStartHidden) Dispatcher.UIThread.Post(() => _ = InitializeOnceAsync());
+            else window.Opened += OnWindowOpened;
+            async void OnWindowOpened(object? sender, EventArgs args)
             {
-                window.Opened -= InitializeOnceAsync;
+                window.Opened -= OnWindowOpened;
+                await InitializeOnceAsync();
+            }
+            async Task InitializeOnceAsync()
+            {
                 await model.InitializeAsync();
                 UpdateInstaller.SignalReady(Program.UpdateReadyPath);
                 if (Program.IsSmokeTest)
@@ -114,6 +163,11 @@ public partial class App : Application
                     await ShutdownAsync();
                     return;
                 }
+                initialized = true;
+                reminderTimer.Start();
+                _ = ShowProfileReminderAsync();
+                if (Program.UpdateReadyPath is not null)
+                    updateNotification.Show(Localizer.Text("更新成功"), Localizer.Text("飞驴已更新并重新启动。"), () => { });
                 _ = model.Updates.RunBackgroundAsync();
             }
         }

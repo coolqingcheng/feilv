@@ -16,6 +16,7 @@ public sealed record UserProfile
     public bool AutoDownloadUpdates { get; set; } = true;
     public string QrUploadDirectory { get; set; } = "";
     public string QrDownloadDirectory { get; set; } = "";
+    public DateTimeOffset? ProfileReminderAt { get; set; }
 }
 
 public sealed record Peer

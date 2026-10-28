@@ -9,6 +9,7 @@ public interface IUiServices
         return path is null ? [] : [path];
     }
     Task<string?> PickFolderAsync();
+    Task<string?> PickDownloadFolderAsync();
     async Task<IReadOnlyList<string>> PickFoldersAsync()
     {
         var folder = await PickFolderAsync();
@@ -17,6 +18,8 @@ public interface IUiServices
     void OpenFile(string path);
     void RevealFile(string path);
     Task CopyTextAsync(string text);
+    Task<string?> EditPeerRemarkAsync(string name, string current);
+    Task<string?> EditShareNameAsync(string path, string current);
     void SetTheme(string theme);
     void SetStartWithWindows(bool enabled);
 }

@@ -672,11 +672,11 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
         return reply.Entries ?? [];
     }
 
-    public async Task<string> DownloadSharedFileAsync(Peer peer, SharedEntry entry, CancellationToken cancellationToken = default)
+    public async Task<string> DownloadSharedFileAsync(Peer peer, SharedEntry entry, CancellationToken cancellationToken = default, string? destinationDirectory = null)
     {
         var id = Guid.NewGuid().ToString("N");
         var path = await DownloadAsync(peer, new WirePacket { Type = "shared-file", RootId = entry.RootId, RelativePath = entry.RelativePath },
-            id, entry.Name, null, null, false, cancellationToken);
+            id, entry.Name, null, null, false, cancellationToken, destinationDirectory: destinationDirectory);
         var message = new ChatMessage { Id = id, PeerId = peer.Id, SenderId = peer.Id, Kind = MessageKind.File,
             FileName = entry.Name, FileSize = new FileInfo(path).Length, LocalPath = path, Delivery = DeliveryState.Received,
             PeerNickname = peer.Nickname, PeerAddress = peer.Address, ReceivedAt = DateTimeOffset.UtcNow };
@@ -685,17 +685,18 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
         return path;
     }
 
-    private async Task<string> DownloadAsync(Peer peer, WirePacket request, string id, string name, string? expectedHash, long? expectedSize, bool image, CancellationToken ct, bool isFolder = false)
+    private async Task<string> DownloadAsync(Peer peer, WirePacket request, string id, string name, string? expectedHash, long? expectedSize, bool image, CancellationToken ct, bool isFolder = false, string? destinationDirectory = null)
     {
-        var directory = AppPaths.DailyMedia(store.DataDirectory, image, "Received");
-        Directory.CreateDirectory(directory);
+        var directory = destinationDirectory is null ? AppPaths.DailyMedia(store.DataDirectory, image, "Received") : Path.GetFullPath(destinationDirectory);
+        if (destinationDirectory is null) Directory.CreateDirectory(directory);
+        else if (!Directory.Exists(directory)) throw new DirectoryNotFoundException("保存目录不存在。");
         // Remote names are display-only: every download owns an isolated directory.
         var safeName = Path.GetFileName(name.Replace('\\', '/'));
         if (string.IsNullOrWhiteSpace(safeName) || safeName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || safeName is "." or "..") safeName = "download";
-        var folder = Path.Combine(directory, Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(folder);
+        var folder = destinationDirectory is null ? Path.Combine(directory, Guid.NewGuid().ToString("N")) : directory;
+        if (destinationDirectory is null) Directory.CreateDirectory(folder);
         var target = Path.Combine(folder, safeName);
-        var partial = target + ".partial";
+        var partial = destinationDirectory is null ? target + ".partial" : Path.Combine(folder, ".feilv-" + Guid.NewGuid().ToString("N") + ".partial");
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct, _stop.Token);
         TransferChanged?.Invoke(new TransferUpdate(id, safeName, 0, expectedSize ?? 0, "连接中") { PeerId = peer.Id });
         try
@@ -742,7 +743,8 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
                 }
             }
             if (Convert.ToHexString(hash.GetHashAndReset()) != response.Sha256) throw new InvalidDataException("文件 SHA-256 校验失败。");
-            File.Move(partial, target);
+            if (destinationDirectory is null) File.Move(partial, target);
+            else target = MoveToAvailableName(partial, folder, safeName);
             progress.Report(total, "已完成", force: true);
             return target;
         }
@@ -750,19 +752,32 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
         {
             if (File.Exists(partial)) File.Delete(partial);
             if (Directory.Exists(partial)) Directory.Delete(partial, true);
-            if (Directory.Exists(folder) && !Directory.EnumerateFileSystemEntries(folder).Any()) Directory.Delete(folder);
+            if (destinationDirectory is null && Directory.Exists(folder) && !Directory.EnumerateFileSystemEntries(folder).Any()) Directory.Delete(folder);
             TransferChanged?.Invoke(new TransferUpdate(id, safeName, 0, expectedSize ?? 0, ex is OperationCanceledException ? "已取消" : "失败") { PeerId = peer.Id });
             throw;
         }
     }
 
+    private static string MoveToAvailableName(string partial, string directory, string name)
+    {
+        var stem = Path.GetFileNameWithoutExtension(name); var extension = Path.GetExtension(name);
+        for (var index = 0; index < 10000; index++)
+        {
+            var candidate = Path.Combine(directory, index == 0 ? name : $"{stem} ({index}){extension}");
+            try { File.Move(partial, candidate); return candidate; }
+            catch (IOException) when (File.Exists(candidate) || Directory.Exists(candidate)) { }
+        }
+        throw new IOException("保存目录中存在过多同名文件。");
+    }
+
     private SharedFolder FindShare(string id) => SharedFolders.FirstOrDefault(x => x.Id == id) ?? throw new UnauthorizedAccessException("共享文件夹已被移除。");
 
-    public async Task AddSharedFolderAsync(string path, CancellationToken cancellationToken = default)
+    public async Task AddSharedFolderAsync(string path, CancellationToken cancellationToken = default, string? displayName = null)
     {
         path = Path.GetFullPath(path);
         if (!Directory.Exists(path)) throw new DirectoryNotFoundException("文件夹不存在。");
-        var folder = new SharedFolder(Guid.NewGuid().ToString("N"), new DirectoryInfo(path).Name, path);
+        var name = ValidateShareName(displayName ?? new DirectoryInfo(path).Name);
+        var folder = new SharedFolder(Guid.NewGuid().ToString("N"), name, path);
         _ = SharedFileAccess.Resolve(folder, "");
         await _shareGate.WaitAsync(cancellationToken);
         try
@@ -772,6 +787,32 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
             await store.SaveSharesAsync(SharedFolders, cancellationToken);
         }
         finally { _shareGate.Release(); }
+    }
+
+    public async Task RenameSharedFolderAsync(string id, string displayName, CancellationToken cancellationToken = default)
+    {
+        var name = ValidateShareName(displayName);
+        await _shareGate.WaitAsync(cancellationToken);
+        try
+        {
+            SharedFolder old; int index;
+            lock (_shares)
+            {
+                index = _shares.FindIndex(x => x.Id == id);
+                if (index < 0) throw new InvalidOperationException("共享目录不存在。");
+                old = _shares[index]; _shares[index] = old with { Name = name };
+            }
+            try { await store.SaveSharesAsync(SharedFolders, cancellationToken); }
+            catch { lock (_shares) _shares[index] = old; throw; }
+        }
+        finally { _shareGate.Release(); }
+    }
+
+    private static string ValidateShareName(string name)
+    {
+        name = name.Trim();
+        if (name.Length is < 1 or > 40 || name.Any(char.IsControl)) throw new ArgumentException("共享名称应为 1–40 个字符。");
+        return name;
     }
 
     public async Task RemoveSharedFolderAsync(string id, CancellationToken cancellationToken = default)

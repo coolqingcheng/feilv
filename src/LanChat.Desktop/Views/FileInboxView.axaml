@@ -82,18 +82,22 @@
                     <Ellipse Width="8" Height="8" Fill="{DynamicResource OnlineBrush}" Stroke="{DynamicResource PanelBrush}" StrokeThickness="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
                   </Grid>
                   <StackPanel Grid.Column="1" Spacing="5" Margin="5,0,6,0" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Nickname}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" />
                     <WrapPanel>
                       <TextBlock Text="{Binding Address, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" Margin="0,0,10,0" />
                       <TextBlock Text="{Binding VersionLabel, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" />
                     </WrapPanel>
                   </StackPanel>
-                  <Button Classes="deviceSend" Grid.Column="2" Content="{DynamicResource Loc.Send}" IsEnabled="{Binding IsOnline}" Background="Transparent" FontSize="12" Padding="8,9" VerticalAlignment="Center">
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                  <Button Classes="icon" Command="{Binding EditRemarkCommand}" CommandParameter="{Binding}" MinWidth="28" MinHeight="28" Padding="6" ToolTip.Tip="{DynamicResource Loc.EditRemark}" AutomationProperties.Name="{DynamicResource Loc.EditRemark}"><icons:SvgIcon Kind="edit-2" Width="14" Height="14" /></Button>
+                  <Button Classes="deviceSend" Content="{DynamicResource Loc.Send}" IsEnabled="{Binding IsOnline}" Background="Transparent" FontSize="12" Padding="8,9" VerticalAlignment="Center">
                     <Button.Flyout><MenuFlyout>
                       <MenuItem Header="{DynamicResource Loc.ChooseFiles}" Command="{Binding SendFilesCommand}" CommandParameter="{Binding}" />
                       <MenuItem Header="{DynamicResource Loc.ChooseFolders}" Command="{Binding SendFolderCommand}" CommandParameter="{Binding}" />
                     </MenuFlyout></Button.Flyout>
                   </Button>
+                  <Button Classes="icon" Command="{Binding BrowseSharesCommand}" CommandParameter="{Binding}" IsEnabled="{Binding IsOnline}" MinWidth="28" MinHeight="28" Padding="6" ToolTip.Tip="{DynamicResource Loc.BrowseDeviceShares}" AutomationProperties.Name="{DynamicResource Loc.BrowseDeviceShares}"><icons:SvgIcon Kind="folder" Width="16" Height="16" /></Button>
+                  </StackPanel>
                   <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" IsVisible="{Binding HasTransfer}" Margin="5,10,0,0" Spacing="5">
                     <TextBlock Text="{Binding TransferName}" TextTrimming="CharacterEllipsis" Classes="muted" FontSize="11" />
                     <Grid ColumnDefinitions="*,Auto,Auto" MinHeight="24"><TextBlock Text="{Binding TransferStatus, Converter={StaticResource Translate}}" TextTrimming="CharacterEllipsis" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource AccentBrush}" /><TextBlock Grid.Column="1" Text="{Binding TransferSpeed}" Margin="8,0,0,0" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource AccentBrush}" /><Button Grid.Column="2" Classes="cancelTransfer" IsVisible="{Binding CanCancelTransfer}" Command="{Binding CancelTransferCommand}" CommandParameter="{Binding}" Margin="6,0,0,0" ToolTip.Tip="{DynamicResource Loc.CancelTransfer}" AutomationProperties.Name="{DynamicResource Loc.CancelTransfer}"><icons:SvgIcon Kind="x" Width="12" Height="12" /></Button></Grid>
@@ -185,7 +189,7 @@
           <Grid Grid.Row="1" MinHeight="88">
             <ScrollViewer MaxHeight="260" HorizontalScrollBarVisibility="Disabled"><ItemsControl x:Name="RecipientList" ItemsSource="{Binding Recipients}" IsEnabled="{Binding !IsSending}">
               <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:PeerViewModel">
-                <CheckBox IsChecked="{Binding IsRecipientSelected}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,10"><StackPanel Spacing="4"><TextBlock Text="{Binding Nickname}" TextWrapping="Wrap" /><TextBlock Text="{Binding Address, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" /></StackPanel></CheckBox>
+                <CheckBox IsChecked="{Binding IsRecipientSelected}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="4,10"><StackPanel Spacing="4"><TextBlock Text="{Binding DisplayName}" TextWrapping="Wrap" /><TextBlock Text="{Binding Address, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" /></StackPanel></CheckBox>
               </DataTemplate></ItemsControl.ItemTemplate>
             </ItemsControl></ScrollViewer>
             <TextBlock Text="{DynamicResource Loc.NoDevicesFoundConnectByIPInSettings}" IsVisible="{Binding NoRecipients}" Classes="muted" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Margin="10" />

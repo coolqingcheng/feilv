@@ -104,7 +104,7 @@ public partial class FileInboxView : UserControl
         var target = ready ? FindDeviceRow(args) : null;
         if (_dropTarget != target) { _dropTarget?.Classes.Remove("drop-target"); _dropTarget = target; _dropTarget?.Classes.Add("drop-target"); }
         DropOverlay.IsVisible = ready && target is null;
-        if (_model is not null) _model.DropTargetName = (target?.DataContext as PeerViewModel)?.Nickname ?? "";
+        if (_model is not null) _model.DropTargetName = (target?.DataContext as PeerViewModel)?.DisplayName ?? "";
         args.Handled = true;
     }
 

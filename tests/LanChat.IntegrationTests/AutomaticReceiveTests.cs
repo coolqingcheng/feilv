@@ -198,10 +198,11 @@ internal static partial class Program
         public Task<ChatMessage> SendFolderAsync(Peer peer, string path, CancellationToken ct = default) => inner.SendFolderAsync(peer, path, ct);
         public Task RetryMessageAsync(Peer peer, ChatMessage message, CancellationToken ct = default) => inner.RetryMessageAsync(peer, message, ct);
         public Task<IReadOnlyList<SharedEntry>> BrowseAsync(Peer peer, string? rootId = null, string relativePath = "", CancellationToken ct = default) => inner.BrowseAsync(peer, rootId, relativePath, ct);
-        public Task<string> DownloadSharedFileAsync(Peer peer, SharedEntry entry, CancellationToken ct = default) => inner.DownloadSharedFileAsync(peer, entry, ct);
+        public Task<string> DownloadSharedFileAsync(Peer peer, SharedEntry entry, CancellationToken ct = default, string? destinationDirectory = null) => inner.DownloadSharedFileAsync(peer, entry, ct, destinationDirectory);
         public bool CancelOutgoingTransfer(string peerId, string transferId) => inner.CancelOutgoingTransfer(peerId, transferId);
         public Task RejectAttachmentAsync(Peer peer, ChatMessage message, CancellationToken ct = default) => RejectFailure ? Task.FromException(new IOException("模拟网络断开")) : inner.RejectAttachmentAsync(peer, message, ct);
-        public Task AddSharedFolderAsync(string path, CancellationToken ct = default) => inner.AddSharedFolderAsync(path, ct);
+        public Task AddSharedFolderAsync(string path, CancellationToken ct = default, string? displayName = null) => inner.AddSharedFolderAsync(path, ct, displayName);
+        public Task RenameSharedFolderAsync(string id, string displayName, CancellationToken ct = default) => inner.RenameSharedFolderAsync(id, displayName, ct);
         public Task RemoveSharedFolderAsync(string id, CancellationToken ct = default) => inner.RemoveSharedFolderAsync(id, ct);
         public Task UpdateProfileAsync(CancellationToken ct = default) => inner.UpdateProfileAsync(ct);
         public ValueTask DisposeAsync() => inner.DisposeAsync();

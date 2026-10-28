@@ -13,7 +13,7 @@ public sealed record UpdateInstallPlan(PreparedAppUpdate Package, string TargetE
 
 public static class UpdateInstaller
 {
-    public static async Task StartAsync(PreparedAppUpdate package, CancellationToken ct = default)
+    public static async Task StartAsync(PreparedAppUpdate package, CancellationToken ct = default, bool startHidden = false, bool startMaximized = false)
     {
         var timing = new UpdateTiming(Path.GetDirectoryName(package.PayloadDirectory)!, "prepare-timing.log");
         await timing.RecordAsync("confirmation-received").ConfigureAwait(false);
@@ -31,7 +31,10 @@ public static class UpdateInstaller
         if (isAppImage) CheckAppImageWritable(target!);
         if (AppReleases.IsDiskImage(package.Release)) MacBundleUpdate.CheckWritable(executable);
         using var current = Process.GetCurrentProcess();
-        var plan = new UpdateInstallPlan(package, target!, current.Id, current.StartTime.ToUniversalTime().Ticks, RestartArguments(Environment.GetCommandLineArgs()[1..]))
+        var arguments = RestartArguments(Environment.GetCommandLineArgs()[1..]);
+        if (startHidden) arguments = [.. arguments, "--update-hidden"];
+        else if (startMaximized) arguments = [.. arguments, "--update-maximized"];
+        var plan = new UpdateInstallPlan(package, target!, current.Id, current.StartTime.ToUniversalTime().Ticks, arguments)
         { ParentExecutable = executable, AppImageExtractAndRun = Environment.GetEnvironmentVariable("APPIMAGE_EXTRACT_AND_RUN") };
         var planPath = Path.Combine(Path.GetDirectoryName(package.PayloadDirectory)!, "install.json");
         await using (var stream = new FileStream(planPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous))
@@ -181,6 +184,7 @@ public static class UpdateInstaller
         for (var i = 0; i < arguments.Length; i++)
         {
             if (arguments[i] == "--update-ready") { i++; continue; }
+            if (arguments[i] is "--update-hidden" or "--update-maximized") continue;
             result.Add(arguments[i]);
         }
         return result.ToArray();

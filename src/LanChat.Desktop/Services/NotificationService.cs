@@ -24,7 +24,7 @@ public sealed class NotificationService
             ShowInTaskbar = false,
             ShowActivated = false,
             Topmost = true,
-            Title = Localizer.Text("飞驴 · 收到文件")
+            Title = Localizer.Text("飞驴") + " · " + title
         };
         var content = new StackPanel { Spacing = 9, Margin = new Thickness(20, 16) };
         content.Children.Add(new TextBlock { Text = Localizer.Text("飞驴") + "  ·  " + title, FontWeight = FontWeight.SemiBold, FontSize = 14, TextTrimming = TextTrimming.CharacterEllipsis });

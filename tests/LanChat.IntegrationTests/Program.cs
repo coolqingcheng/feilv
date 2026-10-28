@@ -35,6 +35,7 @@ internal static partial class Program
         try
         {
             Directory.CreateDirectory(TestRoot);
+            if (args.Contains("--ui-only")) { RunUiTests(); Console.WriteLine($"PASS: {_checks} checks"); return 0; }
             if (args.Contains("--qr-upload-ui"))
             {
                 AppBuilder.Configure<App>().UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false }).SetupWithoutStarting();
@@ -252,6 +253,8 @@ internal static partial class Program
         RunThemeToggleTests(window, model, store);
         RunQrUploadNotificationTests();
         RunDeviceFilterTests();
+        RunProfileReminderTests();
+        RunDeviceRemarksAndSharesTests(window, model, node, store, remote, remoteStore, ui);
         model.Dispose();
         window.AllowClose = true; window.Close();
         Pump(node.DisposeAsync().AsTask()); Pump(remote.DisposeAsync().AsTask());
@@ -292,11 +295,16 @@ internal static partial class Program
         public string? LastRevealed { get; private set; }
         public bool RevealFailure { get; set; }
         public string? CopiedText { get; private set; }
+        public string? NextRemark { get; set; }
+        public Task<string?> EditPeerRemarkAsync(string name, string current) { var result = NextRemark; NextRemark = null; return Task.FromResult(result); }
+        public string? NextShareName { get; set; }
+        public Task<string?> EditShareNameAsync(string path, string current) { var result = NextShareName ?? current; NextShareName = null; return Task.FromResult<string?>(result); }
         public Task CopyTextAsync(string text) { CopiedText = text; return Task.CompletedTask; }
         public List<bool> StartupChanges { get; } = [];
         public bool StartupFailure { get; set; }
         public Task<string?> PickFileAsync(bool imageOnly = false) { var result = NextFile; NextFile = null; return Task.FromResult(result); }
         public Task<string?> PickFolderAsync() { var result = NextFolder; NextFolder = null; return Task.FromResult(result); }
+        public Task<string?> PickDownloadFolderAsync() => PickFolderAsync();
         public async Task<IReadOnlyList<string>> PickFilesAsync() { var result = NextFiles; NextFiles = null; return result ?? (await PickFileAsync() is { } file ? [file] : []); }
         public async Task<IReadOnlyList<string>> PickFoldersAsync() { var result = NextFolders; NextFolders = null; return result ?? (await PickFolderAsync() is { } folder ? [folder] : []); }
         public void OpenFile(string path) => LastOpened = path;

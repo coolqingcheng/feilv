@@ -12,6 +12,8 @@ internal static class Program
     internal static NodeOptions Options { get; private set; } = new();
     internal static SingleInstanceService? Instance { get; private set; }
     internal static string? UpdateReadyPath { get; private set; }
+    internal static bool UpdateStartHidden { get; private set; }
+    internal static bool UpdateStartMaximized { get; private set; }
     internal static bool IsSmokeTest { get; private set; }
     internal static string? UpdatePlanPath { get; private set; }
 
@@ -47,6 +49,8 @@ internal static class Program
         IsSmokeTest = args.Contains("--smoke-test");
         var baseDirectory = Value("--data-dir") ?? AppPaths.DefaultBaseDirectory;
         UpdateReadyPath = Value("--update-ready");
+        UpdateStartHidden = args.Contains("--update-hidden") && UpdateReadyPath is not null;
+        UpdateStartMaximized = args.Contains("--update-maximized") && UpdateReadyPath is not null && !UpdateStartHidden;
         var config = XmlConfiguration.Load(baseDirectory);
         Localizer.SetPreference(config.Profile.Language);
         Options = new NodeOptions

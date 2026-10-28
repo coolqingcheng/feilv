@@ -10,6 +10,7 @@ public sealed class XmlConfiguration
 {
     public UserProfile Profile { get; set; } = new();
     public List<SharedFolder> Shares { get; set; } = [];
+    public Dictionary<string, string> PeerRemarks { get; set; } = new(StringComparer.Ordinal);
     public int ListenPort { get; set; } = 45832;
     public int DiscoveryPort { get; set; } = 45831;
     public bool EnableDiscovery { get; set; } = true;
@@ -41,7 +42,8 @@ public sealed class XmlConfiguration
                 StartWithWindows = Value(profile, "StartWithWindows", "true") != "false",
                 AutoDownloadUpdates = Value(profile, "AutoDownloadUpdates", "true") != "false",
                 QrUploadDirectory = ResolveOptionalPath(baseDirectory, Value(qr, "UploadDirectory", "")),
-                QrDownloadDirectory = ResolveOptionalPath(baseDirectory, Value(qr, "DownloadDirectory", ""))
+                QrDownloadDirectory = ResolveOptionalPath(baseDirectory, Value(qr, "DownloadDirectory", "")),
+                ProfileReminderAt = DateTimeOffset.TryParse(Value(profile, "ProfileReminderAt", ""), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var reminder) ? reminder : null
             },
             ListenPort = Port("ListenPort", 45832, true),
             DiscoveryPort = Port("DiscoveryPort", 45831, false),
@@ -49,6 +51,12 @@ public sealed class XmlConfiguration
         };
         if (!Guid.TryParseExact(result.Profile.Id, "N", out _) || string.IsNullOrWhiteSpace(result.Profile.Nickname) || result.Profile.Nickname.Length > 40)
             throw new InvalidDataException("config.xml 中的设备标识或昵称无效。");
+        foreach (var item in root.Element("PeerRemarks")?.Elements("Peer") ?? [])
+        {
+            var id = item.Attribute("id")?.Value;
+            var remark = item.Value.Trim();
+            if (id is not null && Guid.TryParseExact(id, "N", out _) && remark.Length is > 0 and <= 40) result.PeerRemarks[id] = remark;
+        }
         foreach (var folder in root.Element("SharedFolders")?.Elements("Folder") ?? [])
         {
             var id = folder.Attribute("id")?.Value;
@@ -85,9 +93,11 @@ public sealed class XmlConfiguration
                     new XElement("AvatarPath", Profile.AvatarPath is { } avatar ? Path.GetRelativePath(baseDirectory, avatar) : ""),
                     new XElement("Theme", Profile.Theme), new XElement("Language", Localizer.Normalize(Profile.Language)), new XElement("ShowNotifications", Profile.ShowNotifications),
                     new XElement("AutoReceive", Profile.AutoReceive),
-                    new XElement("StartWithWindows", Profile.StartWithWindows), new XElement("AutoDownloadUpdates", Profile.AutoDownloadUpdates)),
+                    new XElement("StartWithWindows", Profile.StartWithWindows), new XElement("AutoDownloadUpdates", Profile.AutoDownloadUpdates),
+                    new XElement("ProfileReminderAt", Profile.ProfileReminderAt?.ToString("O", CultureInfo.InvariantCulture) ?? "")),
                 new XElement("Network", new XElement("ListenPort", ListenPort), new XElement("DiscoveryPort", DiscoveryPort), new XElement("EnableDiscovery", EnableDiscovery)),
                 new XElement("QrHttp", new XElement("UploadDirectory", StoreOptionalPath(baseDirectory, Profile.QrUploadDirectory)), new XElement("DownloadDirectory", StoreOptionalPath(baseDirectory, Profile.QrDownloadDirectory))),
+                new XElement("PeerRemarks", PeerRemarks.Select(x => new XElement("Peer", new XAttribute("id", x.Key), x.Value))),
                 new XElement("SharedFolders", Shares.Select(x => new XElement("Folder", new XAttribute("id", x.Id), new XElement("Name", x.Name), new XElement("Path", x.LocalPath))))));
 
     private static string ResolveOptionalPath(string root, string value) => string.IsNullOrWhiteSpace(value) ? "" : Path.GetFullPath(Path.Combine(root, value));

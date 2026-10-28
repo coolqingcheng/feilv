@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:LanChat.Desktop.ViewModels" xmlns:icons="using:LanChat.Desktop.Controls"
+        x:Class="LanChat.Desktop.Views.RemoteSharesWindow" x:DataType="vm:SharesViewModel"
+        Title="{DynamicResource Loc.BrowseDeviceShares}" Width="420" Height="560" MinWidth="360" MinHeight="360"
+        WindowStartupLocation="CenterOwner" SystemDecorations="None" Background="Transparent" TransparencyLevelHint="Transparent" ShowInTaskbar="False">
+  <Border Margin="16" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource WindowBorderBrush}" BorderThickness="1" CornerRadius="14" BoxShadow="{DynamicResource WindowShadow}" ClipToBounds="True">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="0">
+      <Grid ColumnDefinitions="*,Auto" Background="{DynamicResource RailBrush}" MinHeight="44">
+        <TextBlock Text="{Binding Peer.DisplayName}" FontWeight="SemiBold" Margin="16,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        <Button Grid.Column="1" Classes="window" Click="CloseClicked" ToolTip.Tip="{DynamicResource Loc.Close}" AutomationProperties.Name="{DynamicResource Loc.Close}"><icons:SvgIcon Kind="x" Width="15" Height="15" /></Button>
+      </Grid>
+      <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" Margin="14,14,14,10" ColumnSpacing="8">
+        <Button Command="{Binding GoUpCommand}" IsEnabled="{Binding CanGoUp}" Padding="8,6" ToolTip.Tip="{DynamicResource Loc.Back}" AutomationProperties.Name="{DynamicResource Loc.Back}"><icons:SvgIcon Kind="arrow-up" Width="16" Height="16" /></Button>
+        <TextBlock Grid.Column="1" Text="{Binding LocationLabel}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        <Button Grid.Column="2" Content="{DynamicResource Loc.Refresh}" Command="{Binding RefreshCommand}" IsEnabled="{Binding !IsBusy}" Padding="10,6" />
+      </Grid>
+      <ProgressBar Grid.Row="2" IsVisible="{Binding IsBusy}" IsIndeterminate="True" Height="3" />
+      <Grid Grid.Row="3">
+        <TextBlock IsVisible="{Binding IsEmpty}" Text="{DynamicResource Loc.NoSharedFilesTryRefreshing}" Classes="muted" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" Margin="18" />
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled"><ItemsControl ItemsSource="{Binding RemoteEntries}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:SharedEntryViewModel">
+          <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="14,10"><Grid ColumnDefinitions="24,*,Auto"><icons:SvgIcon Kind="{Binding Icon}" Width="20" Height="20" /><StackPanel Grid.Column="1" Spacing="4" Margin="8,0"><TextBlock Text="{Binding Name}" TextWrapping="Wrap" /><TextBlock Text="{Binding Description, Converter={StaticResource Translate}}" Classes="muted" FontSize="11" /></StackPanel><Button Grid.Column="2" Content="{Binding Action, Converter={StaticResource Translate}}" Command="{Binding $parent[Window].((vm:SharesViewModel)DataContext).OpenEntryCommand}" CommandParameter="{Binding}" Padding="10,6" /></Grid></Border>
+        </DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer>
+      </Grid>
+      <StackPanel Grid.Row="4" Margin="14,10,14,14" Spacing="8"><Button Content="{DynamicResource Loc.CancelTransfer}" Command="{Binding CancelDownloadCommand}" IsVisible="{Binding IsDownloading}" HorizontalAlignment="Stretch" /><TextBlock Text="{Binding Feedback, Converter={StaticResource Translate}}" Classes="muted" FontSize="11" TextWrapping="Wrap" MaxHeight="48" TextTrimming="CharacterEllipsis" /></StackPanel>
+    </Grid>
+  </Border>
+</Window>
