@@ -46,6 +46,8 @@ internal static partial class Program
         var otherNode = new LanService(otherStore, new UserProfile { Nickname = "工程电脑 · 文件接收工作站" }, new NodeOptions { EnableDiscovery = false });
         Pump(otherNode.StartAsync()); Pump(node.ConnectAsync("127.0.0.1", otherNode.Port)); Layout();
         var other = model.Inbox.Recipients.Single(x => x.Id == otherNode.Profile.Id);
+        model.Inbox.DeviceSearch = "工程电脑"; Layout();
+        Check(model.Inbox.VisibleDevices.SequenceEqual(new[] { other }), "device filtering retains the exact direct-drop target");
         var sendA = Path.Combine(TestRoot, "直接拖给设备A.txt"); File.WriteAllText(sendA, "拖给指定的电脑 A");
         var sendB = Path.Combine(TestRoot, "直接拖给设备B.txt"); File.WriteAllText(sendB, "拖给指定的电脑 B");
         using var data = new DataTransfer();
@@ -71,6 +73,7 @@ internal static partial class Program
         Check(!model.Inbox.IsPickerOpen && !row.Classes.Contains("drop-target") && otherStore.LoadMessagesAsync().GetAwaiter().GetResult().Count == 2
             && remoteStore.LoadMessagesAsync().GetAwaiter().GetResult().Count == originalCount,
             "dropping on a device immediately sends the deduplicated batch to that exact device without a recipient popup");
+        model.Inbox.ClearDeviceSearchCommand.Execute(null); Layout();
         var sendButton = row.GetVisualDescendants().OfType<Button>().Single(x => Equals(x.Content, "发送"));
         ui.NextFile = sendA;
         Click(window, sendButton);

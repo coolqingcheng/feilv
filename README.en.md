@@ -29,7 +29,7 @@ Feilv is a LAN file transfer app built with **C# / Avalonia UI**. It discovers d
 | :---: | :---: |
 | <img src="docs/images/en/devices-dark.png" width="340" alt="Online devices showing names, IP addresses, versions, transfer progress and speed" /> | <img src="docs/images/en/history-light.png" width="340" alt="Transfer history showing filenames, sizes, source computers, IP addresses, timestamps and receive actions" /> |
 
-<p align="center"><sub>Actual v1.4.10 interface, populated with demo devices, files and transfers.</sub></p>
+<p align="center"><sub>Actual v1.4.12 interface, populated with demo devices, files and transfers.</sub></p>
 
 <details>
 <summary><strong>More: QR sharing, languages, themes, sending and receiving</strong></summary>
@@ -52,7 +52,7 @@ Feilv is a LAN file transfer app built with **C# / Avalonia UI**. It discovers d
 
 | Feature | What it does |
 | --- | --- |
-| Automatic discovery | Shows device name, avatar, IP address and version; updates online status promptly. |
+| Automatic discovery | Shows device name, avatar, IP address and version; updates online status promptly. Filter by name or IP and clear the filter with one click. |
 | Drag and drop | Drop files or folders onto a device row, or select multiple files and recipients. Computers are served one at a time. |
 | Folder transfers | Sends files and subdirectories recursively, including empty folders, without creating a ZIP. |
 | Live progress | Shows progress and speed in the device row. Files are streamed with bounded buffers. |
@@ -86,6 +86,8 @@ On macOS / Linux, extract the **entire** archive and run `./feilv`. macOS builds
 1. **Join the same LAN.** Launch Feilv on both computers. Allow private-network access if Windows Firewall asks. Devices appear automatically; use Settings to connect by IP if needed.
 2. **Pick a recipient and send.** Drop files or folders onto a device row, or use its **Send** menu. The bottom **Send files** button lets you choose multiple recipients and sends to each in order.
 3. **Watch reception.** Automatic reception is on by default. A corner popup shows progress and speed, then offers **Show in folder**. Disable automatic reception in Settings to choose **Receive / Decline** for each offer. The sender sees **Declined by recipient** when you decline.
+
+Use the search box above the device list to filter by name or IP. Click the cross to clear it. Filtering only changes the visible list; the send dialog still offers all online recipients.
 
 **Shared folders:** Open **Shared folders** from the title-bar menu. Add a local directory, or choose an online computer to browse its shares.
 

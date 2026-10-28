@@ -1659,6 +1659,22 @@
     "连接超时。",
     "Connection timed out."
   ],
+  "SearchDeviceNameOrIP": [
+    "搜索设备名称或 IP",
+    "Search device name or IP"
+  ],
+  "ClearDeviceFilter": [
+    "清空设备筛选",
+    "Clear device filter"
+  ],
+  "NoMatchingDevices": [
+    "没有找到匹配的设备",
+    "No matching devices"
+  ],
+  "TryAnotherDeviceNameOrIP": [
+    "试试其他设备名称或 IP",
+    "Try another device name or IP"
+  ],
   "CancelTransfer": [
     "取消传输",
     "Cancel transfer"

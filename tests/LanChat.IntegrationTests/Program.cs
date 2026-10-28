@@ -251,6 +251,7 @@ internal static partial class Program
         RunLocalizationUiTests();
         RunThemeToggleTests(window, model, store);
         RunQrUploadNotificationTests();
+        RunDeviceFilterTests();
         model.Dispose();
         window.AllowClose = true; window.Close();
         Pump(node.DisposeAsync().AsTask()); Pump(remote.DisposeAsync().AsTask());

@@ -27,8 +27,10 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
     public const int PageSize = 50;
     public ObservableCollection<FileHistoryItemViewModel> Files { get; } = [];
     public ObservableCollection<PeerViewModel> Recipients { get; } = [];
+    public ObservableCollection<PeerViewModel> VisibleDevices { get; } = [];
     [ObservableProperty, NotifyPropertyChangedFor(nameof(IsDevices)), NotifyPropertyChangedFor(nameof(IsHistory)), NotifyPropertyChangedFor(nameof(ShowTransferSummary))] private int _selectedTab;
     [ObservableProperty] private string _search = "";
+    [ObservableProperty] private string _deviceSearch = "";
     [ObservableProperty, NotifyPropertyChangedFor(nameof(DropHint))] private string _dropTargetName = "";
     public string DropHint => DropTargetName.Length == 0 ? "拖文件到在线设备即可直接发送" : "松开发送给 " + DropTargetName;
     [ObservableProperty, NotifyPropertyChangedFor(nameof(IsEmpty)), NotifyPropertyChangedFor(nameof(HistoryHint))] private bool _isLoading;
@@ -51,6 +53,8 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
     public bool HasPendingItems => _pendingFiles.Count > 0;
     public bool IsEmpty => !IsLoading && Files.Count == 0;
     public bool NoRecipients => Recipients.Count == 0;
+    public bool HasDeviceSearch => DeviceSearch.Length > 0;
+    public bool NoMatchingDevices => Recipients.Count > 0 && VisibleDevices.Count == 0 && !string.IsNullOrWhiteSpace(DeviceSearch);
     public string EmptyText => string.IsNullOrWhiteSpace(Search) ? "还没有收到文件" : "没有找到匹配的文件";
     public string EmptyHint => string.IsNullOrWhiteSpace(Search) ? "局域网内的文件会显示在这里" : "试试其他文件名";
     public string HistoryHint => IsLoading ? "正在加载记录…" : Files.Count == 0 ? "" : HasMore ? "向上滚动，加载更早记录" : "已显示全部记录";
@@ -65,6 +69,39 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
         OnPropertyChanged(nameof(HasSearch));
         OnPropertyChanged(nameof(EmptyText)); OnPropertyChanged(nameof(EmptyHint));
         SearchTask = ResetHistoryAsync(true);
+    }
+
+    partial void OnDeviceSearchChanged(string value)
+    {
+        foreach (var peer in Recipients) UpdateVisibleDevice(peer);
+        OnPropertyChanged(nameof(HasDeviceSearch)); OnPropertyChanged(nameof(NoMatchingDevices));
+    }
+
+    private bool MatchesDevice(PeerViewModel peer)
+    {
+        var search = DeviceSearch.Trim();
+        return peer.IsOnline && (search.Length == 0 || peer.Nickname.Contains(search, StringComparison.OrdinalIgnoreCase)
+            || peer.Address.Contains(search, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void UpdateVisibleDevice(PeerViewModel peer)
+    {
+        var existing = VisibleDevices.IndexOf(peer);
+        if (!Recipients.Contains(peer) || !MatchesDevice(peer))
+        {
+            if (existing >= 0) VisibleDevices.RemoveAt(existing);
+        }
+        else if (existing < 0)
+        {
+            var index = 0;
+            foreach (var recipient in Recipients)
+            {
+                if (recipient == peer) break;
+                if (MatchesDevice(recipient)) index++;
+            }
+            VisibleDevices.Insert(Math.Min(index, VisibleDevices.Count), peer);
+        }
+        OnPropertyChanged(nameof(NoMatchingDevices));
     }
 
     private async Task ResetHistoryAsync(bool debounce)
@@ -177,6 +214,7 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
             peer.IsRecipientSelected = false; peer.PropertyChanged -= RecipientChanged;
             Recipients.Remove(peer); if (SelectedRecipient == peer) SelectedRecipient = null;
         }
+        UpdateVisibleDevice(peer);
         OnPropertyChanged(nameof(NoRecipients));
         OnPropertyChanged(nameof(OnlineHint));
         OnPropertyChanged(nameof(CanConfirm));
@@ -190,8 +228,10 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
 
     private void RecipientChanged(object? sender, PropertyChangedEventArgs args)
     {
-        if (args.PropertyName != nameof(PeerViewModel.IsRecipientSelected)) return;
-        OnPropertyChanged(nameof(CanConfirm)); OnPropertyChanged(nameof(PickerSelectionHint));
+        if (sender is PeerViewModel peer && args.PropertyName is nameof(PeerViewModel.Nickname) or nameof(PeerViewModel.Address) or nameof(PeerViewModel.IsOnline))
+            UpdateVisibleDevice(peer);
+        if (args.PropertyName == nameof(PeerViewModel.IsRecipientSelected))
+        { OnPropertyChanged(nameof(CanConfirm)); OnPropertyChanged(nameof(PickerSelectionHint)); }
     }
 
     [RelayCommand] private void BeginSend() => BeginSendFiles([]);
@@ -204,6 +244,7 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
     }
     [RelayCommand] public void CancelPicker() { IsPickerOpen = false; _pendingFiles = []; OnPropertyChanged(nameof(HasPendingItems)); OnPropertyChanged(nameof(PickerAction)); }
     [RelayCommand] private void ClearSearch() => Search = "";
+    [RelayCommand] private void ClearDeviceSearch() => DeviceSearch = "";
     public void RevealLatest()
     {
         SelectedTab = 1;
@@ -401,6 +442,7 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
         if (_disposed) return;
         _disposed = true; _transfers.Cancel(); _searchCancellation?.Cancel();
         foreach (var peer in Recipients) peer.PropertyChanged -= RecipientChanged;
+        VisibleDevices.Clear();
         _searchCancellation?.Dispose(); _transfers.Dispose();
     }
 }

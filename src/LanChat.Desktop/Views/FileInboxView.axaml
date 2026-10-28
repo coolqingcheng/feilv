@@ -63,9 +63,16 @@
         <TabControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="2" /></ItemsPanelTemplate></TabControl.ItemsPanel>
         <TabItem Header="{DynamicResource Loc.Devices}" Tag="laptop">
           <Grid RowDefinitions="Auto,*" Background="{DynamicResource DeviceListBrush}">
-            <TextBlock Text="{Binding OnlineHint, Converter={StaticResource Translate}}" Classes="muted" FontSize="11" TextWrapping="Wrap" Margin="14,12" />
+            <StackPanel Spacing="0">
+              <Grid Margin="14,12,14,0">
+                <TextBox x:Name="DeviceSearch" Text="{Binding DeviceSearch}" Watermark="{DynamicResource Loc.SearchDeviceNameOrIP}" Padding="36,9,34,9" AutomationProperties.Name="{DynamicResource Loc.SearchDeviceNameOrIP}" />
+                <icons:SvgIcon Kind="search" Width="16" Height="16" HorizontalAlignment="Left" Margin="12,0" IsHitTestVisible="False" />
+                <Button x:Name="ClearDeviceSearchButton" Classes="icon" IsVisible="{Binding HasDeviceSearch}" Command="{Binding ClearDeviceSearchCommand}" HorizontalAlignment="Right" Margin="2" MinWidth="28" MinHeight="28" Padding="5" ToolTip.Tip="{DynamicResource Loc.ClearDeviceFilter}" AutomationProperties.Name="{DynamicResource Loc.ClearDeviceFilter}"><icons:SvgIcon Kind="x" Width="14" Height="14" /></Button>
+              </Grid>
+              <TextBlock Text="{Binding OnlineHint, Converter={StaticResource Translate}}" Classes="muted" FontSize="11" TextWrapping="Wrap" Margin="14,12" />
+            </StackPanel>
             <ScrollViewer x:Name="DeviceScroll" Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
-            <ItemsControl x:Name="OnlineDeviceList" ItemsSource="{Binding Recipients}">
+            <ItemsControl x:Name="OnlineDeviceList" ItemsSource="{Binding VisibleDevices}">
               <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel CacheLength="0.5" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:PeerViewModel">
                 <Border Classes="deviceRow"><Grid RowDefinitions="Auto,Auto" ColumnDefinitions="46,*,Auto">
@@ -98,6 +105,11 @@
             </ScrollViewer>
             <StackPanel Grid.Row="1" IsVisible="{Binding NoRecipients}" VerticalAlignment="Center" Margin="24" Spacing="12" IsHitTestVisible="False">
               <icons:SvgIcon Kind="laptop" Width="32" Height="32" /><TextBlock Text="{DynamicResource Loc.WaitingForDevices}" HorizontalAlignment="Center" /><TextBlock Text="{DynamicResource Loc.OpenFeilvOnAnotherComputerOnTheSameLANOrConnectByIPInSettings}" TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Classes="muted" />
+            </StackPanel>
+            <StackPanel x:Name="NoMatchingDevices" Grid.Row="1" IsVisible="{Binding NoMatchingDevices}" VerticalAlignment="Center" Margin="24" Spacing="12" IsHitTestVisible="False">
+              <icons:SvgIcon Kind="search" Width="30" Height="30" />
+              <TextBlock Text="{DynamicResource Loc.NoMatchingDevices}" HorizontalAlignment="Center" />
+              <TextBlock Text="{DynamicResource Loc.TryAnotherDeviceNameOrIP}" TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Classes="muted" />
             </StackPanel>
           </Grid>
         </TabItem>
