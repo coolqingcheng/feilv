@@ -2,7 +2,7 @@
         xmlns:vm="using:LanChat.Desktop.ViewModels" xmlns:icons="using:LanChat.Desktop.Controls"
         x:Class="LanChat.Desktop.Views.ReceiveFileWindow" x:DataType="vm:ReceiveOffersViewModel"
         Title="{DynamicResource Loc.FeilvIncomingFile}" Width="420" SizeToContent="Height" CanResize="False" ShowInTaskbar="False"
-        ShowActivated="False" Topmost="True" SystemDecorations="None" Background="Transparent" TransparencyLevelHint="Transparent">
+        ShowActivated="True" Topmost="True" SystemDecorations="None" Background="Transparent" TransparencyLevelHint="Transparent">
   <Border Margin="16" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource WindowBorderBrush}" BorderThickness="1" CornerRadius="14" BoxShadow="{DynamicResource WindowShadow}" Padding="18">
     <StackPanel Spacing="13">
       <Grid ColumnDefinitions="Auto,*"><icons:BrandLogo Width="21" Height="24" /><TextBlock Grid.Column="1" Text="{Binding Header, Converter={StaticResource Translate}}" FontSize="15" FontWeight="SemiBold" Margin="9,0,0,0" VerticalAlignment="Center" /></Grid>

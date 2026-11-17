@@ -16,6 +16,7 @@ public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiService
     private bool _rejectionFailed;
     private bool AutomaticEnabled => !_disposed && autoReceive?.Invoke() == true;
     public Task AutomaticReceiveTask { get; private set; } = Task.CompletedTask;
+    public event Action? OfferQueued;
     [ObservableProperty] private ChatMessage? _current;
     [ObservableProperty, NotifyPropertyChangedFor(nameof(CanRespond)), NotifyPropertyChangedFor(nameof(AcceptLabel)), NotifyPropertyChangedFor(nameof(Header)), NotifyPropertyChangedFor(nameof(QueueHint)), NotifyPropertyChangedFor(nameof(ShowDecisionActions)), NotifyPropertyChangedFor(nameof(ShowTransferProgress)), NotifyPropertyChangedFor(nameof(IsIndeterminate))] private bool _isBusy;
     [ObservableProperty, NotifyPropertyChangedFor(nameof(IsIndeterminate))] private double _progress;
@@ -54,7 +55,7 @@ public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiService
         if (_disposed || message.LocalPath is not null || message.Kind == MessageKind.Text || message.Delivery == DeliveryState.Rejected) return;
         if (Same(Current, message) || _pending.Any(x => Same(x, message))) return;
         if (Current is null) Current = message;
-        else _pending.Add(message);
+        else { _pending.Add(message); OfferQueued?.Invoke(); }
         OnPropertyChanged(nameof(QueueHint));
         ApplyReceivePreference();
     }
@@ -71,7 +72,7 @@ public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiService
         }
         _completedSpeeds[message.Id] = bytesPerSecond;
         if (Current is null) Current = message;
-        else _pending.Add(message);
+        else { _pending.Add(message); OfferQueued?.Invoke(); }
         OnPropertyChanged(nameof(QueueHint));
     }
 

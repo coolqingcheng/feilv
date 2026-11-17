@@ -59,8 +59,8 @@ internal static partial class Program
                 && !model.Incoming.ShowDecisionActions && !model.Incoming.SpeedText.Contains("连接", StringComparison.Ordinal),
                 "a committed browser upload opens the existing completed-receive prompt with full progress even in manual mode");
             Check(!window.IsVisible && window.WindowState == WindowState.Minimized && model.IsSettings && window.Position == position
-                && activations == 0 && !prompt.ShowActivated && !prompt.ShowInTaskbar,
-                "QR upload notifications stay in the corner without restoring, activating or navigating the main window");
+                && activations == 0 && prompt.ShowActivated && prompt.Topmost && !prompt.ShowInTaskbar,
+                "QR upload notifications activate the topmost corner prompt without restoring the main window");
             Check(first.LocalPath == actualPath && first.PeerId == QrUpload.SourceId && first.PeerAddress == "127.0.0.1" && first.FileSize == new FileInfo(actualPath).Length
                 && model.Incoming.Source == "来自二维码上传" && model.Incoming.CompletedPath == actualPath,
                 "QR completion displays the real filename, size, source IP and custom destination");

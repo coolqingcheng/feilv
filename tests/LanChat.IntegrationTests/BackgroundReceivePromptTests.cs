@@ -31,17 +31,18 @@ internal static partial class Program
             Check(prompt.IsVisible && !window.IsVisible && window.WindowState == WindowState.Minimized && model.IsSettings
                 && window.Position == position && activations == 0,
                 "incoming file only shows confirmation while the main window stays minimized on its original page");
-            Check(!prompt.ShowActivated && !prompt.ShowInTaskbar && prompt.Topmost && model.Incoming.Current?.Id == first.Result.Id,
-                "background confirmation requests no focus and has no taskbar window");
+            Check(prompt.ShowActivated && !prompt.ShowInTaskbar && prompt.Topmost && model.Incoming.Current?.Id == first.Result.Id,
+                "background confirmation requests activation and stays topmost without a taskbar window");
             var area = prompt.Screens.Primary?.WorkingArea ?? new PixelRect(0, 0, 1920, 1080);
             Check(prompt.Position.X == area.Right - (int)(prompt.Bounds.Width * prompt.RenderScaling) - 12
                 && prompt.Position.Y == area.Bottom - (int)(prompt.Bounds.Height * prompt.RenderScaling) - 12,
                 "background confirmation stays at the bottom right of the screen working area");
             Render(prompt, "background-receive-dark.png");
+            prompt.Hide();
             var second = remote.SendFileAsync(receiver.Result, source, false); Pump(second); Layout();
             Check(prompt.IsVisible && model.Incoming.Current?.Id == first.Result.Id && model.Incoming.QueueHint.Contains("1 个", StringComparison.Ordinal)
                 && !window.IsVisible && activations == 0,
-                "additional background files queue in the same confirmation without activating the main window");
+                "a queued background file reopens the hidden confirmation without activating the main window");
 
             Pump(model.Incoming.AcceptCommand.ExecuteAsync(null)); Layout();
             Check(prompt.IsVisible && model.Incoming.Current?.Id == first.Result.Id && model.Incoming.IsCompleted
