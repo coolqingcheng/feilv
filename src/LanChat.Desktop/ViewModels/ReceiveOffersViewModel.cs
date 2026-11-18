@@ -43,6 +43,8 @@ public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiService
     public string Source => Current?.PeerId == QrUpload.SourceId ? Localizer.Text("来自二维码上传")
         : "来自 " + (string.IsNullOrEmpty(Current?.PeerNickname) ? Localizer.Text("未知电脑") : inbox.FormatPeerName(Current.PeerId, Current.PeerNickname));
     public string Address => "IP " + Current?.PeerAddress;
+    public string TimeDescription => Current is not { } message ? "" :
+        (message.PeerId == QrUpload.SourceId ? "接收时间：" : "发送时间：") + message.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
     public string QueueHint => IsRejecting ? "正在通知发送方…" : _pending.Count > 0 ? PendingHint
         : IsCompleted ? "文件已保存，可打开所在文件夹查看。" : IsBusy || IsAutomatic ? "正在接收，文件按日期保存" : "确认后开始接收，文件按日期保存";
     private string PendingHint => _pending.All(x => x.LocalPath is not null) ? $"还有 {_pending.Count} 个已接收文件等待查看"
@@ -121,7 +123,7 @@ public partial class ReceiveOffersViewModel(FileInboxViewModel inbox, IUiService
         _rejectionFailed = false;
         CompletedPath = null; Error = ""; Progress = 0; SpeedText = "正在连接…";
         if (newValue?.PeerId == QrUpload.SourceId && newValue.LocalPath is not null) Complete(newValue);
-        foreach (var name in new[] { nameof(IsOpen), nameof(CanRespond), nameof(Header), nameof(FileName), nameof(Size), nameof(Source), nameof(Address), nameof(QueueHint) }) OnPropertyChanged(name);
+        foreach (var name in new[] { nameof(IsOpen), nameof(CanRespond), nameof(Header), nameof(FileName), nameof(Size), nameof(Source), nameof(Address), nameof(TimeDescription), nameof(QueueHint) }) OnPropertyChanged(name);
     }
 
     partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanCancelTransfer));

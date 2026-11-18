@@ -33,6 +33,8 @@ internal static partial class Program
                 "incoming file only shows confirmation while the main window stays minimized on its original page");
             Check(prompt.ShowActivated && !prompt.ShowInTaskbar && prompt.Topmost && model.Incoming.Current?.Id == first.Result.Id,
                 "background confirmation requests activation and stays topmost without a taskbar window");
+            Check(prompt.FindControl<TextBlock>("ReceiveTime")!.Text == "发送时间：" + first.Result.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture),
+                "incoming confirmation displays the sender's timestamp in local time");
             var area = prompt.Screens.Primary?.WorkingArea ?? new PixelRect(0, 0, 1920, 1080);
             Check(prompt.Position.X == area.Right - (int)(prompt.Bounds.Width * prompt.RenderScaling) - 12
                 && prompt.Position.Y == area.Bottom - (int)(prompt.Bounds.Height * prompt.RenderScaling) - 12,

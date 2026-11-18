@@ -64,6 +64,8 @@ internal static partial class Program
             Check(first.LocalPath == actualPath && first.PeerId == QrUpload.SourceId && first.PeerAddress == "127.0.0.1" && first.FileSize == new FileInfo(actualPath).Length
                 && model.Incoming.Source == "来自二维码上传" && model.Incoming.CompletedPath == actualPath,
                 "QR completion displays the real filename, size, source IP and custom destination");
+            Check(prompt.FindControl<TextBlock>("ReceiveTime")!.Text == "接收时间：" + first.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture),
+                "QR uploads show their completion time as receipt time");
             model.Incoming.OpenReceivedFolderCommand.Execute(null);
             Check(ui.LastRevealed == actualPath && !window.IsVisible && model.Incoming.IsCompleted, "QR completion locates the exact saved file using the same reveal operation as LAN reception");
             ui.RevealFailure = true; model.Incoming.OpenReceivedFolderCommand.Execute(null);

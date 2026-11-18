@@ -78,6 +78,7 @@ internal static partial class Program
                 "device transfer status translates while the underlying protocol state stays invariant");
             Check(prompt.GetVisualDescendants().OfType<TextBlock>().Any(x => x.Text == "Receive this file?")
                 && prompt.GetVisualDescendants().OfType<TextBlock>().Any(x => x.Text == "From 设置 {name}")
+                && prompt.FindControl<TextBlock>("ReceiveTime")!.Text == "Sent: " + message.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
                 && prompt.FindControl<Button>("AcceptReceiveButton")!.Content?.ToString() == "Receive"
                 && prompt.FindControl<Button>("RejectReceiveButton")!.Content?.ToString() == "Decline",
                 "an already-open receive prompt translates actions and preserves the sender's actual name");
