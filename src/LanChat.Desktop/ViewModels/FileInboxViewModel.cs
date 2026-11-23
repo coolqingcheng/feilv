@@ -431,10 +431,13 @@ public partial class FileInboxViewModel(ILanService lan, ILocalStore store, IUiS
         var speed = ImageLoader.TransferSpeed(update.BytesPerSecond);
         var state = update.Status == "已完成" ? direction + "完成" : update.Status;
         TransferSummary = $"{state} · {speed}\n{update.Name}";
-        foreach (var item in Files.Where(x => x.Model.Id == update.Id || (update.IsUpload && update.AttachmentId is not null && x.IsMine && x.Model.AttachmentId == update.AttachmentId)))
+        foreach (var item in Files.Where(x => (update.PeerId is null || x.Model.PeerId == update.PeerId) &&
+            (update.IsUpload ? x.IsMine && update.AttachmentId is not null && x.Model.AttachmentId == update.AttachmentId : !x.IsMine && x.Model.Id == update.Id)))
         {
             item.Progress = update.TotalBytes == 0 ? 0 : update.CompletedBytes * 100.0 / update.TotalBytes;
-            item.TransferText = update.Status + " · " + speed;
+            item.TransferText = update.IsUpload && update.Status == "准备发送" ? update.Status : update.Status + " · " + speed;
+            if (update.IsUpload && update.Status == "已完成")
+                item.AverageSendBytesPerSecond = update.BytesPerSecond;
             item.IsBusy = update.Status is "连接中" or "下载中" or "准备发送" or "发送中";
         }
     }

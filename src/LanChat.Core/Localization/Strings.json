@@ -899,6 +899,14 @@
     "发送时间：{time}",
     "Sent: {time}"
   ],
+  "AverageSendSpeed": [
+    "平均发送速度：{speed}",
+    "Average send speed: {speed}"
+  ],
+  "SaveSendSpeedFailed": [
+    "保存发送速度失败：{error}",
+    "Could not save send speed: {error}"
+  ],
   "Received2": [
     "接收时间：{time}",
     "Received: {time}"

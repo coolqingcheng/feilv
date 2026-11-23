@@ -24,6 +24,7 @@ public interface ILocalStore
     Task<ChatMessage?> FindMessageAsync(string peerId, string id, CancellationToken cancellationToken = default);
     Task<FileHistoryPage> LoadFileHistoryAsync(string search = "", FileHistoryCursor? before = null, int pageSize = 50, CancellationToken cancellationToken = default);
     Task SaveMessageAsync(ChatMessage message, CancellationToken cancellationToken = default);
+    Task SaveAverageSendSpeedAsync(string peerId, string messageId, double bytesPerSecond);
     Task DeleteMessageAsync(string peerId, string id, CancellationToken cancellationToken = default);
     Task<bool> TrySaveReceivedMessageAsync(ChatMessage message, CancellationToken cancellationToken = default);
     Task<List<SharedFolder>> LoadSharesAsync(CancellationToken cancellationToken = default);

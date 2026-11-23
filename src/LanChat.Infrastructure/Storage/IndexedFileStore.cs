@@ -108,6 +108,14 @@ public sealed class IndexedFileStore : ILocalStore
         return true;
     }, cancellationToken);
 
+    public Task SaveAverageSendSpeedAsync(string peerId, string messageId, double bytesPerSecond) => RunAsync(async files =>
+    {
+        var record = await files.GetAsync(StoredKind.Message, MessageKey(peerId, messageId)).ConfigureAwait(false);
+        if (record is not { IsDeleted: false, Message: { } message }) return false;
+        await files.PutAsync(record with { Message = message with { AverageSendBytesPerSecond = bytesPerSecond } }).ConfigureAwait(false);
+        return true;
+    }, CancellationToken.None);
+
     public Task DeleteMessageAsync(string peerId, string id, CancellationToken cancellationToken = default) => RunAsync(async files =>
     {
         // Keep only a key marker so retries and delayed writes cannot restore a removed record.

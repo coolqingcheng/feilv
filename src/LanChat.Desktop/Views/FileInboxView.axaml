@@ -148,7 +148,7 @@
                       <TextBlock Text="{Binding Address, Converter={StaticResource Translate}}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
                       <TextBlock Text="{Binding Time}" Classes="muted" FontSize="11" ToolTip.Tip="{Binding TimeDescription, Converter={StaticResource Translate}}" />
                       <TextBlock Text="{Binding RejectionLabel, Converter={StaticResource Translate}}" IsVisible="{Binding IsRejected}" Classes="muted" FontSize="11" />
-                      <TextBlock Text="{Binding TransferText, Converter={StaticResource Translate}}" IsVisible="{Binding IsBusy}" Foreground="{DynamicResource AccentBrush}" FontSize="11" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding HistoryTransferText, Converter={StaticResource Translate}}" IsVisible="{Binding ShowTransferText}" Foreground="{DynamicResource AccentBrush}" FontSize="11" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="2" Grid.Row="1" VerticalAlignment="Center" Spacing="5" MinWidth="58">
                       <Button Classes="fileAction" Classes.receiveAction="{Binding IsReceiveAction}" Content="{Binding ActionLabel, Converter={StaticResource Translate}}" Command="{Binding ActCommand}" IsEnabled="{Binding CanAct}" FontSize="12" Padding="5,8" HorizontalAlignment="Stretch" />

@@ -373,7 +373,7 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
         finally { _messageStateGate.Release(); }
         try
         {
-            await RequestAsync(peer, new WirePacket { Type = "message", Message = message with { LocalPath = null } }, cancellationToken);
+            await RequestAsync(peer, new WirePacket { Type = "message", Message = message with { LocalPath = null, AverageSendBytesPerSecond = null } }, cancellationToken);
         }
         catch
         {
@@ -591,7 +591,7 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
             || (incoming.IsFolder && incoming.Kind != MessageKind.File)
             || (incoming.Kind != MessageKind.Text && (!Guid.TryParseExact(incoming.AttachmentId, "N", out _) || (!incoming.IsFolder && incoming.Sha256?.Length != 64))))
             throw new InvalidDataException("消息格式不正确。");
-        var message = incoming with { PeerId = peer.Id, LocalPath = null, Delivery = DeliveryState.Received,
+        var message = incoming with { PeerId = peer.Id, LocalPath = null, AverageSendBytesPerSecond = null, Delivery = DeliveryState.Received,
             PeerNickname = peer.Nickname, PeerAddress = peer.Address, ReceivedAt = DateTimeOffset.UtcNow };
         // The repository deduplicates atomically without loading all history into RAM.
         if (!await store.TrySaveReceivedMessageAsync(message, ct)) return;
@@ -607,11 +607,11 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
             if (_outgoingTransferGate.CurrentCount == 0)
                 Changed(new TransferUpdate(attachment.Id, attachment.FileName, 0, attachment.Size, "排队等待") { IsUpload = true, AttachmentId = attachment.Id, PeerId = peer.Id });
             await _outgoingTransferGate.WaitAsync(ct); acquired = true;
-            if (!attachment.IsFolder) { await SendFileStreamAsync(stream, attachment.Path, attachment.Sha256, ct, peer, attachment.Id); return; }
+            if (!attachment.IsFolder) { await SendFileStreamAsync(stream, attachment.Path, attachment.Sha256, ct, peer, attachment.Id, attachment.MessageId); return; }
             var progress = new TransferProgress(Changed, attachment.Id, attachment.FileName, attachment.Size, true, attachment.Id, peer.Id);
             progress.Report(0, "发送中", force: true);
             await FolderTransferProtocol.SendAsync(stream, attachment, total => progress.Report(total, "发送中"), ct);
-            progress.Report(attachment.Size, "已完成", force: true);
+            await CompleteUploadAsync(peer, attachment.MessageId, progress.Completion(attachment.Size));
         }
         catch (Exception ex)
         {
@@ -621,14 +621,27 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
         finally { if (acquired) _outgoingTransferGate.Release(); }
     }
 
-    private async Task SendFileStreamAsync(Stream stream, string path, string? expectedHash, CancellationToken ct, Peer peer, string? attachmentId = null)
+    private async Task CompleteUploadAsync(Peer peer, string? messageId, TransferUpdate completion)
+    {
+        if (!string.IsNullOrEmpty(messageId))
+        {
+            try { await store.SaveAverageSendSpeedAsync(peer.Id, messageId, completion.BytesPerSecond); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Error?.Invoke("保存发送速度失败：" + ex.Message);
+            }
+        }
+        TouchPeer(peer.Id);
+        TransferChanged?.Invoke(completion);
+    }
+
+    private async Task SendFileStreamAsync(Stream stream, string path, string? expectedHash, CancellationToken ct, Peer peer, string? attachmentId = null, string? messageId = null)
     {
         await using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 65536, true);
         var name = Path.GetFileName(path);
         var id = attachmentId ?? Guid.NewGuid().ToString("N");
         void Changed(TransferUpdate update) { TouchPeer(peer.Id); TransferChanged?.Invoke(update); }
         Changed(new TransferUpdate(id, name, 0, file.Length, "准备发送") { IsUpload = true, AttachmentId = attachmentId, PeerId = peer.Id });
-        TransferProgress? progress = null;
         var buffer = ArrayPool<byte>.Shared.Rent(65536);
         long completed = 0;
         try
@@ -637,15 +650,15 @@ public sealed class LanService(ILocalStore store, UserProfile profile, NodeOptio
             if (expectedHash is not null && expectedHash != hash) throw new IOException("附件内容已变化，请重新发送。");
             file.Position = 0;
             await PacketIO.WriteAsync(stream, new WirePacket { Type = "file", FileName = name, FileSize = file.Length, Sha256 = hash }, ct);
-            progress = new TransferProgress(Changed, id, name, file.Length, true, attachmentId, peer.Id);
+            var progress = new TransferProgress(Changed, id, name, file.Length, true, attachmentId, peer.Id);
             int read;
             while ((read = await file.ReadAsync(buffer.AsMemory(0, 65536), ct).ConfigureAwait(false)) > 0)
             {
                 await stream.WriteAsync(buffer.AsMemory(0, read), ct).ConfigureAwait(false);
-                completed += read; progress?.Report(completed, "发送中");
+                completed += read; progress.Report(completed, "发送中");
             }
             await stream.FlushAsync(ct).ConfigureAwait(false);
-            progress?.Report(completed, "已完成", force: true);
+            await CompleteUploadAsync(peer, messageId, progress.Completion(completed));
         }
         catch (Exception ex)
         {

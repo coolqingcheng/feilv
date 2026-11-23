@@ -51,6 +51,8 @@ public sealed record ChatMessage
     public string PeerNickname { get; set; } = "";
     public string PeerAddress { get; set; } = "";
     public DateTimeOffset? ReceivedAt { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public double? AverageSendBytesPerSecond { get; init; }
 }
 
 public sealed record FileHistoryCursor(long Timestamp, string Id, string PeerId);

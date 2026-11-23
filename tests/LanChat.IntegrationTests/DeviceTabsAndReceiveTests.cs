@@ -86,10 +86,20 @@ internal static partial class Program
         Check(otherStore.LoadMessagesAsync().GetAwaiter().GetResult().Count == 3 && !model.Inbox.IsPickerOpen,
             "a device's Send button opens the file picker and sends directly to that device");
         var directOffer = otherStore.LoadMessagesAsync().GetAwaiter().GetResult().Last();
+        var historyRow = model.Inbox.Files.Single(x => x.Model.Id == directOffer.Id);
+        Check(!historyRow.ShowTransferText, "an offer waiting for acceptance has no measured send speed");
         var sendingPeer = otherNode.ConnectAsync("127.0.0.1", node.Port); Pump(sendingPeer);
         Pump(otherNode.DownloadAttachmentAsync(sendingPeer.Result, directOffer)); Layout();
         Check(other.TransferStatus == "发送完成" && other.TransferSpeed.Contains("/s", StringComparison.Ordinal) && other.HasTransfer && !model.Inbox.ShowTransferSummary,
             "sender UI shows actual upload speed when the other device accepts the file");
+        ClickTab(1); Layout();
+        Check(!historyRow.IsBusy && view.GetVisualDescendants().OfType<TextBlock>().Any(x => x.IsEffectivelyVisible
+            && x.DataContext == historyRow && x.Text == "平均发送速度：" + other.TransferSpeed),
+            "the completed history row retains the measured speed after the progress bar closes");
+        var savedSend = new IndexedFileStore(store.DataDirectory).FindMessageAsync(other.Id, directOffer.Id).GetAwaiter().GetResult();
+        Check(savedSend?.AverageSendBytesPerSecond is > 0 && savedSend.AverageSendBytesPerSecond == historyRow.AverageSendBytesPerSecond,
+            "the same per-file send speed survives reopening the history store");
+        ClickTab(0);
         other.Update(other.Model with { IsOnline = false }); model.Inbox.UpdatePeer(other);
         Pump(model.Inbox.SendDroppedFilesToDeviceAsync(other, [sendA]));
         Check(otherStore.LoadMessagesAsync().GetAwaiter().GetResult().Count == 3 && !model.Inbox.Recipients.Contains(other),

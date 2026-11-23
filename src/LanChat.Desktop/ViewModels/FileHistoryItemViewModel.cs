@@ -28,11 +28,17 @@ public partial class FileHistoryItemViewModel : ViewModelBase
     public bool CanAct => !IsDeleting && !IsBusy && Model.Delivery != DeliveryState.Sending && (HasLocalFile || (!IsRejected && (IsMine ? Model.Delivery == DeliveryState.Failed : Model.AttachmentId is not null)));
     public bool CanDelete => !IsDeleting && !IsBusy && Model.Delivery != DeliveryState.Sending && !_owner.IsDownloading(Key);
     public bool CanCancelReceiving => IsBusy && !IsMine;
+    public bool ShowTransferText => IsBusy || AverageSendBytesPerSecond.HasValue;
+    public string HistoryTransferText => !IsBusy && AverageSendBytesPerSecond is double average
+        ? "平均发送速度：" + ImageLoader.TransferSpeed(average)
+        : TransferText;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(ShowTransferText)), NotifyPropertyChangedFor(nameof(HistoryTransferText))]
+    private double? _averageSendBytesPerSecond;
     public string ActionLabel => IsBusy ? IsMine ? "发送中" : "接收中" : Model.Delivery == DeliveryState.Sending ? "发送中" : IsMine && Model.Delivery == DeliveryState.Failed ? "重试" : HasLocalFile ? "打开文件夹" : IsRejected ? "已拒绝" : IsMine || Model.AttachmentId is null ? "不可用" : "接收";
-    [ObservableProperty, NotifyPropertyChangedFor(nameof(CanAct)), NotifyPropertyChangedFor(nameof(ActionLabel)), NotifyPropertyChangedFor(nameof(CanDelete)), NotifyPropertyChangedFor(nameof(CanCancelReceiving)), NotifyCanExecuteChangedFor(nameof(DeleteCommand))] private bool _isBusy;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(CanAct)), NotifyPropertyChangedFor(nameof(ActionLabel)), NotifyPropertyChangedFor(nameof(CanDelete)), NotifyPropertyChangedFor(nameof(CanCancelReceiving)), NotifyPropertyChangedFor(nameof(HistoryTransferText)), NotifyPropertyChangedFor(nameof(ShowTransferText)), NotifyCanExecuteChangedFor(nameof(DeleteCommand))] private bool _isBusy;
     [ObservableProperty, NotifyPropertyChangedFor(nameof(CanAct)), NotifyPropertyChangedFor(nameof(CanDelete)), NotifyCanExecuteChangedFor(nameof(DeleteCommand))] private bool _isDeleting;
     [ObservableProperty] private double _progress;
-    [ObservableProperty] private string _transferText = "正在连接…";
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(HistoryTransferText))] private string _transferText = "正在连接…";
 
     public FileHistoryItemViewModel(ChatMessage message, string localId, FileInboxViewModel owner)
     {
@@ -42,6 +48,8 @@ public partial class FileHistoryItemViewModel : ViewModelBase
     public void Update(ChatMessage message)
     {
         Model = message;
+        if (IsMine && message.AverageSendBytesPerSecond.HasValue)
+            AverageSendBytesPerSecond = message.AverageSendBytesPerSecond;
         HasLocalFile = message.IsFolder ? Directory.Exists(message.LocalPath) : File.Exists(message.LocalPath);
         OnPropertyChanged(nameof(HasLocalFile));
         OnPropertyChanged(nameof(IsReceiveAction));
